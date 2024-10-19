@@ -12,28 +12,9 @@
             "description": "Visual Studio 2022 Generator.",
             "generator": "Visual Studio 17 2022",
             "binaryDir": "${sourceDir}/out/build/${presetName}"
-        },
-        {
-            "name": "emscripten",
-            "displayName": "Emscripten",
-            "generator": "Ninja Multi-Config",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "toolchainFile": "tools/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
         }
     ],
     "buildPresets": [
-        {
-            "name": "emscripten-debug",
-            "displayName": "Emscripten (Debug)",
-            "configurePreset": "emscripten",
-            "configuration": "Debug"
-        },
-        {
-            "name": "emscripten-release",
-            "displayName": "Emscripten (Release)",
-            "configurePreset": "emscripten",
-            "configuration": "Release"
-        },
         {
             "name": "x64-debug",
             "displayName": "Windows (Debug)",

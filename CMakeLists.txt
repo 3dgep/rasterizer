@@ -1,5 +1,6 @@
-cmake_minimum_required( VERSION 3.31.0 )
+cmake_minimum_required( VERSION 3.30.0 )
 
+option( BUILD_SHARED_LIBS "Build using shared libraries" OFF )
 option( SR_BUILD_SAMPLES "Build samples." ON )
 
 set( SR_VERSION_MAJOR 0 )
@@ -10,14 +11,16 @@ set( SR_VERSION ${SR_VERSION_MAJOR}.${SR_VERSION_MINOR}.${SR_VERSION_PATCH})
 # Use solution folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-project( SoftRast VERSION ${SR_VERSION} LANGUAGES C CXX )
+project( SoftwareRasterizer VERSION ${SR_VERSION} LANGUAGES C CXX )
+
 
 # Enable multi-processor builds in MSVC.
 if(MSVC)
     add_compile_options(/MP)
 endif(MSVC)
 
-add_subdirectory(externals)
+add_subdirectory( externals EXCLUDE_FROM_ALL )
+add_subdirectory( graphics )
 
 if(SR_BUILD_SAMPLES)
     add_subdirectory(samples)
