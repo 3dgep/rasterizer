@@ -1,10 +1,13 @@
 #pragma once
 
+#include <compare>
 #include <cstdint>
 
 namespace sr
 {
-struct Color
+inline namespace Graphics
+{
+struct alignas( 4 ) Color
 {
     /// <summary>
     /// Construct a default (black) color.
@@ -17,18 +20,39 @@ struct Color
     /// <param name="rgba">The color value as a 32-bit integer (0xRRGGBBAA).</param>
     constexpr explicit Color( uint32_t rgba ) noexcept;
 
+    /// <summary>
+    /// Construct a color from red, green, and blue color primaries.
+    /// </summary>
+    /// <param name="r">The red component.</param>
+    /// <param name="g">The green component.</param>
+    /// <param name="b">The blue component.</param>
+    /// <param name="a">The alpha component.</param>
     constexpr Color( uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u ) noexcept;
 
+    constexpr ~Color() noexcept                = default;
     constexpr Color( const Color& ) noexcept   = default;
     constexpr Color( Color&& ) noexcept        = default;
     constexpr Color& operator=( const Color& ) = default;
     constexpr Color& operator=( Color&& )      = default;
 
+    constexpr auto operator<=>( const Color& rhs ) const noexcept;
+    constexpr bool operator==( const Color& rhs ) const noexcept;
+
+    constexpr Color  operator+( const Color& rhs ) const noexcept;
+    constexpr Color& operator+=( const Color& rhs ) noexcept;
+    constexpr Color  operator-( const Color& rhs ) const noexcept;
+    constexpr Color& operator-=( const Color& rhs ) noexcept;
+    constexpr Color  operator*( const Color& rhs ) const noexcept;
+    constexpr Color& operator*=( const Color& rhs ) noexcept;
+    constexpr Color  operator*( float rhs ) const noexcept;
+    constexpr Color& operator*=( float rhs ) noexcept;
+    constexpr Color  operator/( float rhs ) const noexcept;
+    constexpr Color& operator/=( float rhs ) noexcept;
+
     union
     {
         uint32_t rgba;
-
-        struct
+        struct  // TODO: Check for endianness.
         {
             uint8_t a;
             uint8_t b;
@@ -56,4 +80,33 @@ constexpr Color::Color( uint8_t r, uint8_t g, uint8_t b, uint8_t a ) noexcept
 , r { r }
 {}
 
+constexpr bool Color::operator==( const Color& rhs ) const noexcept
+{
+    return a == rhs.a && b == rhs.b && g == rhs.g && r == rhs.r;
+}
+
+constexpr auto Color::operator<=>( const Color& rhs ) const noexcept
+{
+    if ( const auto cmp = a <=> rhs.a; cmp != 0 )
+        return cmp;
+    if ( const auto cmp = b <=> rhs.b; cmp != 0 )
+        return cmp;
+    if ( const auto cmp = g <=> rhs.g; cmp != 0 )
+        return cmp;
+
+    return r <=> rhs.r;
+}
+
+constexpr Color Color::operator+( const Color& _rhs ) const noexcept
+{
+    return {
+        static_cast<uint8_t>( Math::min<uint32_t>( r + _rhs.r, 255u ) ),
+        static_cast<uint8_t>( Math::min<uint32_t>( g + _rhs.g, 255u ) ),
+        static_cast<uint8_t>( Math::min<uint32_t>( b + _rhs.b, 255u ) ),
+        static_cast<uint8_t>( Math::min<uint32_t>( a + _rhs.a, 255u ) ),
+    };
+}
+
+
+}  // namespace Graphics
 }  // namespace sr

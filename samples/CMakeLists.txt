@@ -1,5 +1,9 @@
 add_subdirectory( 01-ClearScreen )
 
+set_target_properties(
+	01-ClearScreen
+	PROPERTIES FOLDER samples
+)
 
 # Set the startup project.
 set_directory_properties( PROPERTIES

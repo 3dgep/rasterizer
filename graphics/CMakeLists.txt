@@ -1,10 +1,12 @@
 cmake_minimum_required( VERSION 3.30.0 )
 
 set( INC_FILES
-	inc/Graphics/Color.hpp
-	inc/Graphics/Image.hpp
-	inc/Graphics/Window.hpp
-	inc/Graphics/WindowImpl.hpp
+	inc/aligned_unique_ptr.hpp
+	inc/graphics/Buffer.hpp
+	inc/graphics/Color.hpp
+	inc/graphics/Image.hpp
+	inc/graphics/Window.hpp
+	inc/graphics/WindowImpl.hpp
 )
 
 set( SRC_FILES
@@ -25,17 +27,18 @@ set( ALL_FILES
     ../.clang-format
 )
 
-add_library( Graphics STATIC ${ALL_FILES} )
+add_library( graphics STATIC ${ALL_FILES} )
 
-set_target_properties( Graphics
+set_target_properties( graphics
     PROPERTIES
         CXX_STANDARD 20
 )
 
-target_include_directories( Graphics
+target_include_directories( graphics
     PUBLIC inc
 )
 
-target_link_libraries( Graphics
+target_link_libraries( graphics
     PRIVATE SDL3::SDL3
+	PUBLIC math
 )
