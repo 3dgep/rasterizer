@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.30.0 )
+cmake_minimum_required( VERSION 3.12...3.31 )
 
 set( INC_FILES
 	inc/aligned_unique_ptr.hpp
@@ -6,12 +6,11 @@ set( INC_FILES
 	inc/graphics/Color.hpp
 	inc/graphics/Image.hpp
 	inc/graphics/Window.hpp
-	inc/graphics/WindowImpl.hpp
 )
 
 set( SRC_FILES
 	src/Window.cpp
-	
+	src/WindowImpl.hpp
 )
 
 if( TARGET SDL3::SDL3 )

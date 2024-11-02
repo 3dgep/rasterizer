@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.22.1 )
+cmake_minimum_required( VERSION 3.12...3.31 )
 
 set( INC_FILES
     inc/math/AABB.hpp

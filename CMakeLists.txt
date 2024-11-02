@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.30.0 )
+cmake_minimum_required( VERSION 3.12...3.31 )
 
 option( BUILD_SHARED_LIBS "Build using shared libraries" OFF )
 option( SR_BUILD_SAMPLES "Build samples." ON )

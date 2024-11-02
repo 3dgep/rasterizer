@@ -5,8 +5,10 @@ namespace sr
 class WindowImpl
 {
 public:
-    virtual int  getWidth() const noexcept = 0;
-    virtual int  getHeight() const noexcept = 0;
+    virtual int  getWidth() const noexcept       = 0;
+    virtual int  getHeight() const noexcept      = 0;
+    virtual void resize( int width, int height ) = 0;
+
     virtual void present() = 0;
 
 protected:

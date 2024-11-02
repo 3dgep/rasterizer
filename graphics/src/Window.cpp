@@ -11,3 +11,8 @@ Window::Window( std::string_view title, int width, int height )
 {
 
 }
+
+void Window::create( std::string_view title, int width, int height )
+{
+    
+}
