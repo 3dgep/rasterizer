@@ -1,25 +1,32 @@
-#define SDL_MAIN_USE_CALLBACKS
-#include <SDL3/SDL_main.h>
-#include <SDL3/SDL.h>
+#include <graphics/Window.hpp>
 
-SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
+using namespace sr;
+
+int main( int argc, char* argv[] )
 {
-    
-    return SDL_APP_CONTINUE;
-}
+    bool isPlaying = true;
 
+    Window window( "Clear Screen", 1280, 720 );
 
-SDL_AppResult SDL_AppIterate(void* appstate)
-{
-    return SDL_APP_CONTINUE;
-}
+    while ( window )
+    {
+        SDL_Event event;
+        while ( window.pollEvent( event ) )
+        {
+            switch ( event.type )
+            {
+            case SDL_EVENT_KEY_DOWN:
+                switch ( event.key.scancode )
+                {
+                case SDL_SCANCODE_ESCAPE:
+                    window.destroy();
+                    break;
+                }
+                break;
+            }
+        }
 
-SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
-{
-    return SDL_APP_CONTINUE;
-}
-
-void SDL_AppQuit(void* appstate, SDL_AppResult result)
-{
-    
+        window.clear( Color::Black );
+        window.present();
+    }
 }

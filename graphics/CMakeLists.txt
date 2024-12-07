@@ -9,16 +9,9 @@ set( INC_FILES
 )
 
 set( SRC_FILES
+    src/Color.cpp
 	src/Window.cpp
-	src/WindowImpl.hpp
 )
-
-if( TARGET SDL3::SDL3 )
-	list( APPEND SRC_FILES
-		src/SDL3/WindowSDL3.hpp
-		src/SDL3/WindowSDL3.cpp
-	)
-endif()
 
 set( ALL_FILES 
     ${SRC_FILES} 
@@ -38,6 +31,5 @@ target_include_directories( graphics
 )
 
 target_link_libraries( graphics
-    PRIVATE SDL3::SDL3
-	PUBLIC math
+    PUBLIC math SDL3::SDL3
 )

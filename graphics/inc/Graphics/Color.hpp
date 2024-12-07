@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math/Math.hpp>
+
 #include <compare>
 #include <cstdint>
 
@@ -7,7 +9,7 @@ namespace sr
 {
 inline namespace Graphics
 {
-struct alignas( 4 ) Color
+struct Color
 {
     /// <summary>
     /// Construct a default (black) color.
@@ -29,7 +31,7 @@ struct alignas( 4 ) Color
     /// <param name="a">The alpha component.</param>
     constexpr Color( uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u ) noexcept;
 
-    constexpr ~Color() noexcept                = default;
+    ~Color() noexcept                = default;
     constexpr Color( const Color& ) noexcept   = default;
     constexpr Color( Color&& ) noexcept        = default;
     constexpr Color& operator=( const Color& ) = default;
@@ -60,6 +62,12 @@ struct alignas( 4 ) Color
             uint8_t r;
         };
     };
+
+    static const Color White;
+    static const Color Black;
+    static const Color Red;
+    static const Color Green;
+    static const Color Blue;
 };
 
 constexpr Color::Color() noexcept
@@ -100,10 +108,10 @@ constexpr auto Color::operator<=>( const Color& rhs ) const noexcept
 constexpr Color Color::operator+( const Color& _rhs ) const noexcept
 {
     return {
-        static_cast<uint8_t>( Math::min<uint32_t>( r + _rhs.r, 255u ) ),
-        static_cast<uint8_t>( Math::min<uint32_t>( g + _rhs.g, 255u ) ),
-        static_cast<uint8_t>( Math::min<uint32_t>( b + _rhs.b, 255u ) ),
-        static_cast<uint8_t>( Math::min<uint32_t>( a + _rhs.a, 255u ) ),
+        static_cast<uint8_t>( math::min<uint32_t>( r + _rhs.r, 255u ) ),
+        static_cast<uint8_t>( math::min<uint32_t>( g + _rhs.g, 255u ) ),
+        static_cast<uint8_t>( math::min<uint32_t>( b + _rhs.b, 255u ) ),
+        static_cast<uint8_t>( math::min<uint32_t>( a + _rhs.a, 255u ) ),
     };
 }
 
