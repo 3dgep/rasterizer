@@ -7,7 +7,7 @@
 
 namespace sr
 {
-inline namespace Graphics
+inline namespace graphics
 {
 struct Color
 {
@@ -31,7 +31,7 @@ struct Color
     /// <param name="a">The alpha component.</param>
     constexpr Color( uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u ) noexcept;
 
-    ~Color() noexcept                = default;
+    ~Color() noexcept                          = default;
     constexpr Color( const Color& ) noexcept   = default;
     constexpr Color( Color&& ) noexcept        = default;
     constexpr Color& operator=( const Color& ) = default;
@@ -115,6 +115,5 @@ constexpr Color Color::operator+( const Color& _rhs ) const noexcept
     };
 }
 
-
-}  // namespace Graphics
+}  // namespace graphics
 }  // namespace sr

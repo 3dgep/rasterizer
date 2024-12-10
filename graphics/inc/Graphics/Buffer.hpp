@@ -5,7 +5,9 @@
 #include <cassert>
 #include <cstddef>
 
-namespace Graphics
+namespace sr
+{
+inline namespace graphics
 {
 template<typename T, std::size_t Alignment = 64>
 struct Buffer
@@ -136,4 +138,5 @@ void Buffer<T, Alignment>::clear( const T& v )
         p[i] = v;
 }
 
-}  // namespace Graphics
+}  // namespace graphics
+}  // namespace sr

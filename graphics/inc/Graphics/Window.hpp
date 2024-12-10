@@ -1,15 +1,20 @@
 #pragma once
 
 #include "Color.hpp"
+#include "Image.hpp"
 
+#include <SDL3/SDL_events.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
-#include <SDL3/SDL_events.h>
 
 #include <string_view>
 
 namespace sr
 {
+
+inline namespace graphics
+{
+
 class WindowImpl;
 
 class Window final
@@ -40,15 +45,17 @@ public:
 
     void clear( const Color& color );
 
-    void present();
+    void present( const Image& image );
 
 private:
-    SDL_Window*   window   = nullptr;
-    SDL_Renderer* renderer = nullptr;
-    SDL_Texture*  texture  = nullptr;
+    SDL_Window*   m_Window   = nullptr;
+    SDL_Renderer* m_Renderer = nullptr;
+    SDL_Texture*  m_Texture  = nullptr;
 
-    int width = -1;
-    int height = -1;
-    bool fullScreen = false;
+    int  m_Width      = -1;
+    int  m_Height     = -1;
+    bool m_FullScreen = false;
 };
+
+}  // namespace graphics
 }  // namespace sr

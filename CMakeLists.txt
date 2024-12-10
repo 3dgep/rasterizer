@@ -11,7 +11,7 @@ set( SR_VERSION ${SR_VERSION_MAJOR}.${SR_VERSION_MINOR}.${SR_VERSION_PATCH})
 # Use solution folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-project( SoftwareRasterizer VERSION ${SR_VERSION} LANGUAGES C CXX )
+project( rasterizer VERSION ${SR_VERSION} LANGUAGES C CXX )
 
 
 # Enable multi-processor builds in MSVC.

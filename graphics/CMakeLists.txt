@@ -6,11 +6,20 @@ set( INC_FILES
 	inc/graphics/Color.hpp
 	inc/graphics/Image.hpp
 	inc/graphics/Window.hpp
+    inc/stb_easy_font.h
+    inc/stb_image.h
+    inc/stb_image_write.h
+    inc/stb_rect_pack.h
+    inc/stb_truetype.h
 )
 
 set( SRC_FILES
     src/Color.cpp
+    src/Image.cpp
 	src/Window.cpp
+    src/stb_image.cpp
+    src/stb_image_write.cpp
+    src/stb_truetype.cpp
 )
 
 set( ALL_FILES 

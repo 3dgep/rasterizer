@@ -1,4 +1,5 @@
 #include <graphics/Window.hpp>
+#include <graphics/Image.hpp>
 
 using namespace sr;
 
@@ -7,6 +8,8 @@ int main( int argc, char* argv[] )
     bool isPlaying = true;
 
     Window window( "Clear Screen", 1280, 720 );
+    Image  image { 800, 600 };
+    image.clear( Color::Green );
 
     while ( window )
     {
@@ -27,6 +30,6 @@ int main( int argc, char* argv[] )
         }
 
         window.clear( Color::Black );
-        window.present();
+        window.present(image);
     }
 }
