@@ -87,7 +87,7 @@ Image& Image::operator=( Image&& other ) noexcept
 
 void Image::clear( const Color& color ) noexcept
 {
-    std::memset( m_Data.get(), color.rgba, static_cast<size_t>( m_Width ) * m_Height * sizeof( Color ) );
+    std::fill_n( m_Data.get(), m_Width * m_Height, color );
 }
 
 void Image::resize( uint32_t width, uint32_t height )

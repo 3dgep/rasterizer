@@ -92,6 +92,9 @@ void Window::create( std::string_view title, int width, int height, bool fullscr
         throw std::exception( SDL_GetError() );
     }
 
+    // Enable vsync.
+    SDL_SetRenderVSync( m_Renderer, 1 );
+
     resize( width, height );
 }
 
@@ -159,7 +162,7 @@ void Window::present( const Image& image )
         return;
 
     float w, h;
-    if ( !m_Texture || SDL_GetTextureSize( m_Texture, &w, &h ) && w != static_cast<float>( image.width() ) || h != static_cast<float>( image.height() ) )
+    if ( !m_Texture || SDL_GetTextureSize( m_Texture, &w, &h ) && ( w != static_cast<float>( image.width() ) || h != static_cast<float>( image.height() ) ) )
     {
         if ( m_Texture )
             SDL_DestroyTexture( m_Texture );
@@ -204,7 +207,7 @@ void Window::present( const Image& image )
     dstRect.x = ( static_cast<float>( m_Width ) - dstRect.w ) / 2;
     dstRect.y = ( static_cast<float>( m_Height ) - dstRect.h ) / 2;
 
-    if ( !SDL_RenderTexture( m_Renderer, m_Texture, nullptr, &dstRect ) )
+    if ( !SDL_RenderTexture( m_Renderer, m_Texture, &srcRect, &dstRect ) )
     {
         SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to render texture: %s", SDL_GetError() );
         return;

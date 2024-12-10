@@ -1,15 +1,14 @@
-#include <graphics/Window.hpp>
 #include <graphics/Image.hpp>
+#include <graphics/Window.hpp>
 
 using namespace sr;
 
-int main( int argc, char* argv[] )
+int main()
 {
     bool isPlaying = true;
 
     Window window( "Clear Screen", 1280, 720 );
     Image  image { 800, 600 };
-    image.clear( Color::Green );
 
     while ( window )
     {
@@ -30,6 +29,9 @@ int main( int argc, char* argv[] )
         }
 
         window.clear( Color::Black );
-        window.present(image);
+
+        image.clear( Color::Red );
+
+        window.present( image );
     }
 }

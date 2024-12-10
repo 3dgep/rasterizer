@@ -19,7 +19,7 @@ struct Color
     /// <summary>
     /// Construct a color from a 32-bit integer.
     /// </summary>
-    /// <param name="rgba">The color value as a 32-bit integer (0xRRGGBBAA).</param>
+    /// <param name="rgba">The color value as a 32-bit integer (0xAABBGGRR).</param>
     constexpr explicit Color( uint32_t rgba ) noexcept;
 
     /// <summary>
@@ -56,10 +56,10 @@ struct Color
         uint32_t rgba;
         struct  // TODO: Check for endianness.
         {
-            uint8_t a;
-            uint8_t b;
-            uint8_t g;
             uint8_t r;
+            uint8_t g;
+            uint8_t b;
+            uint8_t a;
         };
     };
 
@@ -71,10 +71,10 @@ struct Color
 };
 
 constexpr Color::Color() noexcept
-: a { 255 }
-, b { 0 }
+: r { 0 }
 , g { 0 }
-, r { 0 }
+, b { 0 }
+, a { 255 }
 {}
 
 constexpr Color::Color( uint32_t rgba ) noexcept
@@ -82,27 +82,27 @@ constexpr Color::Color( uint32_t rgba ) noexcept
 {}
 
 constexpr Color::Color( uint8_t r, uint8_t g, uint8_t b, uint8_t a ) noexcept
-: a { a }
-, b { b }
+: r { r }
 , g { g }
-, r { r }
+, b { b }
+, a { a }
 {}
 
 constexpr bool Color::operator==( const Color& rhs ) const noexcept
 {
-    return a == rhs.a && b == rhs.b && g == rhs.g && r == rhs.r;
+    return rgba == rhs.rgba;
 }
 
 constexpr auto Color::operator<=>( const Color& rhs ) const noexcept
 {
-    if ( const auto cmp = a <=> rhs.a; cmp != 0 )
-        return cmp;
-    if ( const auto cmp = b <=> rhs.b; cmp != 0 )
+    if ( const auto cmp = r <=> rhs.r; cmp != 0 )
         return cmp;
     if ( const auto cmp = g <=> rhs.g; cmp != 0 )
         return cmp;
+    if ( const auto cmp = b <=> rhs.b; cmp != 0 )
+        return cmp;
 
-    return r <=> rhs.r;
+    return a <=> rhs.a;
 }
 
 constexpr Color Color::operator+( const Color& _rhs ) const noexcept
