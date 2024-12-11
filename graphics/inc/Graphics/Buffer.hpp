@@ -131,11 +131,13 @@ std::size_t Buffer<T, Alignment>::getSize() const noexcept
 template<typename T, std::size_t Alignment>
 void Buffer<T, Alignment>::clear( const T& v )
 {
-    T* p = data();
+//    T* p = data();
+//
+//#pragma omp parallel for
+//    for ( int i = 0; i < static_cast<int>( m_size ); ++i )
+//        p[i] = v;
 
-#pragma omp parallel for
-    for ( int i = 0; i < static_cast<int>( m_size ); ++i )
-        p[i] = v;
+    std::fill_n( data(), m_size, v );
 }
 
 }  // namespace graphics

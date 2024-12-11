@@ -216,9 +216,9 @@ constexpr uint8_t ComputeBlendOp( uint8_t sA, uint8_t dA, BlendOperation op ) no
     case BlendOperation::ReverseSubtract:
         return dA - sA;
     case BlendOperation::Min:
-        return std::min( sA, dA );
+        return sA < dA ? sA : dA;
     case BlendOperation::Max:
-        return std::max( sA, dA );
+        return sA > dA ? sA : dA;
     }
 
     return sA;

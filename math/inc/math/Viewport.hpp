@@ -1,14 +1,14 @@
 #pragma once
 
+#include <limits>
+
 namespace sr
 {
 inline namespace math
 {
 struct Viewport
 {
-    Viewport() = default;
-
-    Viewport( float x, float y, float width, float height, float minDepth = 0.0f, float maxDepth = 1.0f )
+    explicit Viewport( float x = 0.0f, float y = 0.0f, float width = std::numeric_limits<float>::max(), float height = std::numeric_limits<float>::max(), float minDepth = 0.0f, float maxDepth = 1.0f )
     : x { x }
     , y { y }
     , width { width }
@@ -19,8 +19,8 @@ struct Viewport
 
     float x        = 0.0f;
     float y        = 0.0f;
-    float width    = 0.0f;
-    float height   = 0.0f;
+    float width    = std::numeric_limits<float>::max();
+    float height   = std::numeric_limits<float>::max();
     float minDepth = 0.0f;
     float maxDepth = 1.0f;
 };

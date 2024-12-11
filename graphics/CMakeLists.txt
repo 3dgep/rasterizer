@@ -5,8 +5,10 @@ set( INC_FILES
     inc/graphics/BlendMode.hpp
 	inc/graphics/Buffer.hpp
 	inc/graphics/Color.hpp
+    inc/graphics/Enums.hpp
 	inc/graphics/Image.hpp
     inc/graphics/Rasterizer.hpp
+    inc/graphics/RenderTarget.hpp
     inc/graphics/Vertex.hpp
 	inc/graphics/Window.hpp
     inc/stb_easy_font.h
@@ -35,10 +37,7 @@ set( ALL_FILES
 
 add_library( graphics STATIC ${ALL_FILES} )
 
-set_target_properties( graphics
-    PROPERTIES
-        CXX_STANDARD 20
-)
+target_compile_features( graphics PUBLIC cxx_std_20 )
 
 target_include_directories( graphics
     PUBLIC inc

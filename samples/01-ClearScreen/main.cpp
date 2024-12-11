@@ -1,6 +1,7 @@
 #include <Timer.hpp>
 
 #include <graphics/Image.hpp>
+#include <graphics/Rasterizer.hpp>
 #include <graphics/Window.hpp>
 
 #include <iostream>
@@ -10,8 +11,15 @@ using namespace sr;
 int main()
 {
     Window window( "Clear Screen", 1280, 720 );
-    Image  image { 800, 600 };
+    Image  image { 320, 180 };
+    Rasterizer rasterizer;
     Timer  timer;
+
+    image.clear( Color::CornFlowerBlue );
+
+    // Setup the rasterizer's render target state.
+    rasterizer.state.renderTarget.color[0] = &image;
+    rasterizer.state.viewports[0]          = Viewport { 20, 20, 280, 140 };
 
     while ( window )
     {
@@ -45,7 +53,12 @@ int main()
 
         window.clear( Color::Black );
 
-        image.clear( Color::fromHSV( static_cast<float>( timer.totalSeconds() * 60.0 ) ) );
+        for ( int i = 0; i < image.width(); ++i )
+        {
+            float hue              = static_cast<float>( i ) / static_cast<float>( image.width() ) * 360.0f;
+            rasterizer.state.color = Color::fromHSV( hue );
+            rasterizer.drawLine( i, 0, i, static_cast<int>( image.height() ) );
+        }
 
         window.present( image );
     }

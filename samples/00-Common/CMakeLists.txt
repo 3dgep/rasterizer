@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12...3.33.0 )
+cmake_minimum_required( VERSION 3.12...3.33 )
 
 set( TARGET_NAME 00-Common )
 
@@ -11,8 +11,6 @@ set( SRC
 )
 
 add_library( ${TARGET_NAME} STATIC ${INC} ${SRC} )
-
-target_compile_features( ${TARGET_NAME} PUBLIC cxx_std_20 )
 
 target_include_directories( ${TARGET_NAME}
 	PUBLIC ./inc

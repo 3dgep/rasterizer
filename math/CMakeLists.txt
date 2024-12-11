@@ -32,10 +32,7 @@ set( ALL_FILES
 
 add_library( math STATIC ${ALL_FILES} )
 
-set_target_properties( math
-    PROPERTIES
-        CXX_STANDARD 20
-)
+target_compile_features( math PUBLIC cxx_std_20 )
 
 target_include_directories( math
     PUBLIC inc

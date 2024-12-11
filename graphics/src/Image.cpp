@@ -1,7 +1,8 @@
-#include <iostream>
 #include <graphics/Image.hpp>
+#include <iostream>
 
 #include <stb_image.h>
+#include <stb_image_write.h>
 
 using namespace sr::graphics;
 
@@ -73,6 +74,78 @@ Image& Image::operator=( Image&& other ) noexcept
     other.m_AABB   = {};
 
     return *this;
+}
+
+namespace
+{
+constexpr int fast_floor( float x ) noexcept
+{
+    return static_cast<int>( static_cast<double>( x ) + 1073741823.0 ) - 1073741823;
+}
+
+constexpr int fast_mod( int x, int y ) noexcept
+{
+    return x - y * fast_floor( static_cast<float>( x ) / static_cast<float>( y ) );
+}
+}  // namespace
+
+const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexcept
+{
+    const int w = static_cast<int>( m_Width );
+    const int h = static_cast<int>( m_Height );
+
+    switch ( addressMode )
+    {
+    case AddressMode::Wrap:
+    {
+        u = fast_mod( u, w );
+        v = fast_mod( v, h );
+    }
+    break;
+    case AddressMode::Mirror:
+    {
+        u = u / w % 2 == 0 ? fast_mod( u, w ) : ( w - 1 ) - fast_mod( u, w );
+        v = v / h % 2 == 0 ? fast_mod( v, h ) : ( h - 1 ) - fast_mod( v, h );
+    }
+    break;
+    case AddressMode::Clamp:
+    {
+        u = math::clamp( u, 0, w - 1 );
+        v = math::clamp( v, 0, h - 1 );
+    }
+    break;
+    }
+
+    assert( u >= 0 && u < w );
+    assert( v >= 0 && v < h );
+
+    return m_Data[static_cast<uint64_t>( v ) * m_Width + u];
+}
+
+void Image::save( const std::filesystem::path& file ) const
+{
+    const auto extension = file.extension();
+
+    if ( extension == ".png" )
+    {
+        stbi_write_png( file.string().c_str(), static_cast<int>( m_Width ), static_cast<int>( m_Height ), 4, m_Data.get(), static_cast<int>( m_Width * sizeof( Color ) ) );
+    }
+    else if ( extension == ".bmp" )
+    {
+        stbi_write_bmp( file.string().c_str(), static_cast<int>( m_Width ), static_cast<int>( m_Height ), 4, m_Data.get() );
+    }
+    else if ( extension == ".tga" )
+    {
+        stbi_write_tga( file.string().c_str(), static_cast<int>( m_Width ), static_cast<int>( m_Height ), 4, m_Data.get() );
+    }
+    else if ( extension == ".jpg" )
+    {
+        stbi_write_jpg( file.string().c_str(), static_cast<int>( m_Width ), static_cast<int>( m_Height ), 4, m_Data.get(), 10 );
+    }
+    else
+    {
+        std::cerr << "Invalid file type: " << file << std::endl;
+    }
 }
 
 void Image::clear( const Color& color ) noexcept
