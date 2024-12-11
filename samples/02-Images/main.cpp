@@ -26,6 +26,13 @@ int main()
                 case SDLK_V:
                     window.toggleVSync();
                     break;
+                case SDLK_RETURN:
+                    if ( (event.key.mod & SDL_KMOD_ALT) != 0 )
+                    {
+                    case SDLK_F11:
+                        window.toggleFullscreen();
+                    }
+                    break;
                 }
                 break;
             }

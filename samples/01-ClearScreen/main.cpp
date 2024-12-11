@@ -18,10 +18,20 @@ int main()
             switch ( event.type )
             {
             case SDL_EVENT_KEY_DOWN:
-                switch ( event.key.scancode )
+                switch ( event.key.key )
                 {
-                case SDL_SCANCODE_ESCAPE:
+                case SDLK_ESCAPE:
                     window.destroy();
+                    break;
+                case SDLK_V:
+                    window.toggleVSync();
+                    break;
+                case SDLK_RETURN:
+                    if ( ( event.key.mod & SDL_KMOD_ALT ) != 0 )
+                    {
+                    case SDLK_F11:
+                        window.toggleFullscreen();
+                    }
                     break;
                 }
                 break;
