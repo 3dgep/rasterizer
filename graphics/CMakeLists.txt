@@ -2,9 +2,12 @@ cmake_minimum_required( VERSION 3.12...3.31 )
 
 set( INC_FILES
 	inc/aligned_unique_ptr.hpp
+    inc/graphics/BlendMode.hpp
 	inc/graphics/Buffer.hpp
 	inc/graphics/Color.hpp
 	inc/graphics/Image.hpp
+    inc/graphics/Rasterizer.hpp
+    inc/graphics/Vertex.hpp
 	inc/graphics/Window.hpp
     inc/stb_easy_font.h
     inc/stb_image.h
@@ -14,8 +17,10 @@ set( INC_FILES
 )
 
 set( SRC_FILES
+    src/BlendMode.cpp
     src/Color.cpp
     src/Image.cpp
+    src/Rasterizer.cpp
 	src/Window.cpp
     src/stb_image.cpp
     src/stb_image_write.cpp

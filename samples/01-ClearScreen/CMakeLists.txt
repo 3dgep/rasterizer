@@ -20,5 +20,5 @@ set_target_properties( ${TARGET_NAME}
 )
 
 target_link_libraries( ${TARGET_NAME} 
-    PRIVATE graphics math
+    PRIVATE graphics math 00-Common
 )

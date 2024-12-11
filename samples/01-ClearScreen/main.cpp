@@ -1,17 +1,22 @@
+#include <Timer.hpp>
+
 #include <graphics/Image.hpp>
 #include <graphics/Window.hpp>
+
+#include <iostream>
 
 using namespace sr;
 
 int main()
 {
-    bool isPlaying = true;
-
     Window window( "Clear Screen", 1280, 720 );
     Image  image { 800, 600 };
+    Timer  timer;
 
     while ( window )
     {
+        timer.tick();
+
         SDL_Event event;
         while ( window.pollEvent( event ) )
         {
@@ -40,7 +45,7 @@ int main()
 
         window.clear( Color::Black );
 
-        image.clear( Color::Red );
+        image.clear( Color::fromHSV( static_cast<float>( timer.totalSeconds() * 60.0 ) ) );
 
         window.present( image );
     }
