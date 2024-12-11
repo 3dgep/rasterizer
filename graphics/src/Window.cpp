@@ -42,14 +42,16 @@ Window::Window( Window&& _window ) noexcept
 , m_Texture( _window.m_Texture )
 , m_Width( _window.m_Width )
 , m_Height( _window.m_Height )
-, m_FullScreen( _window.m_FullScreen )
+, m_Fullscreen( _window.m_Fullscreen )
+, m_VSync( _window.m_VSync )
 {
     _window.m_Window     = nullptr;
     _window.m_Renderer   = nullptr;
     _window.m_Texture    = nullptr;
     _window.m_Width      = -1;
     _window.m_Height     = -1;
-    _window.m_FullScreen = false;
+    _window.m_Fullscreen = false;
+    _window.m_VSync      = true;
 }
 
 Window& Window::operator=( Window&& _window ) noexcept
@@ -62,14 +64,16 @@ Window& Window::operator=( Window&& _window ) noexcept
     m_Texture    = _window.m_Texture;
     m_Width      = _window.m_Width;
     m_Height     = _window.m_Height;
-    m_FullScreen = _window.m_FullScreen;
+    m_Fullscreen = _window.m_Fullscreen;
+    m_VSync      = _window.m_VSync;
 
     _window.m_Window     = nullptr;
     _window.m_Renderer   = nullptr;
     _window.m_Texture    = nullptr;
     _window.m_Width      = -1;
     _window.m_Height     = -1;
-    _window.m_FullScreen = false;
+    _window.m_Fullscreen = false;
+    _window.m_VSync      = true;
 
     return *this;
 }
@@ -93,7 +97,7 @@ void Window::create( std::string_view title, int width, int height, bool fullscr
     }
 
     // Enable vsync.
-    SDL_SetRenderVSync( m_Renderer, 1 );
+    SDL_SetRenderVSync( m_Renderer, m_VSync ? 1 : 0 );
 
     resize( width, height );
 }
@@ -113,11 +117,8 @@ bool Window::pollEvent( SDL_Event& event )
         case SDL_EVENT_WINDOW_RESIZED:
             if ( SDL_GetWindowFromEvent( &event ) == m_Window )
             {
-                int w, h;
-                if ( SDL_GetWindowSizeInPixels( m_Window, &w, &h ) )
-                {
-                    resize( w, h );
-                }
+                m_Width = event.window.data1;
+                m_Height = event.window.data2;
             }
             break;
         case SDL_EVENT_QUIT:
@@ -131,6 +132,45 @@ bool Window::pollEvent( SDL_Event& event )
 
     return false;
 }
+
+void Window::setFullscreen( bool fullscreen )
+{
+    if ( m_Window )
+    {
+        SDL_SetWindowFullscreen( m_Window, fullscreen );
+        m_Fullscreen = fullscreen;
+    }
+}
+
+void Window::toggleFullscreen()
+{
+    setFullscreen( !m_Fullscreen );
+}
+
+bool Window::isFullscreen() const noexcept
+{
+    return m_Fullscreen;
+}
+
+void Window::setVSync( bool enabled )
+{
+    if (m_Renderer)
+    {
+        SDL_SetRenderVSync( m_Renderer, enabled ? 1 : 0 );
+        m_VSync = enabled;
+    }
+}
+
+void Window::toggleVSync()
+{
+    setVSync( !m_VSync );
+}
+
+bool Window::isVSync() const noexcept
+{
+    return m_VSync;
+}
+
 
 void Window::resize( int _width, int _height )
 {

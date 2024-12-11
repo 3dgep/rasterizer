@@ -35,16 +35,6 @@ Image::Image( const std::filesystem::path& fileName )
         return;
     }
 
-    // Convert ARGB
-    unsigned char* p = data;
-    for ( size_t i = 0; i < x * y; ++i )
-    {
-        unsigned char c = p[0];
-        p[0]            = p[2];
-        p[2]            = c;
-        p += 4;
-    }
-
     resize( static_cast<uint32_t>( x ), static_cast<uint32_t>( y ) );
 
     std::memcpy( m_Data.get(), data, static_cast<std::size_t>( m_Width ) * m_Height * sizeof( Color ) );

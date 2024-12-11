@@ -23,7 +23,7 @@ public:
     Window() = default;
     ~Window();
 
-    Window( std::string_view title, int width, int height, bool fullScreen = false );
+    Window( std::string_view title, int width, int height, bool fullscreen = false );
     Window( const Window& ) = delete;
     Window( Window&& window ) noexcept;
 
@@ -41,9 +41,21 @@ public:
 
     bool pollEvent( SDL_Event& event );
 
-    void resize( int width, int height );
+    void setFullscreen( bool fullscreen );
+
+    void toggleFullscreen();
+
+    bool isFullscreen() const noexcept;
+
+    void setVSync( bool enabled );
+
+    void toggleVSync();
+
+    bool isVSync() const noexcept;
 
     void clear( const Color& color );
+
+    void resize( int width, int height );
 
     void present( const Image& image );
 
@@ -54,7 +66,8 @@ private:
 
     int  m_Width      = -1;
     int  m_Height     = -1;
-    bool m_FullScreen = false;
+    bool m_Fullscreen = false;
+    bool m_VSync      = true;
 };
 
 }  // namespace graphics
