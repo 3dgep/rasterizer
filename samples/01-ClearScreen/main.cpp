@@ -4,8 +4,6 @@
 #include <graphics/Rasterizer.hpp>
 #include <graphics/Window.hpp>
 
-#include <iostream>
-
 using namespace sr;
 
 int main()
@@ -18,7 +16,7 @@ int main()
     image.clear( Color::CornFlowerBlue );
 
     // Setup the rasterizer's render target state.
-    rasterizer.state.renderTarget.color[0] = &image;
+    rasterizer.state.colorTargets[0] = &image;
     rasterizer.state.viewports[0]          = Viewport { 20, 20, 280, 140 };
 
     while ( window )

@@ -53,6 +53,18 @@ struct AABB
     }
 
     /// <summary>
+    /// Construct an axis-aligned bounding box from 3 2D points.
+    /// </summary>
+    /// <param name="a">The first point.</param>
+    /// <param name="b">The second point.</param>
+    /// <param name="c">The third point.</param>
+    AABB(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c ) noexcept
+    {
+        min = glm::vec3 { glm::min( a, glm::min( b, c ) ), 0 };
+        max = glm::vec3 { glm::max( a, glm::max( b, c ) ), 0 };
+    }
+
+    /// <summary>
     /// Construct an axis-aligned bounding box from 4 points.
     /// </summary>
     /// <param name="a">The first point.</param>
@@ -566,6 +578,26 @@ struct AABB
         return { a, b, c };
     }
 
+    /// <summary>
+    /// Construct an AABB from the three vertices of a 2D triangle.
+    /// </summary>
+    /// <param name="a">The first vertex.</param>
+    /// <param name="b">The second vertex.</param>
+    /// <param name="c">The third vertex.</param>
+    /// <returns>The AABB that contains all three points.</returns>
+    static AABB fromTriangle( const glm::vec2& a, const glm::vec2& b, const glm::vec2& c )
+    {
+        return { a, b, c };
+    }
+
+    /// <summary>
+    /// Construct an AABB from the four vertices of a quad.
+    /// </summary>
+    /// <param name="a">The first point.</param>
+    /// <param name="b">The second point.</param>
+    /// <param name="c">The third point.</param>
+    /// <param name="d">The fourth point.</param>
+    /// <returns>The AABB that contains all four points.</returns>
     static AABB fromQuad( const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& d )
     {
         return { a, b, c, d };

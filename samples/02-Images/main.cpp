@@ -7,7 +7,7 @@ int main()
 {
     bool isPlaying = true;
 
-    Window window( "Clear Screen", 1280, 720 );
+    Window window( "Images", 1280, 720 );
     Image  image { "assets/textures/Mona_Lisa.jpg" };
 
     while ( window )
