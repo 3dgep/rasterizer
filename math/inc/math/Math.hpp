@@ -68,6 +68,73 @@ constexpr float triangleArea2D( float ax, float ay, float bx, float by, float cx
 }
 
 /// <summary>
+/// Determines the orientation of the 2D triangle (ax, ay), (bx, by), (cx, cy).
+/// The function returns:
+/// - a positive value if the triangle is oriented counter-clockwise,
+/// - a negative value if the triangle is oriented clockwise,
+/// - zero if the points are collinear.
+/// Source: https://fgiesen.wordpress.com/2013/02/08/triangle-rasterization-in-practice/
+/// Source: https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-practical-implementation.html
+/// </summary>
+/// <param name="ax">The x-coordinate of the first point.</param>
+/// <param name="ay">The y-coordinate of the first point.</param>
+/// <param name="bx">The x-coordinate of the second point.</param>
+/// <param name="by">The y-coordinate of the second point.</param>
+/// <param name="cx">The x-coordinate of the third point.</param>
+/// <param name="cy">The y-coordinate of the third point.</param>
+/// <returns>An integer representing the orientation of the triangle.</returns>
+constexpr int orient2D( int ax, int ay, int bx, int by, int cx, int cy ) noexcept
+{
+    return ( bx - ax ) * ( cy - ay ) - ( by - ay ) * ( cx - ax );
+}
+
+/// <summary>
+/// Determines the orientation of the 2D triangle (a, b, c).<br>
+/// The function returns:
+/// - a positive value if the triangle is oriented counter-clockwise,
+/// - a negative value if the triangle is oriented clockwise,
+/// - zero if the points are collinear.
+/// Source: https://fgiesen.wordpress.com/2013/02/08/triangle-rasterization-in-practice/
+/// Source: https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-practical-implementation.html
+/// </summary>
+/// <param name="a">The first triangle point.</param>
+/// <param name="b">The second triangle point.</param>
+/// <param name="c">The third triangle point.</param>
+/// <returns>An integer representing the orientation of the triangle.</returns>
+constexpr int orient2D( const glm::ivec2& a, const glm::ivec2& b, const glm::ivec2& c ) noexcept
+{
+    return orient2D( a.x, a.y, b.x, b.y, c.x, c.y );
+}
+
+/// <summary>
+/// Check to see if a line (in screen space) from (ax, ay) to (bx, by) is a top-left edge.
+/// A line is a top-left edge if the first point is above and to the left of the second point.
+/// Note: In screen-space, a is above b if ay < by. And a is to the left of b if ax < bx.
+/// </summary>
+/// <param name="ax">The x-coordinate of the start of the line.</param>
+/// <param name="ay">The y-coordinate of the start of the line.</param>
+/// <param name="bx">The x-coordinate of the end of the line.</param>
+/// <param name="by">The y-coordinate of the end of the line.</param>
+/// <returns>true if this is a top-left edge, false otherwise.</returns>
+constexpr bool isTopLeft( int ax, int ay, int bx, int by ) noexcept
+{
+    return ( ay < by ) || ( ay == by && ax < bx );
+}
+
+/// <summary>
+/// Check to see if a line (in screen space) from a to b is a top-left edge.
+/// A line is a top-left edge if the first point is above and to the left of the second point.
+/// Note: In screen-space, a is above b if a.y < b.y. And a is to the left of b if a.x < b.x.
+/// </summary>
+/// <param name="a">The start of the line.</param>
+/// <param name="b">The end of the line.</param>
+/// <returns>true if this is a top-left edge, false otherwise.</returns>
+constexpr bool isTopLeft( const glm::ivec2& a, const glm::ivec2& b ) noexcept
+{
+    return isTopLeft( a.x, a.y, b.x, b.y );
+}
+
+/// <summary>
 /// Compute the area of a triangle in 2D.
 /// Source: "Real-Time Collision Detection" (Chapter 3.4), Christer Ericson, 2005, Elsevier Inc.
 /// </summary>

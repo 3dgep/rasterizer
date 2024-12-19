@@ -6,8 +6,8 @@
 
 using namespace sr;
 
-static const int WINDOW_WIDTH  = 1280;
-static const int WINDOW_HEIGHT = 720;
+static const int WINDOW_WIDTH  = 800;
+static const int WINDOW_HEIGHT = 600;
 
 int main()
 {
@@ -62,7 +62,7 @@ int main()
         glm::vec2 p1 = { w * 0.25f + dx, h * 0.75f };
         glm::vec2 p2 = { w * 0.75f + dx, h * 0.75f };
 
-        image.clear( Color::Black );
+        image.clear( Color::White );
 
         rasterizer.state.fillMode = FillMode::Solid;
         rasterizer.state.color    = Color::Red;

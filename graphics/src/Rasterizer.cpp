@@ -4,8 +4,8 @@ using namespace sr::graphics;
 
 void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
 {
-    Image*   image    = state.colorTargets[0];
-    Viewport viewport = state.viewports[0];
+    Image*    image     = state.colorTargets[0];
+    Viewport  viewport  = state.viewports[0];
     BlendMode blendMode = state.blendModes[0];
 
     assert( image != nullptr );
@@ -48,22 +48,20 @@ void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
     }
 }
 
-void Rasterizer::drawTriangle( const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2 )
+void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
 {
-    Image*   image    = state.colorTargets[0];
-    Viewport viewport = state.viewports[0];
+    Image*    image     = state.colorTargets[0];
+    Viewport  viewport  = state.viewports[0];
     BlendMode blendMode = state.blendModes[0];
 
     assert( image != nullptr );
 
     auto aabb = image->aabb();
     aabb.clamp( AABB::fromViewport( viewport ) );
+    aabb.clamp( AABB::fromTriangle( p0, p1, p2 ) );
 
-    auto triangleAABB = AABB::fromTriangle( p0, p1, p2 );
-
-    // Check to see if any part of the triangle intersects the AABB of the screen (after the viewport is applied)
-    if ( !aabb.intersect( triangleAABB ) )
-        return;
+    // if ( !aabb.isValid() )
+    //     return;
 
     switch ( state.fillMode )
     {
@@ -76,29 +74,57 @@ void Rasterizer::drawTriangle( const glm::vec2& p0, const glm::vec2& p1, const g
     break;
     case FillMode::Solid:
     {
-        // Sort the vertices by y-coordinate.
-        glm::vec2 v0 = p0;
-        glm::vec2 v1 = p1;
-        glm::vec2 v2 = p2;
-        if ( v0.y > v1.y )
-            std::swap( v0, v1 );
-        if ( v0.y > v2.y )
-            std::swap( v0, v2 );
-        if ( v1.y > v2.y )
-            std::swap( v1, v2 );
-        const float totalHeight = v2.y - v0.y;
-        for ( int i = 0; i < totalHeight; i++ )
+        int area = orient2D( p0, p1, p2 );
+
+        if ( area < 0 )
         {
-            const bool  secondHalf    = i > v1.y - v0.y || v1.y == v0.y;
-            const int   segmentHeight = secondHalf ? v2.y - v1.y : v1.y - v0.y;
-            const float alpha         = static_cast<float>( i ) / totalHeight;
-            const float beta          = static_cast<float>( i - ( secondHalf ? v1.y - v0.y : 0 ) ) / segmentHeight;
-            glm::vec2   A             = v0 + ( v2 - v0 ) * alpha;
-            glm::vec2   B             = secondHalf ? v1 + ( v2 - v1 ) * beta : v0 + ( v1 - v0 ) * beta;
-            if ( A.x > B.x )
-                std::swap( A, B );
-            for ( int j = A.x; j <= B.x; j++ )
-                image->plot<false>( j, v0.y + i, state.color, blendMode );
+            // Swap vertices if they are in clockwise order.
+            std::swap( p1, p2 );
+            area = -area;
+        }
+
+        // Compute X and Y edge deltas.
+        int dX0 = p1.x - p0.x;
+        int dX1 = p2.x - p1.x;
+        int dX2 = p0.x - p2.x;
+        int dY0 = p0.y - p1.y;
+        int dY1 = p1.y - p2.y;
+        int dY2 = p2.y - p0.y;
+
+        // Bias the edge equations based on the top-left rule.
+        int bias0 = isTopLeft( p1, p2 ) ? 0 : -1;
+        int bias1 = isTopLeft( p2, p0 ) ? 0 : -1;
+        int bias2 = isTopLeft( p0, p1 ) ? 0 : -1;
+
+        glm::ivec2 p = aabb.min;
+
+        int w0_start = orient2D( p1, p2, p ) + bias0;
+        int w1_start = orient2D( p2, p0, p ) + bias1;
+        int w2_start = orient2D( p0, p1, p ) + bias2;
+
+        Color* c = image->data();
+        int    w = image->width();
+
+        for ( p.y = aabb.min.y; p.y <= aabb.max.y; p.y++ )
+        {
+            int w0 = w0_start;
+            int w1 = w1_start;
+            int w2 = w2_start;
+
+            for ( p.x = aabb.min.x; p.x <= aabb.max.x; p.x++ )
+            {
+
+                if ( ( w0 | w1 | w2 ) >= 0 )
+                    image->plot<false>( p.x, p.y, state.color, blendMode );
+
+                w0 += dY1;
+                w1 += dY2;
+                w2 += dY0;
+            }
+
+            w0_start += dX1;
+            w1_start += dX2;
+            w2_start += dX0;
         }
     }
     break;

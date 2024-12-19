@@ -3,10 +3,10 @@
 #include "BlendMode.hpp"
 #include "Color.hpp"
 #include "Image.hpp"
-#include "RenderTarget.hpp"
 
 #include <glm/vec2.hpp>
 #include <math/AABB.hpp>
+#include <math/Viewport.hpp>
 
 #include <array>
 
@@ -51,9 +51,9 @@ struct Rasterizer
     /// Draws a line from (x0, y0) to (x1, y1) using the current rasterizer state.<br>
     /// Required state:
     /// - color
-    /// - blendMode
-    /// - Image bound to renderTarget.color[0]
-    /// - Viewport at viewports[0]
+    /// - Blend mode at blendMode[0].
+    /// - Image bound to colorTarget[0].
+    /// - Viewport at viewports[0].
     /// </summary>
     /// <param name="x0">The x-coordinate of the starting point.</param>
     /// <param name="y0">The y-coordinate of the starting point.</param>
@@ -68,8 +68,8 @@ struct Rasterizer
     /// Draws a line from p0 to p1 using the current rasterizer state.<br>
     /// Required state:
     /// - color
-    /// - blendMode
-    /// - Image bound to renderTarget.color[0]
+    /// - Blend mode at blendModes[0]
+    /// - Image bound to colorTarget[0]
     /// - Viewport at viewports[0]
     /// </summary>
     /// <param name="p0">The starting point of the line.</param>
@@ -117,10 +117,10 @@ struct Rasterizer
     /// - Image bound to renderTarget.color[0]
     /// - Viewport at viewports[0].
     /// </summary>
-    /// <param name="p0"></param>
-    /// <param name="p1"></param>
-    /// <param name="p2"></param>
-    void drawTriangle( const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2 );
+    /// <param name="p0">The first triangle coordinate (in screen coordinates).</param>
+    /// <param name="p1">The second triangle coordinate (in screen coordinates).</param>
+    /// <param name="p2">The third triangle coordinate (in screen coordinates).</param>
+    void drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 );
 };
 }  // namespace graphics
 }  // namespace sr
