@@ -100,16 +100,16 @@ constexpr int orient2D( int ax, int ay, int bx, int by, int cx, int cy ) noexcep
 /// <param name="a">The first triangle point.</param>
 /// <param name="b">The second triangle point.</param>
 /// <param name="c">The third triangle point.</param>
-/// <returns>An integer representing the orientation of the triangle.</returns>
+/// <returns>The (signed) area of the triangle.</returns>
 constexpr int orient2D( const glm::ivec2& a, const glm::ivec2& b, const glm::ivec2& c ) noexcept
 {
     return orient2D( a.x, a.y, b.x, b.y, c.x, c.y );
 }
 
 /// <summary>
-/// Check to see if a line (in screen space) from (ax, ay) to (bx, by) is a top-left edge.
+/// Check to see if a line (in screen space) from <code>(ax, ay)</code> to <code>(bx, by)</code> is a top-left edge.
 /// A line is a top-left edge if the first point is above and to the left of the second point.
-/// Note: In screen-space, a is above b if ay < by. And a is to the left of b if ax < bx.
+/// Note: In screen-space, <code>a</code> is above <code>b</code> if <code>ay < by</code>. And <code>a</code> is to the left of <code>b</code> if <code>ax < bx</code>.
 /// </summary>
 /// <param name="ax">The x-coordinate of the start of the line.</param>
 /// <param name="ay">The y-coordinate of the start of the line.</param>

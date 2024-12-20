@@ -58,10 +58,11 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
 
     auto aabb = image->aabb();
     aabb.clamp( AABB::fromViewport( viewport ) );
-    aabb.clamp( AABB::fromTriangle( p0, p1, p2 ) );
 
-    // if ( !aabb.isValid() )
-    //     return;
+    auto triangleAABB = AABB::fromTriangle( p0, p1, p2 );
+
+    if ( !triangleAABB.intersect( aabb ) )
+        return;
 
     switch ( state.fillMode )
     {
@@ -83,6 +84,24 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
             area = -area;
         }
 
+        // Bias the edge equations based on the top-left rule.
+        int bias0 = isTopLeft( p1, p2 ) ? 0 : -1;
+        int bias1 = isTopLeft( p2, p0 ) ? 0 : -1;
+        int bias2 = isTopLeft( p0, p1 ) ? 0 : -1;
+
+        aabb.clamp( triangleAABB );
+
+        int minX = static_cast<int>( aabb.min.x );
+        int minY = static_cast<int>( aabb.min.y );
+        int maxX = static_cast<int>( aabb.max.x );
+        int maxY = static_cast<int>( aabb.max.y );
+
+        glm::ivec2 p { minX, minY };
+
+        int w0_start = orient2D( p1, p2, p ) + bias0;
+        int w1_start = orient2D( p2, p0, p ) + bias1;
+        int w2_start = orient2D( p0, p1, p ) + bias2;
+
         // Compute X and Y edge deltas.
         int dX0 = p1.x - p0.x;
         int dX1 = p2.x - p1.x;
@@ -91,27 +110,13 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
         int dY1 = p1.y - p2.y;
         int dY2 = p2.y - p0.y;
 
-        // Bias the edge equations based on the top-left rule.
-        int bias0 = isTopLeft( p1, p2 ) ? 0 : -1;
-        int bias1 = isTopLeft( p2, p0 ) ? 0 : -1;
-        int bias2 = isTopLeft( p0, p1 ) ? 0 : -1;
-
-        glm::ivec2 p = aabb.min;
-
-        int w0_start = orient2D( p1, p2, p ) + bias0;
-        int w1_start = orient2D( p2, p0, p ) + bias1;
-        int w2_start = orient2D( p0, p1, p ) + bias2;
-
-        Color* c = image->data();
-        int    w = image->width();
-
-        for ( p.y = aabb.min.y; p.y <= aabb.max.y; p.y++ )
+        for ( p.y = minY; p.y <= maxY; p.y++ )
         {
             int w0 = w0_start;
             int w1 = w1_start;
             int w2 = w2_start;
 
-            for ( p.x = aabb.min.x; p.x <= aabb.max.x; p.x++ )
+            for ( p.x = minX; p.x <= maxX; p.x++ )
             {
 
                 if ( ( w0 | w1 | w2 ) >= 0 )
