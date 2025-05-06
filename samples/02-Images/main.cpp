@@ -41,4 +41,6 @@ int main()
         window.clear( Color::Black );
         window.present( image );
     }
+
+    return 0;
 }

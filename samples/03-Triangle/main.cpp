@@ -28,7 +28,7 @@ int main()
             switch ( event.type )
             {
             case SDL_EVENT_WINDOW_RESIZED:
-                image.resize( event.window.data1, event.window.data2 );
+//                image.resize( event.window.data1, event.window.data2 );
                 break;
             case SDL_EVENT_KEY_DOWN:
                 switch ( event.key.key )
@@ -72,6 +72,9 @@ int main()
         rasterizer.state.color    = Color::Blue;
         rasterizer.drawTriangle( p0, p1, p2 );
 
+        window.clear( Color::Black );
         window.present( image );
     }
+
+    return 0;
 }

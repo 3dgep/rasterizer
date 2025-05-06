@@ -60,4 +60,6 @@ int main()
 
         window.present( image );
     }
+
+    return 0;
 }

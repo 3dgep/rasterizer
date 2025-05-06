@@ -217,7 +217,7 @@ inline glm::vec3 barycentric( const glm::vec2& a, const glm::vec2& b, const glm:
 }
 
 /// <summary>
-/// Check to see if the barycentric coordinates are inside or outside of the triangle.
+/// Check to see if the barycentric coordinates are inside or outside the triangle.
 /// </summary>
 /// <param name="barycentric">The barycentric coordinates to check.</param>
 /// <returns>true if the barycentric coordinates are inside the triangle, false otherwise.</returns>
