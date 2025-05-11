@@ -18,7 +18,7 @@ int main()
     Rasterizer rasterizer;
     Timer      timer;
 
-    rasterizer.state.colorTargets[0] = &image;
+    rasterizer.state.colorTarget = &image;
 
     while ( window )
     {

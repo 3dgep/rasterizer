@@ -8,8 +8,6 @@
 #include <math/AABB.hpp>
 #include <math/Viewport.hpp>
 
-#include <array>
-
 namespace sr
 {
 inline namespace graphics
@@ -26,11 +24,11 @@ struct Rasterizer
     /// </summary>
     struct State
     {
-        Color                                    color;
-        FillMode                                 fillMode = FillMode::Solid;
-        std::array<BlendMode, MAX_COLOR_TARGETS> blendModes;
-        std::array<Image*, MAX_COLOR_TARGETS>    colorTargets = {};
-        std::array<Viewport, MAX_COLOR_TARGETS>  viewports;
+        Color     color;
+        FillMode  fillMode = FillMode::Solid;
+        BlendMode blendMode;
+        Image*    colorTarget = nullptr;
+        Viewport  viewport;
     } state;
 
     /// <summary>
@@ -38,8 +36,8 @@ struct Rasterizer
     /// Required state:
     /// - color
     /// - blendMode
-    /// - Image bound to renderTarget.color[0]
-    /// - Viewport at viewports[0]
+    /// - Image bound to colorTarget
+    /// - viewport
     /// </summary>
     /// <param name="x0">The x-coordinate of the starting point.</param>
     /// <param name="y0">The y-coordinate of the starting point.</param>

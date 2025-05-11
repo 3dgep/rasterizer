@@ -4,9 +4,9 @@ using namespace sr::graphics;
 
 void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
 {
-    Image*    image     = state.colorTargets[0];
-    Viewport  viewport  = state.viewports[0];
-    BlendMode blendMode = state.blendModes[0];
+    Image*    image     = state.colorTarget;
+    Viewport  viewport  = state.viewport;
+    BlendMode blendMode = state.blendMode;
 
     assert( image != nullptr );
 
@@ -50,9 +50,9 @@ void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
 
 void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
 {
-    Image*    image     = state.colorTargets[0];
-    Viewport  viewport  = state.viewports[0];
-    BlendMode blendMode = state.blendModes[0];
+    Image*    image     = state.colorTarget;
+    Viewport  viewport  = state.viewport;
+    BlendMode blendMode = state.blendMode;
 
     assert( image != nullptr );
 

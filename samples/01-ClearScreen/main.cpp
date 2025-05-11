@@ -16,8 +16,8 @@ int main()
     image.clear( Color::CornFlowerBlue );
 
     // Setup the rasterizer's render target state.
-    rasterizer.state.colorTargets[0] = &image;
-    rasterizer.state.viewports[0]          = Viewport { 20, 20, 280, 140 };
+    rasterizer.state.colorTarget = &image;
+    rasterizer.state.viewport          = Viewport { 20, 20, 280, 140 };
 
     while ( window )
     {
