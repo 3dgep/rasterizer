@@ -15,14 +15,13 @@ set( GLM_TARGETS
 	glm_shared
 )
 
-foreach( target ${SDL_TARGETS} )
-	if( TARGET ${target} )
-		set_target_properties( ${target} PROPERTIES FOLDER externals/SDL)
-	endif()
-endforeach()
+macro( set_targets_folder TARGETS FOLDER )
+	foreach( target ${TARGETS} )
+		if( TARGET ${target} )
+			set_target_properties( ${target} PROPERTIES FOLDER ${FOLDER})
+		endif()
+	endforeach()
+endmacro()
 
-foreach( target ${GLM_TARGETS} )
-	if( TARGET ${target} )
-		set_target_properties( ${target} PROPERTIES FOLDER externals/glm)
-	endif()
-endforeach()
+set_targets_folder( "${GLM_TARGETS}" "externals/glm" )
+set_targets_folder( "${SDL_TARGETS}" "externals/SDL" )
