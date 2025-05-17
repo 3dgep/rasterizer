@@ -194,7 +194,7 @@ struct Image final
             assert( y < m_Surface->h );
         }
 
-        Color& dst = *reinterpret_cast<Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * SDL_BYTESPERPIXEL( m_Surface->format ) );
+        Color& dst = *(static_cast<Color*>( m_Surface->pixels ) + y * m_Surface->w + x);
         if constexpr ( Blending )
         {
             dst = blendMode.Blend( src, dst );
@@ -248,6 +248,10 @@ struct Image final
         return m_Surface ? m_Surface->h : 0;
     }
 
+    /// <summary>
+    /// Distance in bytes between rows of pixels.
+    /// </summary>
+    /// <returns>The distance in bytes between the rows of pixels.</returns>
     uint32_t pitch() const noexcept
     {
         return m_Surface ? m_Surface->pitch : 0;
