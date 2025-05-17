@@ -1,11 +1,12 @@
 #pragma once
 
-#include "../aligned_unique_ptr.hpp"
 #include "BlendMode.hpp"
 #include "Color.hpp"
 #include "Enums.hpp"
 
 #include <math/AABB.hpp>
+
+#include <SDL3/SDL_surface.h>
 
 #include <cstdint>
 #include <filesystem>
@@ -63,7 +64,6 @@ struct Image final
 
     // TODO: Use explicit object member functions and multidimensional subscript operators when all major compilers support them.
 
-
     /// <summary>
     /// Access a pixel in the image by its linear index.
     /// </summary>
@@ -71,8 +71,9 @@ struct Image final
     /// <returns>A constant reference to the color of the pixel at the given index.</returns>
     const Color& operator[]( size_t i ) const
     {
-        assert( i < static_cast<size_t>( m_Width ) * m_Height );
-        return m_Data[i];
+        assert( m_Surface != nullptr );
+        assert( i < static_cast<size_t>( m_Surface->w ) * m_Surface->h );
+        return static_cast<const Color*>( m_Surface->pixels )[i];
     }
 
     /// <summary>
@@ -82,8 +83,9 @@ struct Image final
     /// <returns>A reference to the color of the pixel at the given index.</returns>
     Color& operator[]( size_t i )
     {
-        assert( i < static_cast<size_t>( m_Width ) * m_Height );
-        return m_Data[i];
+        assert( m_Surface != nullptr );
+        assert( i < static_cast<size_t>( m_Surface->w ) * m_Surface->h );
+        return static_cast<Color*>( m_Surface->pixels )[i];
     }
 
     /// <summary>
@@ -94,10 +96,11 @@ struct Image final
     /// <returns>A constant reference to the color of the pixel at the given coordinates.</returns>
     const Color& operator()( size_t x, size_t y ) const
     {
-        assert( x < m_Width );
-        assert( y < m_Height );
+        assert( m_Surface != nullptr );
+        assert( x < m_Surface->w );
+        assert( y < m_Surface->h );
 
-        return m_Data[y * m_Width + x];
+        return static_cast<const Color*>( m_Surface->pixels )[y * static_cast<size_t>( m_Surface->pitch ) + x];
     }
 
     /// <summary>
@@ -108,10 +111,11 @@ struct Image final
     /// <returns>A reference to the color of the pixel at the given coordinates.</returns>
     Color& operator()( size_t x, size_t y )
     {
-        assert( x < m_Width );
-        assert( y < m_Height );
+        assert( m_Surface != nullptr );
+        assert( x < m_Surface->w );
+        assert( y < m_Surface->h );
 
-        return m_Data[y * m_Width + x];
+        return static_cast<Color*>( m_Surface->pixels )[y * static_cast<size_t>( m_Surface->pitch ) + x];
     }
 
     /// <summary>
@@ -119,7 +123,7 @@ struct Image final
     /// </summary>
     explicit operator bool() const noexcept
     {
-        return m_Data != nullptr;
+        return m_Surface != nullptr;
     }
 
     /// <summary>
@@ -151,9 +155,9 @@ struct Image final
     /// <returns>The color of the texel at the given UV texture coordinates.</returns>
     const Color& sample( float u, float v, AddressMode addressMode = AddressMode::Wrap ) const noexcept
     {
-        // return sample( static_cast<int>( std::round( u * static_cast<float>( m_width ) ) ), static_cast<int>( std::round( v * static_cast<float>( m_height ) ) ), addressMode );
-        // return sample( static_cast<int>( lround( u * static_cast<float>( m_width ) ) ), static_cast<int>( lround( v * static_cast<float>( m_height ) ) ), addressMode );
-        return sample( static_cast<int>( u * static_cast<float>( m_Width ) + 0.5f ), static_cast<int>( v * static_cast<float>( m_Height ) + 0.5f ), addressMode );  // NOLINT(bugprone-incorrect-roundings)
+        assert( m_Surface != nullptr );
+
+        return sample( static_cast<int>( u * static_cast<float>( m_Surface->w ) + 0.5f ), static_cast<int>( v * static_cast<float>( m_Surface->h ) + 0.5f ), addressMode );  // NOLINT(bugprone-incorrect-roundings)
     }
 
     /// <summary>
@@ -177,26 +181,27 @@ struct Image final
     template<bool BoundsCheck = true, bool Blending = true>
     void plot( uint32_t x, uint32_t y, const Color& src, const BlendMode& blendMode = BlendMode {} ) noexcept
     {
+        assert( m_Surface != nullptr );
+
         if constexpr ( BoundsCheck )
         {
-            if ( x >= m_Width || y >= m_Height )
+            if ( x >= m_Surface->w || y >= m_Surface->h )
                 return;
         }
         else
         {
-            assert( x < m_Width );
-            assert( y < m_Height );
+            assert( x < m_Surface->w );
+            assert( y < m_Surface->h );
         }
 
-        const size_t i = static_cast<size_t>( y ) * m_Width + x;
+        Color& dst = *reinterpret_cast<Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * SDL_BYTESPERPIXEL( m_Surface->format ) );
         if constexpr ( Blending )
         {
-            const Color dst = m_Data[i];
-            m_Data[i]       = blendMode.Blend( src, dst );
+            dst = blendMode.Blend( src, dst );
         }
         else
         {
-            m_Data[i] = src;
+            dst = src;
         }
     }
 
@@ -231,7 +236,7 @@ struct Image final
     /// <returns>The width of the image (in pixels).</returns>
     uint32_t width() const noexcept
     {
-        return m_Width;
+        return m_Surface ? m_Surface->w : 0;
     }
 
     /// <summary>
@@ -240,7 +245,12 @@ struct Image final
     /// <returns>The height of the image (in pixels).</returns>
     uint32_t height() const noexcept
     {
-        return m_Height;
+        return m_Surface ? m_Surface->h : 0;
+    }
+
+    uint32_t pitch() const noexcept
+    {
+        return m_Surface ? m_Surface->pitch : 0;
     }
 
     /// <summary>
@@ -258,7 +268,7 @@ struct Image final
     /// <returns>A pointer to the pixel buffer of the image.</returns>
     Color* data() noexcept
     {
-        return m_Data.get();
+        return m_Surface ? static_cast<Color*>( m_Surface->pixels ) : nullptr;
     }
 
     /// <summary>
@@ -267,19 +277,19 @@ struct Image final
     /// <returns>A read-only pointer to the pixel buffer of the image.</returns>
     const Color* data() const noexcept
     {
-        return m_Data.get();
+        return m_Surface ? static_cast<const Color*>( m_Surface->pixels ) : nullptr;
     }
 
 private:
-    uint32_t m_Width  = 0;
-    uint32_t m_Height = 0;
-
     /// <summary>
     /// Axis-aligned bounding box (used for clipping).
     /// </summary>
     AABB m_AABB;
 
-    aligned_unique_ptr<Color[]> m_Data;
+    /// <summary>
+    /// Surface that contains pixels.
+    /// </summary>
+    SDL_Surface* m_Surface = nullptr;
 };
 }  // namespace graphics
 }  // namespace sr

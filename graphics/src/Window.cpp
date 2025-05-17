@@ -217,7 +217,7 @@ void Window::present( const Image& image )
     }
 
     // Copy the image data to the texture.
-    if ( !SDL_UpdateTexture( m_Texture, nullptr, image.data(), static_cast<int>( image.width() * sizeof( Color ) ) ) )
+    if ( !SDL_UpdateTexture( m_Texture, nullptr, image.data(), static_cast<int>( image.pitch() ) ) )
     {
         SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to update texture: %s", SDL_GetError() );
         return;

@@ -2,6 +2,8 @@
 
 #include <math/Math.hpp>
 
+#include <SDL3/SDL_endian.h>
+
 #include <compare>
 #include <cstdint>
 
@@ -102,13 +104,23 @@ struct Color
     union
     {
         uint32_t rgba;
-        struct  // TODO: Check for endianness.
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+        struct
+        {
+            uint8_t a;
+            uint8_t b;
+            uint8_t g;
+            uint8_t r;
+        };
+#else
+        struct
         {
             uint8_t r;
             uint8_t g;
             uint8_t b;
             uint8_t a;
         };
+#endif
     };
 
     /// <summary>
