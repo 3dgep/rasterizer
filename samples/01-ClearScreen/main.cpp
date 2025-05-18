@@ -8,16 +8,13 @@ using namespace sr;
 
 int main()
 {
-    Window window( "Clear Screen", 1280, 720 );
-    Image  image { 320, 180 };
+    Window     window( "Clear Screen", 1280, 720 );
+    Image      image { 320, 180 };
     Rasterizer rasterizer;
-    Timer  timer;
-
-    image.clear( Color::CornFlowerBlue );
+    Timer      timer;
 
     // Setup the rasterizer's render target state.
     rasterizer.state.colorTarget = &image;
-    rasterizer.state.viewport          = Viewport { 20, 20, 280, 140 };
 
     while ( window )
     {
@@ -46,11 +43,15 @@ int main()
                     break;
                 }
                 break;
+            case SDL_EVENT_WINDOW_RESIZED:
+                image.resize( event.window.data1, event.window.data2 );
+                break;
             }
         }
 
         window.clear( Color::Black );
 
+        image.clear( Color::CornFlowerBlue );
         for ( int i = 0; i < image.width(); ++i )
         {
             float hue              = static_cast<float>( i ) / static_cast<float>( image.width() ) * 360.0f;

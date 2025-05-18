@@ -100,7 +100,7 @@ struct Image final
         assert( x < m_Surface->w );
         assert( y < m_Surface->h );
 
-        return static_cast<const Color*>( m_Surface->pixels )[y * static_cast<size_t>( m_Surface->pitch ) + x];
+        return *reinterpret_cast<const Color*>( static_cast<unsigned char*>(m_Surface->pixels) + y * m_Surface->pitch + x * sizeof(Color) );
     }
 
     /// <summary>
@@ -115,7 +115,7 @@ struct Image final
         assert( x < m_Surface->w );
         assert( y < m_Surface->h );
 
-        return static_cast<Color*>( m_Surface->pixels )[y * static_cast<size_t>( m_Surface->pitch ) + x];
+        return *reinterpret_cast<Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) );
     }
 
     /// <summary>
@@ -194,7 +194,7 @@ struct Image final
             assert( y < m_Surface->h );
         }
 
-        Color& dst = *(static_cast<Color*>( m_Surface->pixels ) + y * m_Surface->w + x);
+        Color& dst = *( reinterpret_cast<Color*>( static_cast<Uint8*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof(Color) ) );
         if constexpr ( Blending )
         {
             dst = blendMode.Blend( src, dst );
@@ -236,7 +236,8 @@ struct Image final
     /// <returns>The width of the image (in pixels).</returns>
     uint32_t width() const noexcept
     {
-        return m_Surface ? m_Surface->w : 0;
+        assert( m_Surface != nullptr );
+        return m_Surface->w;
     }
 
     /// <summary>
@@ -245,16 +246,18 @@ struct Image final
     /// <returns>The height of the image (in pixels).</returns>
     uint32_t height() const noexcept
     {
-        return m_Surface ? m_Surface->h : 0;
+        assert( m_Surface != nullptr );
+        return m_Surface->h;
     }
 
     /// <summary>
-    /// Distance in bytes between rows of pixels.
+    /// Get the distance in bytes between rows of pixels.
     /// </summary>
     /// <returns>The distance in bytes between the rows of pixels.</returns>
     uint32_t pitch() const noexcept
     {
-        return m_Surface ? m_Surface->pitch : 0;
+        assert( m_Surface != nullptr );
+        return m_Surface->pitch;
     }
 
     /// <summary>
@@ -272,7 +275,8 @@ struct Image final
     /// <returns>A pointer to the pixel buffer of the image.</returns>
     Color* data() noexcept
     {
-        return m_Surface ? static_cast<Color*>( m_Surface->pixels ) : nullptr;
+        assert( m_Surface != nullptr );
+        return static_cast<Color*>( m_Surface->pixels );
     }
 
     /// <summary>
@@ -281,10 +285,13 @@ struct Image final
     /// <returns>A read-only pointer to the pixel buffer of the image.</returns>
     const Color* data() const noexcept
     {
-        return m_Surface ? static_cast<const Color*>( m_Surface->pixels ) : nullptr;
+        assert( m_Surface != nullptr );
+        return static_cast<const Color*>( m_Surface->pixels );
     }
 
 private:
+
+
     /// <summary>
     /// Axis-aligned bounding box (used for clipping).
     /// </summary>

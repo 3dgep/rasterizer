@@ -18,7 +18,7 @@ Image::Image( const Image& copy )
     if ( copy.m_Surface )
     {
         resize( copy.m_Surface->w, copy.m_Surface->h );
-        std::memcpy( m_Surface->pixels, copy.m_Surface->pixels, static_cast<size_t>( copy.m_Surface->pitch ) * copy.m_Surface->h );
+        std::memcpy( m_Surface->pixels, copy.m_Surface->pixels, m_Surface->pitch * m_Surface->h );
     }
 }
 
@@ -27,6 +27,7 @@ Image::Image( Image&& other ) noexcept
 {
     m_Surface       = other.m_Surface;
     other.m_Surface = nullptr;
+    other.m_AABB    = {};
 }
 
 Image::Image( const std::filesystem::path& fileName )
@@ -40,7 +41,7 @@ Image::Image( const std::filesystem::path& fileName )
     }
 
     resize( static_cast<uint32_t>( w ), static_cast<uint32_t>( h ) );
-    std::memcpy( m_Surface->pixels, data, w * h * 4 );
+    std::memcpy( m_Surface->pixels, data, m_Surface->pitch * m_Surface->h );
 
     stbi_image_free( data );
 }
@@ -58,7 +59,7 @@ Image& Image::operator=( const Image& copy )
     if ( copy.m_Surface )
     {
         resize( copy.m_Surface->w, copy.m_Surface->h );
-        std::memcpy( m_Surface->pixels, copy.m_Surface->pixels, static_cast<size_t>( m_Surface->pitch ) * m_Surface->h );
+        std::memcpy( m_Surface->pixels, copy.m_Surface->pixels, m_Surface->pitch * m_Surface->h );
     }
 
     return *this;
@@ -72,8 +73,8 @@ Image& Image::operator=( Image&& other ) noexcept
     m_AABB    = other.m_AABB;
     m_Surface = other.m_Surface;
 
-    other.m_AABB    = {};
     other.m_Surface = nullptr;
+    other.m_AABB    = {};
 
     return *this;
 }
@@ -123,7 +124,7 @@ const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexce
     assert( u >= 0 && u < w );
     assert( v >= 0 && v < h );
 
-    return static_cast<const Color*>( m_Surface->pixels )[static_cast<uint64_t>( v ) * m_Surface->w + u];
+    return *reinterpret_cast<const Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + v * m_Surface->pitch + u * sizeof(Color) );
 }
 
 void Image::save( const std::filesystem::path& file ) const
@@ -158,7 +159,7 @@ void Image::clear( const Color& color ) noexcept
 {
     assert( m_Surface != nullptr );
 
-    std::fill_n( static_cast<Color*>( m_Surface->pixels ), static_cast<size_t>( m_Surface->w ) * m_Surface->h, color );
+    std::fill_n( static_cast<Color*>( m_Surface->pixels ), m_Surface->pitch * m_Surface->h / sizeof(Color), color );
 }
 
 void Image::resize( uint32_t width, uint32_t height )
