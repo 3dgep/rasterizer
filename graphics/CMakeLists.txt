@@ -9,6 +9,7 @@ set( INC_FILES
 	inc/graphics/Image.hpp
     inc/graphics/Rasterizer.hpp
     inc/graphics/RenderTarget.hpp
+    inc/graphics/Sprite.hpp
     inc/graphics/Vertex.hpp
 	inc/graphics/Window.hpp
     inc/stb_easy_font.h

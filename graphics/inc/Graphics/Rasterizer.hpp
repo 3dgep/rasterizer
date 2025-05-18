@@ -13,8 +13,6 @@ namespace sr
 inline namespace graphics
 {
 
-constexpr size_t MAX_COLOR_TARGETS = 8;
-
 struct Rasterizer
 {
     Rasterizer() = default;
