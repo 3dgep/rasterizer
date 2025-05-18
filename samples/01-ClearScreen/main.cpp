@@ -1,3 +1,4 @@
+#include <iostream>
 #include <Timer.hpp>
 
 #include <graphics/Image.hpp>
@@ -42,9 +43,6 @@ int main()
                     }
                     break;
                 }
-                break;
-            case SDL_EVENT_WINDOW_RESIZED:
-                image.resize( event.window.data1, event.window.data2 );
                 break;
             }
         }
