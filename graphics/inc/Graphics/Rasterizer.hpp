@@ -22,12 +22,14 @@ struct Rasterizer
     /// </summary>
     struct State
     {
-        Color     color;
-        FillMode  fillMode = FillMode::Solid;
-        BlendMode blendMode;
-        Image*    colorTarget = nullptr;
-        Viewport  viewport;
-    } state;
+        Color         color;
+        FillMode      fillMode = FillMode::Solid;
+        BlendMode     blendMode;
+        Image*        colorTarget  = nullptr;
+        VertexShader* vertexShader = nullptr;
+        PixelShader*  pixelShader  = nullptr;
+        Viewport      viewport;
+    };
 
     /// <summary>
     /// Draws a line from (x0, y0) to (x1, y1) using the current rasterizer state.<br>

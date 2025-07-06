@@ -26,7 +26,7 @@ int main()
             switch ( event.type )
             {
             case SDL_EVENT_WINDOW_RESIZED:
-//                image.resize( event.window.data1, event.window.data2 );
+                //                image.resize( event.window.data1, event.window.data2 );
                 break;
             case SDL_EVENT_KEY_DOWN:
                 switch ( event.key.key )
@@ -40,7 +40,7 @@ int main()
                 case SDLK_RETURN:
                     if ( ( event.key.mod & SDL_KMOD_ALT ) != 0 )
                     {
-                    case SDLK_F11:
+                    case SDLK_F11:  // NOLINT(clang-diagnostic-implicit-fallthrough)
                         window.toggleFullscreen();
                     }
                     break;

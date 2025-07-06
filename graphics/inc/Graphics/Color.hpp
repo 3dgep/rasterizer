@@ -104,15 +104,6 @@ struct Color
     union
     {
         uint32_t rgba;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-        struct
-        {
-            uint8_t a;
-            uint8_t b;
-            uint8_t g;
-            uint8_t r;
-        };
-#else
         struct
         {
             uint8_t r;
@@ -120,7 +111,6 @@ struct Color
             uint8_t b;
             uint8_t a;
         };
-#endif
     };
 
     /// <summary>
