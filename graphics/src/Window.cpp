@@ -3,7 +3,7 @@
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
 
-#include <exception>
+#include <stdexcept>
 
 using namespace sr;
 
@@ -14,7 +14,7 @@ struct SDL_Context
         if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_GAMEPAD ) )
         {
             SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL: %s", SDL_GetError() );
-            throw std::exception( SDL_GetError() );
+            throw std::runtime_error( SDL_GetError() );
         }
     }
 
@@ -36,44 +36,44 @@ Window::Window( std::string_view title, int width, int height, bool fullscreen )
     create( title, width, height, fullscreen );
 }
 
-Window::Window( Window&& _window ) noexcept
-: m_Window( _window.m_Window )
-, m_Renderer( _window.m_Renderer )
-, m_Texture( _window.m_Texture )
-, m_Width( _window.m_Width )
-, m_Height( _window.m_Height )
-, m_Fullscreen( _window.m_Fullscreen )
-, m_VSync( _window.m_VSync )
+Window::Window( Window&& window ) noexcept
+: m_Window( window.m_Window )
+, m_Renderer( window.m_Renderer )
+, m_Texture( window.m_Texture )
+, m_Width( window.m_Width )
+, m_Height( window.m_Height )
+, m_Fullscreen( window.m_Fullscreen )
+, m_VSync( window.m_VSync )
 {
-    _window.m_Window     = nullptr;
-    _window.m_Renderer   = nullptr;
-    _window.m_Texture    = nullptr;
-    _window.m_Width      = -1;
-    _window.m_Height     = -1;
-    _window.m_Fullscreen = false;
-    _window.m_VSync      = true;
+    window.m_Window     = nullptr;
+    window.m_Renderer   = nullptr;
+    window.m_Texture    = nullptr;
+    window.m_Width      = -1;
+    window.m_Height     = -1;
+    window.m_Fullscreen = false;
+    window.m_VSync      = true;
 }
 
-Window& Window::operator=( Window&& _window ) noexcept
+Window& Window::operator=( Window&& window ) noexcept
 {
-    if ( this == &_window )
+    if ( this == &window )
         return *this;
 
-    m_Window     = _window.m_Window;
-    m_Renderer   = _window.m_Renderer;
-    m_Texture    = _window.m_Texture;
-    m_Width      = _window.m_Width;
-    m_Height     = _window.m_Height;
-    m_Fullscreen = _window.m_Fullscreen;
-    m_VSync      = _window.m_VSync;
+    m_Window     = window.m_Window;
+    m_Renderer   = window.m_Renderer;
+    m_Texture    = window.m_Texture;
+    m_Width      = window.m_Width;
+    m_Height     = window.m_Height;
+    m_Fullscreen = window.m_Fullscreen;
+    m_VSync      = window.m_VSync;
 
-    _window.m_Window     = nullptr;
-    _window.m_Renderer   = nullptr;
-    _window.m_Texture    = nullptr;
-    _window.m_Width      = -1;
-    _window.m_Height     = -1;
-    _window.m_Fullscreen = false;
-    _window.m_VSync      = true;
+    window.m_Window     = nullptr;
+    window.m_Renderer   = nullptr;
+    window.m_Texture    = nullptr;
+    window.m_Width      = -1;
+    window.m_Height     = -1;
+    window.m_Fullscreen = false;
+    window.m_VSync      = true;
 
     return *this;
 }

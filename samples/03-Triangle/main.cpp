@@ -11,8 +11,6 @@ static const int WINDOW_HEIGHT = 600;
 
 int main()
 {
-    bool isPlaying = true;
-
     Window     window( "Triangle", WINDOW_WIDTH, WINDOW_HEIGHT );
     Image      image { WINDOW_WIDTH, WINDOW_HEIGHT };
     Rasterizer rasterizer;
@@ -42,6 +40,7 @@ int main()
                 case SDLK_RETURN:
                     if ( ( event.key.mod & SDL_KMOD_ALT ) != 0 )
                     {
+                    [[fallthrough]]
                     case SDLK_F11:
                         window.toggleFullscreen();
                     }

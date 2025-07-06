@@ -34,7 +34,7 @@ struct Rasterizer
     /// Required state:
     /// - color
     /// - blendMode
-    /// - Image bound to colorTarget
+    /// - colorTarget
     /// - viewport
     /// </summary>
     /// <param name="x0">The x-coordinate of the starting point.</param>
@@ -47,9 +47,9 @@ struct Rasterizer
     /// Draws a line from (x0, y0) to (x1, y1) using the current rasterizer state.<br>
     /// Required state:
     /// - color
-    /// - Blend mode at blendMode[0].
-    /// - Image bound to colorTarget[0].
-    /// - Viewport at viewports[0].
+    /// - blendMode
+    /// - colorTarget
+    /// - viewport
     /// </summary>
     /// <param name="x0">The x-coordinate of the starting point.</param>
     /// <param name="y0">The y-coordinate of the starting point.</param>
@@ -64,9 +64,9 @@ struct Rasterizer
     /// Draws a line from p0 to p1 using the current rasterizer state.<br>
     /// Required state:
     /// - color
-    /// - Blend mode at blendModes[0]
-    /// - Image bound to colorTarget[0]
-    /// - Viewport at viewports[0]
+    /// - blendMode
+    /// - colorTarget
+    /// - viewport
     /// </summary>
     /// <param name="p0">The starting point of the line.</param>
     /// <param name="p1">The endpoint of the line.</param>
@@ -80,8 +80,8 @@ struct Rasterizer
     /// Required state:
     /// - color
     /// - blendMode
-    /// - Image bound to renderTarget.color[0]
-    /// - Viewport at viewports[0]
+    /// - colorTarget
+    /// - viewport
     /// </summary>
     /// <param name="p0">The starting point of the line.</param>
     /// <param name="p1">The endpoint of the line.</param>
@@ -95,8 +95,8 @@ struct Rasterizer
     /// Required state:
     /// - color
     /// - blendMode
-    /// - Image bound to renderTarget.color[0]
-    /// - Viewport at viewports[0]
+    /// - colorTarget
+    /// - viewport
     /// </summary>
     /// <param name="line">The line to draw.</param>
     void drawLine( const math::Line& line )
@@ -109,14 +109,25 @@ struct Rasterizer
     /// Required state:
     /// - color
     /// - fillMode
-    /// - blendMode (if fill mode is Solid)
-    /// - Image bound to renderTarget.color[0]
-    /// - Viewport at viewports[0].
+    /// - blendMode (solid fill mode)
+    /// - colorTarget
+    /// - viewport
     /// </summary>
     /// <param name="p0">The first triangle coordinate (in screen coordinates).</param>
     /// <param name="p1">The second triangle coordinate (in screen coordinates).</param>
     /// <param name="p2">The third triangle coordinate (in screen coordinates).</param>
     void drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 );
+
+    /// <summary>
+    /// Draws an axis-aligned bounding box (AABB).
+    /// Required state:
+    /// - color
+    /// - fillMode
+    /// - blendMode (solid fill mode)
+    /// - viewport
+    /// </summary>
+    /// <param name="aabb">The axis-aligned bounding box to draw.</param>
+    void drawAABB( math::AABB aabb );
 
 private:
     /// <summary>

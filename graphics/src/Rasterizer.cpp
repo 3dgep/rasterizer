@@ -1,6 +1,52 @@
 #include <graphics/Rasterizer.hpp>
 
 using namespace sr::graphics;
+using namespace sr::math;
+
+// 2D Edge functions for triangle rasterization.
+struct Edge2D
+{
+    glm::ivec3 dX;  // X deltas.
+    glm::ivec3 dY;  // Y deltas.
+    glm::ivec3 w0;  // Starting weights per row.
+    glm::ivec3 w;   // Current weight.
+
+    Edge2D( const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2, const glm::ivec2& p )
+    : dX { p1.x - p0.x, p2.x - p1.x, p0.x - p2.x }
+    , dY { p0.y - p1.y, p1.y - p2.y, p2.y - p0.y }
+    {
+        int bias0 = isTopLeft( p1, p2 ) ? 0 : -1;
+        int bias1 = isTopLeft( p2, p0 ) ? 0 : -1;
+        int bias2 = isTopLeft( p0, p1 ) ? 0 : -1;
+
+        w0.x = orient2D( p1, p2, p ) + bias0;
+        w0.y = orient2D( p2, p0, p ) + bias1;
+        w0.z = orient2D( p0, p1, p ) + bias2;
+
+        w = w0;
+    }
+
+    bool inside() const
+    {
+        return ( w.x | w.y | w.z ) >= 0;  // Check if all weights are non-negative.
+    }
+
+    void stepX()
+    {
+        w[0] += dY[1];
+        w[1] += dY[2];
+        w[2] += dY[0];
+    }
+
+    void stepY()
+    {
+        w0[0] += dX[1];
+        w0[1] += dX[2];
+        w0[2] += dX[0];
+
+        w = w0;
+    }
+};
 
 // Source: Claud Sonnet 4 "Create a 2D Software Rasterizer in 2D in C++"
 void Rasterizer::drawLineLow( int x0, int y0, int x1, int y1 )
@@ -21,7 +67,7 @@ void Rasterizer::drawLineLow( int x0, int y0, int x1, int y1 )
     int D = 2 * dy - dx;
     int y = y0;
 
-    for ( int x = x0; x <= x1; ++x)
+    for ( int x = x0; x <= x1; ++x )
     {
         image->plot<false>( x, y, state.color, blendMode );
 
@@ -36,7 +82,7 @@ void Rasterizer::drawLineLow( int x0, int y0, int x1, int y1 )
 
 void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 )
 {
-    
+
     Image*    image     = state.colorTarget;
     BlendMode blendMode = state.blendMode;
 
@@ -44,7 +90,7 @@ void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 )
     int dy = y1 - y0;
     int xi = 1;
 
-    if (dx < 0)
+    if ( dx < 0 )
     {
         xi = -1;
         dx = -dx;
@@ -53,11 +99,11 @@ void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 )
     int D = 2 * dx - dy;
     int x = x0;
 
-    for (int y = y0; y <= y1; ++y)
+    for ( int y = y0; y <= y1; ++y )
     {
-        image->plot<false>(x, y, state.color, blendMode);
+        image->plot<false>( x, y, state.color, blendMode );
 
-        if (D > 0)
+        if ( D > 0 )
         {
             x += xi;
             D -= 2 * dy;
@@ -68,10 +114,10 @@ void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 )
 
 void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
 {
-    Image*    image     = state.colorTarget;
-    Viewport  viewport  = state.viewport;
+    Image*   image    = state.colorTarget;
+    Viewport viewport = state.viewport;
 
-    if (image == nullptr)
+    if ( !image )
         return;
 
     auto aabb = image->aabb();
@@ -110,7 +156,8 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
     Viewport  viewport  = state.viewport;
     BlendMode blendMode = state.blendMode;
 
-    assert( image != nullptr );
+    if ( !image )
+        return;
 
     auto aabb = image->aabb();
     aabb.clamp( AABB::fromViewport( viewport ) );
@@ -140,11 +187,6 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
             area = -area;
         }
 
-        // Bias the edge equations based on the top-left rule.
-        int bias0 = isTopLeft( p1, p2 ) ? 0 : -1;
-        int bias1 = isTopLeft( p2, p0 ) ? 0 : -1;
-        int bias2 = isTopLeft( p0, p1 ) ? 0 : -1;
-
         aabb.clamp( triangleAABB );
 
         int minX = static_cast<int>( aabb.min.x );
@@ -154,40 +196,57 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
 
         glm::ivec2 p { minX, minY };
 
-        int w0_start = orient2D( p1, p2, p ) + bias0;
-        int w1_start = orient2D( p2, p0, p ) + bias1;
-        int w2_start = orient2D( p0, p1, p ) + bias2;
-
-        // Compute X and Y edge deltas.
-        int dX0 = p1.x - p0.x;
-        int dX1 = p2.x - p1.x;
-        int dX2 = p0.x - p2.x;
-        int dY0 = p0.y - p1.y;
-        int dY1 = p1.y - p2.y;
-        int dY2 = p2.y - p0.y;
+        // Edge setup.
+        Edge2D e { p0, p1, p2, p };
 
         for ( p.y = minY; p.y <= maxY; p.y++ )
         {
-            int w0 = w0_start;
-            int w1 = w1_start;
-            int w2 = w2_start;
-
             for ( p.x = minX; p.x <= maxX; p.x++ )
             {
-
-                if ( ( w0 | w1 | w2 ) >= 0 )
+                if ( e.inside() )
                     image->plot<false>( p.x, p.y, state.color, blendMode );
 
-                w0 += dY1;
-                w1 += dY2;
-                w2 += dY0;
+                e.stepX();
             }
 
-            w0_start += dX1;
-            w1_start += dX2;
-            w2_start += dX0;
+            e.stepY();
         }
     }
     break;
+    }
+}
+
+void Rasterizer::drawAABB( math::AABB aabb )
+{
+    Image*   image    = state.colorTarget;
+    Viewport viewport = state.viewport;
+
+    if ( !image )
+        return;
+
+    AABB imageAABB = image->aabb();
+    imageAABB.clamp( AABB::fromViewport( viewport ) );
+
+    if ( !aabb.intersect( imageAABB ) )
+        return;
+
+    switch ( state.fillMode )
+    {
+    case FillMode::WireFrame:
+        drawLine( aabb.min.x, aabb.min.y, aabb.max.x, aabb.min.y );
+        drawLine( aabb.max.x, aabb.min.y, aabb.max.x, aabb.max.y );
+        drawLine( aabb.max.x, aabb.max.y, aabb.min.x, aabb.max.y );
+        drawLine( aabb.min.x, aabb.max.y, aabb.min.x, aabb.min.y );
+        break;
+    case FillMode::Solid:
+        aabb.clamp( imageAABB );
+        for ( int y = static_cast<int>( aabb.min.y ); y <= static_cast<int>( aabb.max.y ); ++y )
+        {
+            for ( int x = static_cast<int>( aabb.min.x ); x <= static_cast<int>( aabb.max.x ); ++x )
+            {
+                image->plot<false>( x, y, state.color, state.blendMode );
+            }
+        }
+        break;
     }
 }
