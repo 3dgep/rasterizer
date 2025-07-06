@@ -53,6 +53,14 @@ struct BlendMode
     bool blendEnable = false;
 
     /// <summary>
+    /// If the alpha channel of the source color is below this value,
+    /// then discard the source color and return the destination color.
+    /// Set this value to 0 to disable alpha thresholding.
+    /// Default: 0
+    /// </summary>
+    uint8_t alphaThreshold = 0;
+
+    /// <summary>
     /// The blend factor to apply to the source color (S).
     /// Default: `BlendFactor::One`.
     /// </summary>
@@ -89,6 +97,7 @@ struct BlendMode
     BlendOperation alphaOp = BlendOperation::Add;
 
     constexpr explicit BlendMode( bool           blendEnable    = false,
+                                  uint8_t        alphaThreshold = 0,
                                   BlendFactor    srcFactor      = BlendFactor::One,
                                   BlendFactor    dstFactor      = BlendFactor::Zero,
                                   BlendOperation blendOp        = BlendOperation::Add,
@@ -96,6 +105,7 @@ struct BlendMode
                                   BlendFactor    dstAlphaFactor = BlendFactor::Zero,
                                   BlendOperation alphaOp        = BlendOperation::Add )
     : blendEnable { blendEnable }
+    , alphaThreshold { alphaThreshold }
     , srcFactor { srcFactor }
     , dstFactor { dstFactor }
     , blendOp { blendOp }
@@ -113,6 +123,7 @@ struct BlendMode
     constexpr Color Blend( Color srcColor, Color dstColor ) const noexcept;
 
     static const BlendMode Disable;
+    static const BlendMode AlphaDiscard;
     static const BlendMode AlphaBlend;
     static const BlendMode AdditiveBlend;
     static const BlendMode SubtractiveBlend;
@@ -230,6 +241,9 @@ constexpr Color BlendMode::Blend( const Color srcColor, const Color dstColor ) c
 {
     if ( !blendEnable )
         return srcColor;
+
+    if ( srcColor.a < alphaThreshold )
+        return dstColor;
 
     const Color sRGB = ComputeBlendFactor( srcColor, dstColor, srcFactor ) * srcColor;
     const Color dRGB = ComputeBlendFactor( srcColor, dstColor, dstFactor ) * dstColor;

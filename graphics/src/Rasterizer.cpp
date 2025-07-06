@@ -154,7 +154,6 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
 {
     Image*    image     = state.colorTarget;
     Viewport  viewport  = state.viewport;
-    BlendMode blendMode = state.blendMode;
 
     if ( !image )
         return;
@@ -204,7 +203,7 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
             for ( p.x = minX; p.x <= maxX; p.x++ )
             {
                 if ( e.inside() )
-                    image->plot<false>( p.x, p.y, state.color, blendMode );
+                    image->plot<false>( p.x, p.y, state.color, state.blendMode );
 
                 e.stepX();
             }

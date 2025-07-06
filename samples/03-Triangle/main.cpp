@@ -40,7 +40,6 @@ int main()
                 case SDLK_RETURN:
                     if ( ( event.key.mod & SDL_KMOD_ALT ) != 0 )
                     {
-                    [[fallthrough]]
                     case SDLK_F11:
                         window.toggleFullscreen();
                     }
