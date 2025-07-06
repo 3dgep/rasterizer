@@ -2,6 +2,8 @@
 
 #include "Color.hpp"
 
+#include <algorithm>
+
 namespace sr
 {
 inline namespace graphics

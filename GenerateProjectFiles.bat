@@ -26,7 +26,7 @@ REM ****************************************************************************
 
 REM This script will generate the solution files for the currently installed version
 REM of Visual Studio detected on the user's computer. Supported version of Visual Studio are:
-REM 	Visual Studio 2022
+REM     Visual Studio 2022
 REM     Visual Studio 2019
 REM 
 REM The solution files will be created in out\build\vs16 if Visual Studio 2019 was detected or

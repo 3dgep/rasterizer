@@ -117,6 +117,25 @@ struct Rasterizer
     /// <param name="p1">The second triangle coordinate (in screen coordinates).</param>
     /// <param name="p2">The third triangle coordinate (in screen coordinates).</param>
     void drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 );
+
+private:
+    /// <summary>
+    /// Draws a line between two points using an algorithm optimized for lines with a shallow slope (|dy| < |dx|).
+    /// </summary>
+    /// <param name="x0">The x-coordinate of the starting point.</param>
+    /// <param name="y0">The y-coordinate of the starting point.</param>
+    /// <param name="x1">The x-coordinate of the ending point.</param>
+    /// <param name="y1">The y-coordinate of the ending point.</param>
+    void drawLineLow( int x0, int y0, int x1, int y1 );
+
+    /// <summary>
+    /// Draws a line between two points using an algorithm optimized for lines with a steep slope (|dy| > |dx|).
+    /// </summary>
+    /// <param name="x0">The x-coordinate of the starting point.</param>
+    /// <param name="y0">The y-coordinate of the starting point.</param>
+    /// <param name="x1">The x-coordinate of the ending point.</param>
+    /// <param name="y1">The y-coordinate of the ending point.</param>
+    void drawLineHigh( int x0, int y0, int x1, int y1 );
 };
 }  // namespace graphics
 }  // namespace sr

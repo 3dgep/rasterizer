@@ -2,13 +2,77 @@
 
 using namespace sr::graphics;
 
+// Source: Claud Sonnet 4 "Create a 2D Software Rasterizer in 2D in C++"
+void Rasterizer::drawLineLow( int x0, int y0, int x1, int y1 )
+{
+    Image*    image     = state.colorTarget;
+    BlendMode blendMode = state.blendMode;
+
+    int dx = x1 - x0;
+    int dy = y1 - y0;
+    int yi = 1;
+
+    if ( dy < 0 )
+    {
+        yi = -1;
+        dy = -dy;
+    }
+
+    int D = 2 * dy - dx;
+    int y = y0;
+
+    for ( int x = x0; x <= x1; ++x)
+    {
+        image->plot<false>( x, y, state.color, blendMode );
+
+        if ( D > 0 )
+        {
+            y += yi;
+            D -= 2 * dx;
+        }
+        D += 2 * dy;
+    }
+}
+
+void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 )
+{
+    
+    Image*    image     = state.colorTarget;
+    BlendMode blendMode = state.blendMode;
+
+    int dx = x1 - x0;
+    int dy = y1 - y0;
+    int xi = 1;
+
+    if (dx < 0)
+    {
+        xi = -1;
+        dx = -dx;
+    }
+
+    int D = 2 * dx - dy;
+    int x = x0;
+
+    for (int y = y0; y <= y1; ++y)
+    {
+        image->plot<false>(x, y, state.color, blendMode);
+
+        if (D > 0)
+        {
+            x += xi;
+            D -= 2 * dy;
+        }
+        D += 2 * dx;
+    }
+}
+
 void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
 {
     Image*    image     = state.colorTarget;
     Viewport  viewport  = state.viewport;
-    BlendMode blendMode = state.blendMode;
 
-    assert( image != nullptr );
+    if (image == nullptr)
+        return;
 
     auto aabb = image->aabb();
     aabb.clamp( AABB::fromViewport( viewport ) );
@@ -16,34 +80,26 @@ void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
     if ( !aabb.clip( x0, y0, x1, y1 ) )
         return;
 
-    const int dx = std::abs( x1 - x0 );
-    const int dy = -std::abs( y1 - y0 );
-    const int sx = x0 < x1 ? 1 : -1;
-    const int sy = y0 < y1 ? 1 : -1;
-
-    int err = dx + dy;
-
-    while ( true )
+    if ( std::abs( y1 - y0 ) < std::abs( x1 - x0 ) )
     {
-        image->plot<false>( x0, y0, state.color, blendMode );
-
-        const int e2 = err * 2;
-
-        if ( e2 >= dy )
+        if ( x0 > x1 )
         {
-            if ( x0 == x1 )
-                break;
-
-            err += dy;
-            x0 += sx;
+            drawLineLow( x1, y1, x0, y0 );
         }
-        if ( e2 <= dx )
+        else
         {
-            if ( y0 == y1 )
-                break;
-
-            err += dx;
-            y0 += sy;
+            drawLineLow( x0, y0, x1, y1 );
+        }
+    }
+    else
+    {
+        if ( y0 > y1 )
+        {
+            drawLineHigh( x1, y1, x0, y0 );
+        }
+        else
+        {
+            drawLineHigh( x0, y0, x1, y1 );
         }
     }
 }
