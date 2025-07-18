@@ -57,9 +57,13 @@ public:
 
     void resize( int width, int height );
 
+    void present();
+
     void present( const Image& image );
 
 private:
+    void          beginFrame();
+
     SDL_Window*   m_Window   = nullptr;
     SDL_Renderer* m_Renderer = nullptr;
     SDL_Texture*  m_Texture  = nullptr;

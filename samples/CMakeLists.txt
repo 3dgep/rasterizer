@@ -11,8 +11,9 @@ add_sample( 00-Common )
 add_sample( 01-ClearScreen )
 add_sample( 02-Images )
 add_sample( 03-Triangle )
+add_sample( 04-ImGui )
 
 # Set the startup project.
 set_directory_properties( PROPERTIES
-	VS_STARTUP_PROJECT 02-Images
+	VS_STARTUP_PROJECT 04-ImGui
 )
