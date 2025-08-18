@@ -102,29 +102,23 @@ const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexce
     switch ( addressMode )
     {
     case AddressMode::Wrap:
-    {
         u = fast_mod( u, w );
         v = fast_mod( v, h );
-    }
-    break;
+        break;
     case AddressMode::Mirror:
-    {
         u = u / w % 2 == 0 ? fast_mod( u, w ) : ( w - 1 ) - fast_mod( u, w );
         v = v / h % 2 == 0 ? fast_mod( v, h ) : ( h - 1 ) - fast_mod( v, h );
-    }
-    break;
+        break;
     case AddressMode::Clamp:
-    {
         u = math::clamp( u, 0, w - 1 );
         v = math::clamp( v, 0, h - 1 );
-    }
-    break;
+        break;
     }
 
     assert( u >= 0 && u < w );
     assert( v >= 0 && v < h );
 
-    return *reinterpret_cast<const Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + v * m_Surface->pitch + u * sizeof(Color) );
+    return *reinterpret_cast<const Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + v * m_Surface->pitch + u * sizeof( Color ) );
 }
 
 void Image::save( const std::filesystem::path& file ) const
@@ -159,12 +153,15 @@ void Image::clear( const Color& color ) noexcept
 {
     assert( m_Surface != nullptr );
 
-    std::fill_n( static_cast<Color*>( m_Surface->pixels ), m_Surface->pitch * m_Surface->h / sizeof(Color), color );
+    std::fill_n( static_cast<Color*>( m_Surface->pixels ), m_Surface->pitch * m_Surface->h / sizeof( Color ), color );
 }
 
 void Image::resize( uint32_t width, uint32_t height )
 {
-    if ( m_Surface && m_Surface->w == width && m_Surface->h == height )
+    assert( width < INT_MAX );
+    assert( height < INT_MAX );
+
+    if ( m_Surface && std::cmp_equal( m_Surface->w, width ) && std::cmp_equal( m_Surface->h, height ) )
         return;
 
     if ( m_Surface )

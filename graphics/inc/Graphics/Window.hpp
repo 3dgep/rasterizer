@@ -34,6 +34,10 @@ public:
 
     void create( std::string_view title, int width, int height, bool fullScreen = false );
 
+    int getWidth() const;
+
+    int getHeight() const;
+
     /// <summary>
     /// Close and destroy the window.
     /// </summary>

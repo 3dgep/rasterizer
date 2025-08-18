@@ -1,10 +1,13 @@
+#include "glm/trigonometric.hpp"
+
 #include <Timer.hpp>
-#include <iostream>
 
 #include <graphics/Image.hpp>
 #include <graphics/Rasterizer.hpp>
 #include <graphics/Sprite.hpp>
 #include <graphics/Window.hpp>
+
+#include <numbers>
 
 using namespace sr;
 
@@ -15,13 +18,16 @@ int main()
     Sprite sprite {
         std::make_shared<Image>( "assets/textures/Smiley.png" ), BlendMode::AlphaBlend
     };
-    Transform2D transform;
+    Transform2D transform {
+        { ( image.width() - sprite.getWidth() ) / 2.0f, ( image.height() - sprite.getHeight() ) / 2.0f }, 0.0f, { 0.25f, 0.25f }, { sprite.getWidth() / 2.0f, sprite.getHeight() / 2.0f }
+    };
 
     Rasterizer rasterizer;
     Timer      timer;
 
     // Setup the rasterizer's render target state.
     rasterizer.state.colorTarget = &image;
+    rasterizer.state.blendMode   = BlendMode::AlphaBlend;
 
     while ( window )
     {
@@ -55,6 +61,8 @@ int main()
 
         window.clear( Color::White );
         image.clear( Color::Black );
+
+        transform.setRotation( static_cast<float>( timer.totalSeconds() ) );
 
         rasterizer.drawSprite( sprite, transform );
 

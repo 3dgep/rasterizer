@@ -246,10 +246,10 @@ void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ive
         break;
     case FillMode::Solid:
     {
-        int minX = static_cast<int>(dstAABB.min.x);
-        int minY = static_cast<int>(dstAABB.min.y);
-        int maxX = static_cast<int>(dstAABB.max.x);
-        int maxY = static_cast<int>(dstAABB.max.y);
+        int minX = static_cast<int>( dstAABB.min.x );
+        int minY = static_cast<int>( dstAABB.min.y );
+        int maxX = static_cast<int>( dstAABB.max.x );
+        int maxY = static_cast<int>( dstAABB.max.y );
 
         glm::ivec2 p { minX, minY };
 
@@ -259,9 +259,9 @@ void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ive
             { p2, p3, p0, p },
         };
 
-        for (p.y = minY; p.y <= maxY; ++p.y)
+        for ( p.y = minY; p.y <= maxY; ++p.y )
         {
-            for (p.x = minX; p.x <= maxX; ++p.x)
+            for ( p.x = minX; p.x <= maxX; ++p.x )
             {
                 for ( const auto& i: e )
                 {
@@ -333,10 +333,10 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
     const glm::ivec2 size         = sprite.getSize();
 
     Vertex2D verts[4] = {
-        { { 0, 0 }, { uv.x, uv.y }, color },
-        { { 0, size.y - 1 }, { uv.x, uv.y + size.y - 1 }, color },
-        { { size.x - 1, size.y - 1 }, { uv.x + size.x - 1, uv.y + size.y - 1 }, color },
-        { { size.x - 1, 0 }, { uv.x + size.x - 1, uv.y }, color },
+        { { 0, 0 }, { uv.x, uv.y }, color },                              // Top-left.
+        { { size.x, 0 }, { uv.x + size.y, uv.y }, color },                // Top-right.
+        { { size.x, size.y }, { uv.x + size.x, uv.y + size.y }, color },  // Bottom-right.
+        { { 0, size.y }, { uv.x, uv.y + size.y }, color },                // Bottom-left.
     };
 
     const uint32_t indices[6] = {

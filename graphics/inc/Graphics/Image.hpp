@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <utility>
 
 namespace sr
 {
@@ -100,7 +101,7 @@ struct Image final
         assert( x < m_Surface->w );
         assert( y < m_Surface->h );
 
-        return *reinterpret_cast<const Color*>( static_cast<unsigned char*>(m_Surface->pixels) + y * m_Surface->pitch + x * sizeof(Color) );
+        return *reinterpret_cast<const Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) );
     }
 
     /// <summary>
@@ -185,16 +186,16 @@ struct Image final
 
         if constexpr ( BoundsCheck )
         {
-            if ( x >= m_Surface->w || y >= m_Surface->h )
+            if ( std::cmp_greater_equal( x, m_Surface->w ) || std::cmp_greater_equal( y, m_Surface->h ) )
                 return;
         }
         else
         {
-            assert( x < m_Surface->w );
-            assert( y < m_Surface->h );
+            assert( std::cmp_less( x, m_Surface->w ) );
+            assert( std::cmp_less( y, m_Surface->h ) );
         }
 
-        Color& dst = *( reinterpret_cast<Color*>( static_cast<Uint8*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof(Color) ) );
+        Color& dst = *( reinterpret_cast<Color*>( static_cast<Uint8*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) ) );
         if constexpr ( Blending )
         {
             dst = blendMode.Blend( src, dst );
@@ -234,7 +235,7 @@ struct Image final
     /// Get the width of the image (in pixels).
     /// </summary>
     /// <returns>The width of the image (in pixels).</returns>
-    uint32_t width() const noexcept
+    int width() const noexcept
     {
         assert( m_Surface != nullptr );
         return m_Surface->w;
@@ -244,7 +245,7 @@ struct Image final
     /// Get the height of the image (in pixels).
     /// </summary>
     /// <returns>The height of the image (in pixels).</returns>
-    uint32_t height() const noexcept
+    int height() const noexcept
     {
         assert( m_Surface != nullptr );
         return m_Surface->h;
@@ -290,8 +291,6 @@ struct Image final
     }
 
 private:
-
-
     /// <summary>
     /// Axis-aligned bounding box (used for clipping).
     /// </summary>

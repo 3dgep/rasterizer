@@ -136,6 +136,16 @@ void Window::create( std::string_view title, int width, int height, bool fullscr
     beginFrame();
 }
 
+int Window::getWidth() const
+{
+    return m_Width;
+}
+
+int Window::getHeight() const
+{
+    return m_Height;
+}
+
 void Window::destroy()
 {
     SDL_DestroyWindow( m_Window );
@@ -283,6 +293,7 @@ void Window::present( const Image& image )
             return;
         }
         SDL_SetTextureScaleMode( m_Texture, SDL_SCALEMODE_NEAREST );
+        SDL_SetTextureBlendMode( m_Texture, SDL_BLENDMODE_NONE );
     }
 
     // Copy the image data to the texture.

@@ -9,11 +9,11 @@
 
 using namespace sr::math;
 
-Transform2D::Transform2D( const glm::vec2& position, const glm::vec2& scale, float rotation, const glm::vec2& anchor )
+Transform2D::Transform2D( const glm::vec2& position, float rotation, const glm::vec2& scale, const glm::vec2& anchor )
 : m_Anchor { anchor }
 , m_Position { position }
-, m_Scale { scale }
 , m_Rotation { rotation }
+, m_Scale { scale }
 {}
 
 const glm::mat3& Transform2D::getTransform() const noexcept
@@ -35,19 +35,19 @@ const glm::mat3& Transform2D::getTransform() const noexcept
          //    tx, ty, 1.0f
          //};
 
-        glm::mat3 anchor        = glm::translate( glm::mat3 { 1 }, -m_Anchor );
-        glm::mat3 translation   = glm::translate( glm::mat3 { 1 }, m_Position );
-        glm::mat3 rotation      = glm::rotate( glm::mat3 { 1 }, m_Rotation );
-        glm::mat3 scale         = glm::scale( glm::mat3 { 1 }, m_Scale );
-        glm::mat3 inverseAnchor = glm::inverse( anchor * rotation * scale );
+        //glm::mat3 anchor        = glm::translate( glm::mat3 { 1 }, m_Anchor );
+        //glm::mat3 translation   = glm::translate( glm::mat3 { 1 }, m_Position );
+        //glm::mat3 rotation      = glm::rotate( glm::mat3 { 1 }, m_Rotation );
+        //glm::mat3 scale         = glm::scale( glm::mat3 { 1 }, m_Scale );
+        //glm::mat3 inverseAnchor = glm::translate( glm::mat3 { 1 }, -m_Anchor );
 
-        m_Transform = anchor * translation * rotation * scale;
+        //m_Transform = anchor * translation * rotation * scale * inverseAnchor;
 
-        // m_Transform = glm::mat3 { 1 };
-        // m_Transform = glm::translate( m_Transform, m_Position + m_Anchor);
-        // m_Transform = glm::rotate( m_Transform, m_Rotation );
-        // m_Transform = glm::scale( m_Transform, m_Scale );
-        // m_Transform = glm::translate( m_Transform, -m_Anchor );
+         m_Transform = glm::mat3 { 1 };
+         m_Transform = glm::translate( m_Transform, m_Anchor + m_Position );
+         m_Transform = glm::rotate( m_Transform, m_Rotation );
+         m_Transform = glm::scale( m_Transform, m_Scale );
+         m_Transform = glm::translate( m_Transform, -m_Anchor );
 
         m_TransformDirty = false;
     }

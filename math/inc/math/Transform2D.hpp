@@ -12,7 +12,7 @@ inline namespace math
 class Transform2D
 {
 public:
-    explicit Transform2D( const glm::vec2& position = glm::vec2 { 0 }, const glm::vec2& scale = glm::vec2 { 1 }, float rotation = 0.0f, const glm::vec2& anchor = glm::vec2 { 0 } );
+    explicit Transform2D( const glm::vec2& position = glm::vec2 { 0 }, float rotation = 0.0f, const glm::vec2& scale = glm::vec2 { 1 }, const glm::vec2& anchor = glm::vec2 { 0 } );
 
     /// <summary>
     /// Set the transform position.
@@ -120,12 +120,15 @@ public:
 private:
     // The anchor point determines the origin of the applied transformations.
     glm::vec2 m_Anchor { 0 };
+
     // The position of the object in 2D space.
     glm::vec2 m_Position { 0 };
-    // The scale of the object in the local X and Y axis.
-    glm::vec2 m_Scale { 1 };
+
     // The rotation angle (in radians) around the Z axis.
     float m_Rotation { 0.0f };
+
+    // The scale of the object in the local X and Y axis.
+    glm::vec2 m_Scale { 1 };
 
     // The 2D transformation matrix that combines the position, scale, and rotation in one.
     mutable glm::mat3 m_Transform { 1 };
