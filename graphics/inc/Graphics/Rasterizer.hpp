@@ -3,10 +3,11 @@
 #include "BlendMode.hpp"
 #include "Color.hpp"
 #include "Image.hpp"
+#include "Sprite.hpp"
 
-#include <glm/vec2.hpp>
 #include <math/AABB.hpp>
 #include <math/Viewport.hpp>
+#include <math/Transform2D.hpp>
 
 namespace sr
 {
@@ -22,7 +23,7 @@ struct Rasterizer
     /// </summary>
     struct State
     {
-        Color         color;
+        Color         color{Color::White};
         FillMode      fillMode = FillMode::Solid;
         BlendMode     blendMode;
         Image*        colorTarget  = nullptr;
@@ -118,6 +119,8 @@ struct Rasterizer
     /// <param name="p2">The third triangle coordinate (in screen coordinates).</param>
     void drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 );
 
+    void drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 );
+
     /// <summary>
     /// Draws an axis-aligned bounding box (AABB).
     /// Required state:
@@ -128,6 +131,13 @@ struct Rasterizer
     /// </summary>
     /// <param name="aabb">The axis-aligned bounding box to draw.</param>
     void drawAABB( math::AABB aabb );
+
+    void drawSprite( const Sprite& sprite, const glm::mat3& transform );
+
+    void drawSprite( const Sprite& sprite, const math::Transform2D& transform )
+    {
+        drawSprite( sprite, transform.getTransform() );
+    }
 
 private:
     /// <summary>

@@ -12,7 +12,7 @@ inline namespace math
 class Transform2D
 {
 public:
-    explicit Transform2D( const glm::vec2& position = glm::vec2 { 0 }, const glm::vec2& scale = glm::vec2 { 1 }, float rotation = 0.0f );
+    explicit Transform2D( const glm::vec2& position = glm::vec2 { 0 }, const glm::vec2& scale = glm::vec2 { 1 }, float rotation = 0.0f, const glm::vec2& anchor = glm::vec2 { 0 } );
 
     /// <summary>
     /// Set the transform position.
@@ -106,6 +106,16 @@ public:
     /// </summary>
     /// <returns></returns>
     const glm::mat3& getTransform() const noexcept;
+
+    glm::vec2 transformPoint( const glm::vec2& p ) const
+    {
+        return getTransform() * glm::vec3 { p, 1 };
+    }
+
+    glm::vec2 transformDirection( const glm::vec2& d ) const
+    {
+        return getTransform() * glm::vec3 { d, 0 };
+    }
 
 private:
     // The anchor point determines the origin of the applied transformations.

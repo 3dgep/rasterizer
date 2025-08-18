@@ -1,15 +1,18 @@
 #include <graphics/Rasterizer.hpp>
+#include <graphics/Vertex.hpp>
 
 using namespace sr::graphics;
 using namespace sr::math;
 
 // 2D Edge functions for triangle rasterization.
+// See: https://fgiesen.wordpress.com/2013/02/08/triangle-rasterization-in-practice/
 struct Edge2D
 {
-    glm::ivec3 dX;  // X deltas.
-    glm::ivec3 dY;  // Y deltas.
-    glm::ivec3 w0;  // Starting weights per row.
-    glm::ivec3 w;   // Current weight.
+    glm::ivec3 dX;    // X deltas.
+    glm::ivec3 dY;    // Y deltas.
+    glm::ivec3 w0;    // Starting weights per row.
+    glm::ivec3 w;     // Current weight.
+    float      area;  // Area of the triangle (used to compute the barycentric coordinates).
 
     Edge2D( const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2, const glm::ivec2& p )
     : dX { p1.x - p0.x, p2.x - p1.x, p0.x - p2.x }
@@ -19,6 +22,7 @@ struct Edge2D
         int bias1 = isTopLeft( p2, p0 ) ? 0 : -1;
         int bias2 = isTopLeft( p0, p1 ) ? 0 : -1;
 
+        area = static_cast<float>( orient2D( p0, p1, p2 ) );
         w0.x = orient2D( p1, p2, p ) + bias0;
         w0.y = orient2D( p2, p0, p ) + bias1;
         w0.z = orient2D( p0, p1, p ) + bias2;
@@ -45,6 +49,11 @@ struct Edge2D
         w0[2] += dX[0];
 
         w = w0;
+    }
+
+    glm::vec3 barycentric() const
+    {
+        return { static_cast<float>( w.x ) / area, static_cast<float>( w.y ) / area, static_cast<float>( w.z ) / area };
     }
 };
 
@@ -152,15 +161,12 @@ void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
 
 void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
 {
-    Image*    image     = state.colorTarget;
-    Viewport  viewport  = state.viewport;
+    Image* image = state.colorTarget;
 
     if ( !image )
         return;
 
-    auto aabb = image->aabb();
-    aabb.clamp( AABB::fromViewport( viewport ) );
-
+    auto aabb         = image->aabb().clamped( AABB { state.viewport } );
     auto triangleAABB = AABB::fromTriangle( p0, p1, p2 );
 
     if ( !triangleAABB.intersect( aabb ) )
@@ -215,6 +221,67 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
     }
 }
 
+void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 )
+{
+    Image* image = state.colorTarget;
+
+    if ( !image )
+        return;
+
+    AABB dstAABB = image->aabb().clamped( AABB { state.viewport } );
+    AABB srcAABB = AABB { p0, p1, p2, p3 };
+
+    if ( !srcAABB.intersect( dstAABB ) )
+        return;
+
+    dstAABB.clamp( srcAABB );
+
+    switch ( state.fillMode )
+    {
+    case FillMode::WireFrame:
+        drawLine( p0, p1 );
+        drawLine( p1, p2 );
+        drawLine( p2, p3 );
+        drawLine( p3, p0 );
+        break;
+    case FillMode::Solid:
+    {
+        int minX = static_cast<int>(dstAABB.min.x);
+        int minY = static_cast<int>(dstAABB.min.y);
+        int maxX = static_cast<int>(dstAABB.max.x);
+        int maxY = static_cast<int>(dstAABB.max.y);
+
+        glm::ivec2 p { minX, minY };
+
+        // Edge setup
+        Edge2D e[] = {
+            { p0, p1, p2, p },
+            { p2, p3, p0, p },
+        };
+
+        for (p.y = minY; p.y <= maxY; ++p.y)
+        {
+            for (p.x = minX; p.x <= maxX; ++p.x)
+            {
+                for ( const auto& i: e )
+                {
+                    if ( i.inside() )
+                    {
+                        image->plot<false>( p.x, p.y, state.color, state.blendMode );
+                    }
+                }
+
+                e[0].stepX();
+                e[1].stepX();
+            }
+            e[0].stepY();
+            e[1].stepY();
+        }
+    }
+    break;
+    }
+}
+
 void Rasterizer::drawAABB( math::AABB aabb )
 {
     Image*   image    = state.colorTarget;
@@ -247,5 +314,91 @@ void Rasterizer::drawAABB( math::AABB aabb )
             }
         }
         break;
+    }
+}
+
+void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
+{
+    const Image* srcImage = sprite.getImage().get();
+    Image*       dstImage = state.colorTarget;
+
+    if ( !srcImage || !dstImage )
+        return;
+
+    const Color      color        = sprite.getColor() * state.color;
+    const BlendMode  blendMode    = sprite.getBlendMode();
+    const AABB       viewportAABB = AABB::fromViewport( state.viewport );
+    AABB             dstAABB      = dstImage->aabb().clamped( viewportAABB );
+    const glm::ivec2 uv           = sprite.getUV();
+    const glm::ivec2 size         = sprite.getSize();
+
+    Vertex2D verts[4] = {
+        { { 0, 0 }, { uv.x, uv.y }, color },
+        { { 0, size.y - 1 }, { uv.x, uv.y + size.y - 1 }, color },
+        { { size.x - 1, size.y - 1 }, { uv.x + size.x - 1, uv.y + size.y - 1 }, color },
+        { { size.x - 1, 0 }, { uv.x + size.x - 1, uv.y }, color },
+    };
+
+    const uint32_t indices[6] = {
+        0, 1, 2,
+        2, 3, 0
+    };
+
+    // Transform vertices
+    for ( Vertex2D& v: verts )
+    {
+        v.position = transform * glm::vec3 { v.position, 1.0f };
+    }
+
+    // Compute the AABB over the transformed sprite vertices.
+    AABB srcAABB = AABB {
+        verts[0].position, verts[1].position, verts[2].position, verts[3].position
+    };
+
+    // If the sprite AABB doesn't overlap with the destination AABB.
+    if ( !srcAABB.intersect( dstAABB ) )
+        return;
+
+    // Clamp the dstAABB by the srcAABB.
+    dstAABB.clamp( srcAABB );
+
+    const int minX = static_cast<int>( dstAABB.min.x );
+    const int minY = static_cast<int>( dstAABB.min.y );
+    const int maxX = static_cast<int>( dstAABB.max.x );
+    const int maxY = static_cast<int>( dstAABB.max.y );
+
+    glm::ivec2 p { minX, minY };
+
+    // Edge setup for the 2 triangles of the quad.
+    Edge2D e[] {
+        { verts[indices[0]].position, verts[indices[1]].position, verts[indices[2]].position, p },
+        { verts[indices[3]].position, verts[indices[4]].position, verts[indices[5]].position, p }
+    };
+
+    for ( p.y = minY; p.y <= maxY; ++p.y )
+    {
+        for ( p.x = minX; p.x <= maxX; ++p.x )
+        {
+            for ( uint32_t i = 0; i < 2; ++i )
+            {
+                if ( e[i].inside() )
+                {
+                    const uint32_t i0 = indices[i * 3 + 0];
+                    const uint32_t i1 = indices[i * 3 + 1];
+                    const uint32_t i2 = indices[i * 3 + 2];
+
+                    const glm::vec3  bc       = e[i].barycentric();
+                    const glm::ivec2 texCoord = glm::round( verts[i0].texCoord * bc.x + verts[i1].texCoord * bc.y + verts[i2].texCoord * bc.z );
+                    const Color      srcColor = srcImage->sample( texCoord.x, texCoord.y, AddressMode::Clamp ) * color;
+                    dstImage->plot<false>( p.x, p.y, srcColor, blendMode );
+                }
+            }
+
+            e[0].stepX();
+            e[1].stepX();
+        }
+
+        e[0].stepY();
+        e[1].stepY();
     }
 }

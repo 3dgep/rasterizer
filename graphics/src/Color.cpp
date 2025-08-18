@@ -31,6 +31,7 @@ const Color Color::Firebrick { 0xff2222b2 };
 const Color Color::ForestGreen { 0xff228b22 };
 const Color Color::Gold { 0xff00d7ff };
 const Color Color::GoldenRod { 0xff20a5da };
+const Color Color::Gray { 0xff808080 };
 const Color Color::Green { 0xff00ff00 };
 const Color Color::GreenYellow { 0xff2fffad };
 const Color Color::IndianRed { 0xff5c5ccd };

@@ -1,10 +1,10 @@
 #pragma once
 
+#include "Circle.hpp"
 #include "Line.hpp"
 #include "OutCodes.hpp"
 #include "Rect.hpp"
 #include "Sphere.hpp"
-#include "Circle.hpp"
 #include "Viewport.hpp"
 
 #include <glm/common.hpp>
@@ -58,7 +58,7 @@ struct AABB
     /// <param name="a">The first point.</param>
     /// <param name="b">The second point.</param>
     /// <param name="c">The third point.</param>
-    AABB(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c ) noexcept
+    AABB( const glm::vec2& a, const glm::vec2& b, const glm::vec2& c ) noexcept
     {
         min = glm::vec3 { glm::min( a, glm::min( b, c ) ), 0 };
         max = glm::vec3 { glm::max( a, glm::max( b, c ) ), 0 };
@@ -76,6 +76,29 @@ struct AABB
     {
         min = glm::min( glm::min( a, b ), glm::min( c, d ) );
         max = glm::max( glm::max( a, b ), glm::max( c, d ) );
+    }
+
+    /// <summary>
+    /// Construct an axis-aligned bounding box from 4 2D points.
+    /// </summary>
+    /// <param name="a">The first point.</param>
+    /// <param name="b">The second point.</param>
+    /// <param name="c">The third point.</param>
+    /// <param name="d">The fourth point.</param>
+    AABB( const glm::vec2& a, const glm::vec2& b, const glm::vec2& c, const glm::vec2& d ) noexcept
+    {
+        min = glm::vec3 { glm::min( glm::min( a, b ), glm::min( c, d ) ), 0 };
+        max = glm::vec3 { glm::max( glm::max( a, b ), glm::max( c, d ) ), 0 };
+    }
+
+    /// <summary>
+    /// Construct an axis-aligned bounding box from a viewport.
+    /// </summary>
+    /// <param name="viewport">The viewport used to construct the AABB.</param>
+    explicit AABB(const math::Viewport& viewport )
+    {
+        min = glm::vec3 { viewport.x, viewport.y, viewport.minDepth };
+        max = glm::vec3 { viewport.x + viewport.width, viewport.y + viewport.height, viewport.maxDepth };
     }
 
     /// <summary>
@@ -657,7 +680,7 @@ struct AABB
     /// <returns>An AABB that covers the viewport.</returns>
     static AABB fromViewport( const Viewport& viewport )
     {
-        return fromMinMax( glm::vec3 { viewport.x, viewport.y, viewport.minDepth }, glm::vec3 { viewport.x + viewport.width, viewport.y + viewport.height, viewport.maxDepth } );
+        return AABB{ viewport };
     }
 
     /// <summary>
