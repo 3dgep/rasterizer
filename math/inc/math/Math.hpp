@@ -166,7 +166,7 @@ inline glm::vec3 barycentric( const glm::vec3& a, const glm::vec3& b, const glm:
     const float z = std::abs( m.z );
 
     // Nominators and one-over-denominator for u, and v ratios.
-    float nu, nv, odd;
+    float nu, nv, ood;
 
     // Compute the areas in the plan of the largest projection.
     if ( x >= y && x >= z )
@@ -174,25 +174,25 @@ inline glm::vec3 barycentric( const glm::vec3& a, const glm::vec3& b, const glm:
         // x is largest, project to the yz plane.
         nu  = triangleArea2D( p.y, p.z, b.y, b.z, c.y, c.z );
         nv  = triangleArea2D( p.y, p.z, c.y, c.z, a.y, a.z );
-        odd = 1.0f / m.x;
+        ood = 1.0f / m.x;
     }
     else if ( y >= x && y >= z )
     {
         // y is largest, project to the xz plane.
         nu  = triangleArea2D( p.x, p.z, b.x, b.z, c.x, c.z );
         nv  = triangleArea2D( p.x, p.z, c.x, c.z, a.x, a.z );
-        odd = 1.0f / -m.y;
+        ood = 1.0f / -m.y;
     }
     else
     {
         // Z is largest, project to the xy plane.
         nu  = triangleArea2D( p.x, p.y, b.x, b.y, c.x, c.y );
         nv  = triangleArea2D( p.x, p.y, c.x, c.y, a.x, a.y );
-        odd = 1.0f / m.z;
+        ood = 1.0f / m.z;
     }
 
-    float u = nu * odd;
-    float v = nv * odd;
+    float u = nu * ood;
+    float v = nv * ood;
     float w = 1.0f - u - v;
 
     return { u, v, w };
