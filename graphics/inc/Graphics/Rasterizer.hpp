@@ -6,8 +6,8 @@
 #include "Sprite.hpp"
 
 #include <math/AABB.hpp>
-#include <math/Viewport.hpp>
 #include <math/Transform2D.hpp>
+#include <math/Viewport.hpp>
 
 namespace sr
 {
@@ -23,11 +23,11 @@ struct Rasterizer
     /// </summary>
     struct State
     {
-        Color         color{Color::White};
-        FillMode      fillMode = FillMode::Solid;
-        BlendMode     blendMode;
-        Image*        colorTarget  = nullptr;
-        Viewport      viewport;
+        Color     color    = Color::White;
+        FillMode  fillMode = FillMode::Solid;
+        BlendMode blendMode;
+        Image*    colorTarget = nullptr;
+        Viewport  viewport;
     } state;
 
     /// <summary>
@@ -131,6 +131,8 @@ struct Rasterizer
     /// </summary>
     /// <param name="aabb">The axis-aligned bounding box to draw.</param>
     void drawAABB( math::AABB aabb );
+
+    void drawSprite( const Sprite& sprite, int x, int y );
 
     void drawSprite( const Sprite& sprite, const glm::mat3& transform );
 

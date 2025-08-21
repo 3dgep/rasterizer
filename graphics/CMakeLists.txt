@@ -71,7 +71,7 @@ set( ALL_FILES
 
 add_library( graphics STATIC ${ALL_FILES} )
 
-target_compile_features( graphics PUBLIC cxx_std_20 )
+target_compile_features( graphics PUBLIC cxx_std_23 )
 
 target_include_directories( graphics
     PUBLIC inc

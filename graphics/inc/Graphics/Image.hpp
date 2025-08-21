@@ -63,8 +63,6 @@ struct Image final
     /// <returns>A reference to this image.</returns>
     Image& operator=( Image&& other ) noexcept;
 
-    // TODO: Use explicit object member functions and multidimensional subscript operators when all major compilers support them.
-
     /// <summary>
     /// Access a pixel in the image by its linear index.
     /// </summary>
@@ -87,6 +85,24 @@ struct Image final
         assert( m_Surface != nullptr );
         assert( i < static_cast<size_t>( m_Surface->w ) * m_Surface->h );
         return static_cast<Color*>( m_Surface->pixels )[i];
+    }
+
+    const Color& operator[]( size_t x, size_t y ) const
+    {
+        assert( m_Surface != nullptr );
+        assert( x < m_Surface->w );
+        assert( y < m_Surface->h );
+
+        return *reinterpret_cast<const Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) );
+    }
+
+    Color& operator[]( size_t x, size_t y )
+    {
+        assert( m_Surface != nullptr );
+        assert( x < m_Surface->w );
+        assert( y < m_Surface->h );
+
+        return *reinterpret_cast<Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) );
     }
 
     /// <summary>

@@ -317,6 +317,58 @@ void Rasterizer::drawAABB( math::AABB aabb )
     }
 }
 
+void Rasterizer::drawSprite( const Sprite& sprite, int x, int y )
+{
+    const Image* srcImage = sprite.getImage().get();
+    Image*       dstImage = state.colorTarget;
+
+    if ( !srcImage || !dstImage )
+        return;
+
+    const Color     color        = sprite.getColor() * state.color;
+    const BlendMode blendMode    = sprite.getBlendMode();
+    const AABB      viewportAABB = AABB::fromViewport( state.viewport );
+    AABB            dstAABB      = dstImage->aabb().clamped( viewportAABB );
+    glm::ivec2      size         = sprite.getSize();
+    glm::ivec2      uv           = sprite.getUV();
+
+    // Compute viewport clipping bounds.
+    int clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), x );
+    int clipTop    = std::max( static_cast<int>( dstAABB.min.y ), y );
+    int clipRight  = std::min( static_cast<int>( dstAABB.max.x ), x + size.x );
+    int clipBottom = std::min( static_cast<int>( dstAABB.max.y ), y + size.y );
+
+    // Check if the sprite is completely off-screen.
+    if ( clipLeft >= clipRight || clipTop >= clipBottom )
+        return;
+
+    // Adjust sprite UV based on clipping.
+    uv.x += clipLeft - x;
+    uv.y += clipTop - y;
+
+    const Color* src = srcImage->data();
+    Color*       dst = dstImage->data();
+
+    // Source image width
+    int sW = srcImage->width();
+    int dW = dstImage->width();
+
+    for (int y = clipTop; y <= clipBottom; ++y)
+    {
+        for (int x = clipLeft; x <= clipRight; ++x)
+        {
+            // Compute clipped UV sprite coordinates.
+            int u = uv.x + ( x - clipLeft );
+            int v = uv.y + ( y - clipTop );
+
+            Color sC = src[v * sW + u];
+            Color dC = dst[y * dW + x];
+
+            dst[y * dW + x] = blendMode.Blend( sC, dC );
+        }
+    }
+}
+
 void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
 {
     const Image* srcImage = sprite.getImage().get();
