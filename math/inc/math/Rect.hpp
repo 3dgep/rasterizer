@@ -2,6 +2,7 @@
 
 #include <compare>
 #include <cstdint>
+#include <utility>
 
 #include <glm/vec2.hpp>
 
@@ -12,7 +13,7 @@ inline namespace math
 template<typename T>
 struct Rect
 {
-    Rect( T left = T( 0 ), T top = T( 0 ), T width = T( 0 ), T height = T( 0 ) )
+    explicit Rect( T left = T( 0 ), T top = T( 0 ), T width = T( 0 ), T height = T( 0 ) )
     : left { left }
     , top { top }
     , width { width }
@@ -59,22 +60,22 @@ struct Rect
     /// <summary>
     /// The left (x) coordinate of the rectangle.
     /// </summary>
-    T left;
+    T left = T( 0 );
 
     /// <summary>
     /// The top (y) coordinate of the rectangle.
     /// </summary>
-    T top;
+    T top = T( 0 );
 
     /// <summary>
     /// The width of the rectangle.
     /// </summary>
-    T width;
+    T width = T( 0 );
 
     /// <summary>
     /// The height of the rectangle.
     /// </summary>
-    T height;
+    T height = T( 0 );
 };
 
 using RectI  = Rect<int32_t>;

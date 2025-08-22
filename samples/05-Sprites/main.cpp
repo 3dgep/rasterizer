@@ -18,15 +18,14 @@ int main()
     };
     Transform2D transform;
     transform.setScale( 0.25f );
-    transform.setAnchor( { sprite.getWidth() * 0.5f, sprite.getHeight() * 0.5f } ); // Center the anchor point on the sprite.
-    transform.setPosition( { image.getWidth() * 0.5f, image.getHeight() * 0.5f } ); // Center the sprite on the screen.
+    transform.setAnchor( { static_cast<float>( sprite.getWidth() ) * 0.5f, static_cast<float>( sprite.getHeight() ) * 0.5f } );  // Center the anchor point on the sprite.
+    transform.setPosition( { static_cast<float>( image.getWidth() ) * 0.5f, static_cast<float>( image.getHeight() ) * 0.5f } );  // Center the sprite on the screen.
 
     Rasterizer rasterizer;
     Timer      timer;
 
     // Setup the rasterizer's render target state.
     rasterizer.state.colorTarget = &image;
-    rasterizer.state.blendMode   = BlendMode::AlphaBlend;
 
     while ( window )
     {
@@ -61,6 +60,7 @@ int main()
         image.clear( Color::Black );
 
         transform.setRotation( static_cast<float>( timer.totalSeconds() ) );
+        rasterizer.drawSprite( sprite, ( image.getWidth() - sprite.getWidth() ) / 2, ( image.getHeight() - sprite.getHeight() ) / 2 );
         rasterizer.drawSprite( sprite, transform );
 
         window.clear( Color::White );

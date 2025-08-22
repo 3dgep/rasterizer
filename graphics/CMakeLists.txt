@@ -8,7 +8,9 @@ set( INC_FILES
     inc/graphics/Enums.hpp
 	inc/graphics/Image.hpp
     inc/graphics/Rasterizer.hpp
+    inc/graphics/ResourceManager.hpp
     inc/graphics/Sprite.hpp
+    inc/graphics/SpriteSheet.hpp
     inc/graphics/Vertex.hpp
 	inc/graphics/Window.hpp
     inc/stb_easy_font.h
@@ -56,6 +58,8 @@ set( SRC_FILES
     src/Color.cpp
     src/Image.cpp
     src/Rasterizer.cpp
+    src/ResourceManager.cpp
+    src/SpriteSheet.cpp
 	src/Window.cpp
     src/stb_image.cpp
     src/stb_image_write.cpp

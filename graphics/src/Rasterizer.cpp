@@ -361,7 +361,7 @@ void Rasterizer::drawSprite( const Sprite& sprite, int x, int y )
             int u = uv.x + ( x - clipLeft );
             int v = uv.y + ( y - clipTop );
 
-            Color sC = src[v * sW + u];
+            Color sC = src[v * sW + u] * color;
             Color dC = dst[y * dW + x];
 
             dst[y * dW + x] = blendMode.Blend( sC, dC );

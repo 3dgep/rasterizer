@@ -3,7 +3,7 @@
 namespace sr
 {
 
-namespace graphics
+inline namespace graphics
 {
 
 /// <summary>
