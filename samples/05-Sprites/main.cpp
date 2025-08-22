@@ -1,5 +1,3 @@
-#include "glm/trigonometric.hpp"
-
 #include <Timer.hpp>
 
 #include <graphics/Image.hpp>
@@ -42,6 +40,9 @@ int main()
                 case SDLK_ESCAPE:
                     window.destroy();
                     break;
+                case SDLK_R:
+                    timer.reset();
+                    break;
                 case SDLK_V:
                     window.toggleVSync();
                     break;
@@ -60,7 +61,7 @@ int main()
         image.clear( Color::Black );
 
         transform.setRotation( static_cast<float>( timer.totalSeconds() ) );
-        rasterizer.drawSprite( sprite, ( image.getWidth() - sprite.getWidth() ) / 2, ( image.getHeight() - sprite.getHeight() ) / 2 );
+        // rasterizer.drawSprite( sprite, ( image.getWidth() - sprite.getWidth() ) / 2, ( image.getHeight() - sprite.getHeight() ) / 2 );
         rasterizer.drawSprite( sprite, transform );
 
         window.clear( Color::White );

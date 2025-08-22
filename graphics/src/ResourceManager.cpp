@@ -8,6 +8,7 @@ namespace
 {
 // Image store.
 std::unordered_map<std::filesystem::path, std::shared_ptr<Image>> g_ImageMap;
+
 }  // namespace
 
 std::shared_ptr<Image> ResourceManager::loadImage( const std::filesystem::path& filePath )

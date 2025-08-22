@@ -1,6 +1,9 @@
 #include <graphics/Rasterizer.hpp>
 #include <graphics/Vertex.hpp>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/matrix_query.hpp>  // glm::isIdentity.
+
 using namespace sr::graphics;
 using namespace sr::math;
 
@@ -18,11 +21,12 @@ struct Edge2D
     : dX { p1.x - p0.x, p2.x - p1.x, p0.x - p2.x }
     , dY { p0.y - p1.y, p1.y - p2.y, p2.y - p0.y }
     {
+        area = static_cast<float>( orient2D( p0, p1, p2 ) );
+
         int bias0 = isTopLeft( p1, p2 ) ? 0 : -1;
         int bias1 = isTopLeft( p2, p0 ) ? 0 : -1;
         int bias2 = isTopLeft( p0, p1 ) ? 0 : -1;
 
-        area = static_cast<float>( orient2D( p0, p1, p2 ) );
         w0.x = orient2D( p1, p2, p ) + bias0;
         w0.y = orient2D( p2, p0, p ) + bias1;
         w0.z = orient2D( p0, p1, p ) + bias2;
@@ -325,18 +329,18 @@ void Rasterizer::drawSprite( const Sprite& sprite, int x, int y )
     if ( !srcImage || !dstImage )
         return;
 
-    const Color     color        = sprite.getColor() * state.color;
-    const BlendMode blendMode    = sprite.getBlendMode();
-    const AABB      viewportAABB = AABB::fromViewport( state.viewport );
-    AABB            dstAABB      = dstImage->aabb().clamped( viewportAABB );
-    glm::ivec2      size         = sprite.getSize();
-    glm::ivec2      uv           = sprite.getUV();
+    const Color      color        = sprite.getColor() * state.color;
+    const BlendMode  blendMode    = sprite.getBlendMode();
+    const AABB       viewportAABB = AABB::fromViewport( state.viewport );
+    const AABB       dstAABB      = dstImage->aabb().clamped( viewportAABB );
+    const glm::ivec2 size         = sprite.getSize();
+    glm::ivec2       uv           = sprite.getUV();
 
     // Compute viewport clipping bounds.
-    int clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), x );
-    int clipTop    = std::max( static_cast<int>( dstAABB.min.y ), y );
-    int clipRight  = std::min( static_cast<int>( dstAABB.max.x ), x + size.x );
-    int clipBottom = std::min( static_cast<int>( dstAABB.max.y ), y + size.y );
+    const int clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), x );
+    const int clipTop    = std::max( static_cast<int>( dstAABB.min.y ), y );
+    const int clipRight  = std::min( static_cast<int>( dstAABB.max.x ), x + size.x );
+    const int clipBottom = std::min( static_cast<int>( dstAABB.max.y ), y + size.y );
 
     // Check if the sprite is completely off-screen.
     if ( clipLeft >= clipRight || clipTop >= clipBottom )
@@ -349,15 +353,14 @@ void Rasterizer::drawSprite( const Sprite& sprite, int x, int y )
     const Color* src = srcImage->data();
     Color*       dst = dstImage->data();
 
-    // Source image width
-    int sW = srcImage->getWidth();
-    int dW = dstImage->getWidth();
+    int sW = srcImage->getWidth();  // Source image width.
+    int dW = dstImage->getWidth();  // Destination image width.
 
-    for (int y = clipTop; y <= clipBottom; ++y)
+    for ( int y = clipTop; y <= clipBottom; ++y )
     {
-        for (int x = clipLeft; x <= clipRight; ++x)
+        for ( int x = clipLeft; x <= clipRight; ++x )
         {
-            // Compute clipped UV sprite coordinates.
+            // Compute clipped UV sprite texture coordinates.
             int u = uv.x + ( x - clipLeft );
             int v = uv.y + ( y - clipTop );
 
@@ -376,6 +379,18 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
 
     if ( !srcImage || !dstImage )
         return;
+
+    // If the top-left 2x2 area of the matrix is identity, then there is no
+    // scale or rotation. In this case, just use the fast path to draw the sprite.
+    if ( glm::isIdentity( glm::mat2 { transform }, 0.0001f ) )
+    {
+        const int x = static_cast<int>( transform[2][0] );
+        const int y = static_cast<int>( transform[2][1] );
+
+        drawSprite( sprite, x, y );
+
+        return;
+    }
 
     const Color      color        = sprite.getColor() * state.color;
     const BlendMode  blendMode    = sprite.getBlendMode();
