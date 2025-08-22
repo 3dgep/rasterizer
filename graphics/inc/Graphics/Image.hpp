@@ -251,7 +251,7 @@ struct Image final
     /// Get the width of the image (in pixels).
     /// </summary>
     /// <returns>The width of the image (in pixels).</returns>
-    int width() const noexcept
+    int getWidth() const noexcept
     {
         assert( m_Surface != nullptr );
         return m_Surface->w;
@@ -261,7 +261,7 @@ struct Image final
     /// Get the height of the image (in pixels).
     /// </summary>
     /// <returns>The height of the image (in pixels).</returns>
-    int height() const noexcept
+    int getHeight() const noexcept
     {
         assert( m_Surface != nullptr );
         return m_Surface->h;

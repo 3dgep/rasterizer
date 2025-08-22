@@ -23,7 +23,7 @@ public:
     /// <param name="blendMode">(Optional) The blending mode to use for rendering the sprite. Defaults to the default BlendMode.</param>
     explicit Sprite( std::shared_ptr<Image> image, const BlendMode& blendMode = BlendMode {} ) noexcept
     : m_Image { std::move( image ) }
-    , m_Rect { 0, 0, static_cast<int32_t>( m_Image->width() ), static_cast<int32_t>( m_Image->height() ) }
+    , m_Rect { 0, 0, static_cast<int32_t>( m_Image->getWidth() ), static_cast<int32_t>( m_Image->getHeight() ) }
     , m_BlendMode { blendMode }
     {}
 

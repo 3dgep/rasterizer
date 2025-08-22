@@ -51,8 +51,8 @@ int main()
 
         timer.tick();
 
-        float w  = static_cast<float>( image.width() );
-        float h  = static_cast<float>( image.height() );
+        float w  = static_cast<float>( image.getWidth() );
+        float h  = static_cast<float>( image.getHeight() );
         float dx = static_cast<float>( std::sin( timer.totalSeconds() * 0.5 ) * w * 0.5 );
 
         // Triangle vertices.

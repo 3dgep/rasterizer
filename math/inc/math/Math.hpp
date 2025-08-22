@@ -118,7 +118,7 @@ constexpr int orient2D( const glm::ivec2& a, const glm::ivec2& b, const glm::ive
 /// <returns>true if this is a top-left edge, false otherwise.</returns>
 constexpr bool isTopLeft( int ax, int ay, int bx, int by ) noexcept
 {
-    return false; // ( ay > by ) || ( ay == by && ax < bx ); // TODO: Check correctness of top-left rule.
+    return ( ay > by ) || ( ay == by && ax < bx ); // TODO: Check correctness of top-left rule.
 }
 
 /// <summary>

@@ -91,8 +91,8 @@ int main()
         if ( !pause )
             rotation += static_cast<float>( timer.elapsedSeconds() );
 
-        float w = static_cast<float>( image.width() );
-        float h = static_cast<float>( image.height() );
+        float w = static_cast<float>( image.getWidth() );
+        float h = static_cast<float>( image.getHeight() );
 
         glm::vec2   verts[4] {};
         Transform2D transform;
@@ -111,14 +111,14 @@ int main()
             verts[1]  = { 1, 0 };  // Top-right
             verts[2]  = { 1, 1 };  // Bottom-right
             verts[3]  = { 0, 1 };  // Bottom-left
-            transform = Transform2D { { ( w - 1.0f ) / 2.0f, ( h - 1 ) / 2.0f }, rotation, { w * 0.5f, h * 0.5f }, { 0.5f, 0.5f } };
+            transform = Transform2D { { w * 0.5f, h * 0.5f }, rotation, { w * 0.5f, h * 0.5f }, { 0.5f, 0.5f } };
             break;
         case TestCase::ScreenSpace:
             verts[0]  = { w * 0.25f, h * 0.25f };  // Top-left
             verts[1]  = { w * 0.75f, h * 0.25f };  // Top-right
             verts[2]  = { w * 0.75f, h * 0.75f };  // Bottom-right
             verts[3]  = { w * 0.25f, h * 0.75f };  // Bottom-left
-            transform = Transform2D { { 0, 0 }, rotation, { 1, 1 }, { w * 0.5f, h * 0.5f } };
+            transform = Transform2D { { w * 0.5f, h * 0.5f }, rotation, { 1, 1 }, { w * 0.5f, h * 0.5f } };
             break;
         }
 

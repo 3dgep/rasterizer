@@ -350,8 +350,8 @@ void Rasterizer::drawSprite( const Sprite& sprite, int x, int y )
     Color*       dst = dstImage->data();
 
     // Source image width
-    int sW = srcImage->width();
-    int dW = dstImage->width();
+    int sW = srcImage->getWidth();
+    int dW = dstImage->getWidth();
 
     for (int y = clipTop; y <= clipBottom; ++y)
     {

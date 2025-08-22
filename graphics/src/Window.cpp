@@ -281,12 +281,12 @@ void Window::present( const Image& image )
         return;
 
     float w, h;
-    if ( !m_Texture || SDL_GetTextureSize( m_Texture, &w, &h ) && ( w != static_cast<float>( image.width() ) || h != static_cast<float>( image.height() ) ) )
+    if ( !m_Texture || SDL_GetTextureSize( m_Texture, &w, &h ) && ( w != static_cast<float>( image.getWidth() ) || h != static_cast<float>( image.getHeight() ) ) )
     {
         if ( m_Texture )
             SDL_DestroyTexture( m_Texture );
 
-        m_Texture = SDL_CreateTexture( m_Renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, static_cast<int>( image.width() ), static_cast<int>( image.height() ) );
+        m_Texture = SDL_CreateTexture( m_Renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, static_cast<int>( image.getWidth() ), static_cast<int>( image.getHeight() ) );
         if ( !m_Texture )
         {
             SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to create texture: %s", SDL_GetError() );
@@ -308,7 +308,7 @@ void Window::present( const Image& image )
         0.0f, 0.0f, static_cast<float>( m_Width ), static_cast<float>( m_Height )
     };
     SDL_FRect srcRect {
-        0.0f, 0.0f, static_cast<float>( image.width() ), static_cast<float>( image.height() )
+        0.0f, 0.0f, static_cast<float>( image.getWidth() ), static_cast<float>( image.getHeight() )
     };
 
     const float aspectRatio = srcRect.w / srcRect.h;

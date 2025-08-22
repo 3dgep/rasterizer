@@ -7,8 +7,6 @@
 #include <graphics/Sprite.hpp>
 #include <graphics/Window.hpp>
 
-#include <numbers>
-
 using namespace sr;
 
 int main()
@@ -18,9 +16,10 @@ int main()
     Sprite sprite {
         std::make_shared<Image>( "assets/textures/Smiley.png" ), BlendMode::AlphaBlend
     };
-    Transform2D transform {
-        { ( image.width() - sprite.getWidth() ) / 2.0f, ( image.height() - sprite.getHeight() ) / 2.0f }, 0.0f, { 0.25f, 0.25f }, { sprite.getWidth() / 2.0f, sprite.getHeight() / 2.0f }
-    };
+    Transform2D transform;
+    transform.setScale( 0.25f );
+    transform.setAnchor( { sprite.getWidth() * 0.5f, sprite.getHeight() * 0.5f } ); // Center the anchor point on the sprite.
+    transform.setPosition( { image.getWidth() * 0.5f, image.getHeight() * 0.5f } ); // Center the sprite on the screen.
 
     Rasterizer rasterizer;
     Timer      timer;
@@ -59,13 +58,12 @@ int main()
             }
         }
 
-        window.clear( Color::White );
         image.clear( Color::Black );
 
         transform.setRotation( static_cast<float>( timer.totalSeconds() ) );
-
         rasterizer.drawSprite( sprite, transform );
 
+        window.clear( Color::White );
         window.present( image );
     }
 

@@ -69,6 +69,11 @@ public:
         m_TransformDirty = true;
     }
 
+    void setScale( float scale ) noexcept
+    {
+        setScale( { scale, scale } );
+    }
+
     const glm::vec2& getScale() const noexcept
     {
         return m_Scale;
