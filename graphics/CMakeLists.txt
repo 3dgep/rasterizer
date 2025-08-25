@@ -12,6 +12,7 @@ set( INC_FILES
     inc/graphics/SpriteAnimation.hpp
     inc/graphics/Sprite.hpp
     inc/graphics/SpriteSheet.hpp
+    inc/graphics/TileMap.hpp
     inc/graphics/Vertex.hpp
 	inc/graphics/Window.hpp
     inc/stb_easy_font.h
@@ -62,6 +63,7 @@ set( SRC_FILES
     src/ResourceManager.cpp
     src/SpriteAnimation.cpp
     src/SpriteSheet.cpp
+    src/TileMap.cpp
 	src/Window.cpp
     src/stb_image.cpp
     src/stb_image_write.cpp

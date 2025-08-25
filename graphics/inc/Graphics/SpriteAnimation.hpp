@@ -39,7 +39,7 @@ public:
     bool isDone() const noexcept;
 
     /// <summary>
-    /// Resets the animation to its initial state.
+    /// Resets the animation timer to 0.
     /// </summary>
     void reset() noexcept;
 
