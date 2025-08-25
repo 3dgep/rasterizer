@@ -27,11 +27,9 @@ SpriteSheet::SpriteSheet( const std::filesystem::path& filePath, uint32_t rows, 
 : SpriteSheet( ResourceManager::loadImage( filePath ), rows, columns, padding, margin, blendMode )
 {}
 
-SpriteSheet::SpriteSheet( std::shared_ptr<Image> image, uint32_t rows, uint32_t columns, uint32_t padding, uint32_t margin, const BlendMode& blendMode )
+SpriteSheet::SpriteSheet( const std::shared_ptr<Image>& image, uint32_t rows, uint32_t columns, uint32_t padding, uint32_t margin, const BlendMode& blendMode )
 : m_Rows { rows }
 , m_Columns { columns }
-, m_Padding { padding }
-, m_Margin { margin }
 {
     if ( !image )
         return;
@@ -65,7 +63,7 @@ SpriteSheet::SpriteSheet( const std::filesystem::path& filePath, std::span<const
 : SpriteSheet( ResourceManager::loadImage( filePath ), rects, blendMode )
 {}
 
-SpriteSheet::SpriteSheet( std::shared_ptr<Image> image, std::span<const math::RectI> rects, const BlendMode& blendMode )
+SpriteSheet::SpriteSheet( const std::shared_ptr<Image>& image, std::span<const math::RectI> rects, const BlendMode& blendMode )
 {
     for ( auto& rect: rects )
     {
@@ -78,8 +76,8 @@ const Sprite& SpriteSheet::getSprite( size_t index ) const noexcept
     if ( index < m_Sprites.size() )
         return m_Sprites[index];
 
-    static const Sprite nullSprite;
-    return nullSprite;
+    static const Sprite emptySprite;
+    return emptySprite;
 }
 
 const Sprite& SpriteSheet::operator[]( size_t index ) const noexcept

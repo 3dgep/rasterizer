@@ -39,7 +39,7 @@ public:
     /// <param name="padding">Space in pixels between adjacent sprites.</param>
     /// <param name="margin">Space in pixels around the edge of the image.</param>
     /// <param name="blendMode">Blend mode to apply when rendering sprites from this sheet.</param>
-    explicit SpriteSheet( std::shared_ptr<Image> image, uint32_t rows = 1, uint32_t columns = 1, uint32_t padding = 0, uint32_t margin = 0, const BlendMode& blendMode = BlendMode {} );
+    explicit SpriteSheet( const std::shared_ptr<Image>& image, uint32_t rows = 1, uint32_t columns = 1, uint32_t padding = 0, uint32_t margin = 0, const BlendMode& blendMode = BlendMode {} );
 
     /// <summary>
     /// Constructs a sprite sheet from an image file using explicit rectangle definitions for each sprite.
@@ -56,7 +56,7 @@ public:
     /// <param name="image">Shared pointer to the image containing the sprites.</param>
     /// <param name="rects">Collection of rectangles defining the position and size of each sprite in the image.</param>
     /// <param name="blendMode">Blend mode to apply when rendering sprites from this sheet.</param>
-    SpriteSheet( std::shared_ptr<Image> image, std::span<const math::RectI> rects, const BlendMode& blendMode = BlendMode {} );
+    SpriteSheet( const std::shared_ptr<Image>& image, std::span<const math::RectI> rects, const BlendMode& blendMode = BlendMode {} );
 
     uint32_t getRows() const noexcept
     {
@@ -66,6 +66,11 @@ public:
     uint32_t getColumns() const noexcept
     {
         return m_Columns;
+    }
+
+    size_t getNumSprites() const noexcept
+    {
+        return m_Sprites.size();
     }
 
     int getSpriteWidth( size_t spriteId = 0 ) const noexcept
@@ -94,8 +99,6 @@ public:
 private:
     uint32_t m_Rows    = 0;  // The number of sprites in the x-axis of the image.
     uint32_t m_Columns = 0;  // The number of sprites in the y-axis of the image.
-    uint32_t m_Padding = 0;  // The amount of space (in pixels) between each sprite.
-    uint32_t m_Margin  = 0;  // The amount of space (in pixels) on the outside of the 
 
     std::vector<Sprite> m_Sprites;
 };

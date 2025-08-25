@@ -9,6 +9,7 @@ set( INC_FILES
 	inc/graphics/Image.hpp
     inc/graphics/Rasterizer.hpp
     inc/graphics/ResourceManager.hpp
+    inc/graphics/SpriteAnimation.hpp
     inc/graphics/Sprite.hpp
     inc/graphics/SpriteSheet.hpp
     inc/graphics/Vertex.hpp
@@ -59,6 +60,7 @@ set( SRC_FILES
     src/Image.cpp
     src/Rasterizer.cpp
     src/ResourceManager.cpp
+    src/SpriteAnimation.cpp
     src/SpriteSheet.cpp
 	src/Window.cpp
     src/stb_image.cpp
