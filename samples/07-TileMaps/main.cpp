@@ -39,7 +39,7 @@ std::shared_ptr<SpriteSheet> fromTileSet( const std::filesystem::path& rootFolde
 
 int main()
 {
-    Window     window( "Tile Maps", 1280, 720 );
+    Window     window( "Tile Maps", 800, 512 );
     Image      image { 800, 512 };
     Rasterizer rasterizer;
     Timer      timer;

@@ -57,7 +57,10 @@ struct Edge2D
 
     glm::vec3 barycentric() const
     {
-        return { static_cast<float>( w.x ) / area, static_cast<float>( w.y ) / area, static_cast<float>( w.z ) / area };
+        float u = static_cast<float>( w.x ) / area;
+        float v = static_cast<float>( w.y ) / area;
+
+        return { u, v, 1.0f - ( u + v ) };
     }
 };
 
@@ -400,10 +403,10 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
     const glm::ivec2 size         = sprite.getSize();
 
     Vertex2D verts[4] = {
-        { { 0, 0 }, { uv.x, uv.y }, color },                                              // Top-left.
-        { { size.x - 1, 0 }, { uv.x + size.y - 1, uv.y }, color },                        // Top-right.
-        { { size.x - 1, size.y - 1 }, { uv.x + size.x - 1, uv.y + size.y - 1 }, color },  // Bottom-right.
-        { { 0, size.y - 1 }, { uv.x, uv.y + size.y - 1 }, color },                        // Bottom-left.
+        { { 0, 0 }, { uv.x, uv.y }, color },                                      // Top-left.
+        { { size.x, 0 }, { uv.x + size.y - 1, uv.y }, color },                    // Top-right.
+        { { size.x, size.y }, { uv.x + size.x - 1, uv.y + size.y - 1 }, color },  // Bottom-right.
+        { { 0, size.y }, { uv.x, uv.y + size.y - 1 }, color },                    // Bottom-left.
     };
 
     const uint32_t indices[6] = {
