@@ -13,7 +13,7 @@ Transform2D::Transform2D( const glm::vec2& position, float rotation, const glm::
 , m_Scale { scale }
 {}
 
-const glm::mat3& Transform2D::getTransform() const noexcept
+const glm::mat3& Transform2D::getMatrix() const noexcept
 {
     if ( m_TransformDirty )
     {

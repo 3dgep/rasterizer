@@ -4,6 +4,7 @@
 #include "Color.hpp"
 #include "Image.hpp"
 #include "Sprite.hpp"
+#include "TileMap.hpp"
 
 #include <math/AABB.hpp>
 #include <math/Transform2D.hpp>
@@ -138,8 +139,18 @@ struct Rasterizer
 
     void drawSprite( const Sprite& sprite, const math::Transform2D& transform )
     {
-        drawSprite( sprite, transform.getTransform() );
+        drawSprite( sprite, transform.getMatrix() );
     }
+
+    void drawTileMap( const TileMap& tileMap, int x, int y );
+
+    void drawTileMap( const TileMap& tileMap, const glm::mat3& transform );
+
+    void drawTileMap( const TileMap& tileMap, const math::Transform2D& transform )
+    {
+        drawTileMap( tileMap, transform.getMatrix() );
+    }
+
 
 private:
     /// <summary>

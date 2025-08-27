@@ -110,16 +110,16 @@ public:
     /// Get the 3x3 transform matrix.
     /// </summary>
     /// <returns></returns>
-    const glm::mat3& getTransform() const noexcept;
+    const glm::mat3& getMatrix() const noexcept;
 
     glm::vec2 transformPoint( const glm::vec2& p ) const
     {
-        return getTransform() * glm::vec3 { p, 1 };
+        return getMatrix() * glm::vec3 { p, 1 };
     }
 
     glm::vec2 transformDirection( const glm::vec2& d ) const
     {
-        return getTransform() * glm::vec3 { d, 0 };
+        return getMatrix() * glm::vec3 { d, 0 };
     }
 
 private:
@@ -148,7 +148,7 @@ private:
 /// <returns>The transformed AABB.</returns>
 inline AABB operator*( const Transform2D& transform, const AABB& aabb )
 {
-    auto&      mat = transform.getTransform();
+    auto&      mat = transform.getMatrix();
     const auto min = mat * glm::vec3 { aabb.min.x, aabb.min.y, 1 };
     const auto max = mat * glm::vec3 { aabb.max.x, aabb.max.y, 1 };
 
@@ -163,7 +163,7 @@ inline AABB operator*( const Transform2D& transform, const AABB& aabb )
 /// <returns>The transformed AABB.</returns>
 inline AABB& operator*=( AABB& aabb, const Transform2D& transform )
 {
-    auto&      mat = transform.getTransform();
+    auto&      mat = transform.getMatrix();
     const auto min = mat * glm::vec3 { aabb.min.x, aabb.min.y, 1 };
     const auto max = mat * glm::vec3 { aabb.max.x, aabb.max.y, 1 };
 

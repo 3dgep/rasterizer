@@ -23,13 +23,13 @@ constexpr uint32_t getSpriteSize( uint32_t imageSize, uint32_t numSprites, uint3
 }
 }  // namespace
 
-SpriteSheet::SpriteSheet( const std::filesystem::path& filePath, uint32_t rows, uint32_t columns, uint32_t padding, uint32_t margin, const BlendMode& blendMode )
-: SpriteSheet( ResourceManager::loadImage( filePath ), rows, columns, padding, margin, blendMode )
+SpriteSheet::SpriteSheet( const std::filesystem::path& filePath, uint32_t columns, uint32_t rows, uint32_t padding, uint32_t margin, const BlendMode& blendMode )
+: SpriteSheet( ResourceManager::loadImage( filePath ), columns, rows, padding, margin, blendMode )
 {}
 
-SpriteSheet::SpriteSheet( const std::shared_ptr<Image>& image, uint32_t rows, uint32_t columns, uint32_t padding, uint32_t margin, const BlendMode& blendMode )
-: m_Rows { rows }
-, m_Columns { columns }
+SpriteSheet::SpriteSheet( const std::shared_ptr<Image>& image, uint32_t columns, uint32_t rows, uint32_t padding, uint32_t margin, const BlendMode& blendMode )
+: m_Columns { columns }
+, m_Rows { rows } 
 {
     if ( !image )
         return;
@@ -45,6 +45,7 @@ SpriteSheet::SpriteSheet( const std::shared_ptr<Image>& image, uint32_t rows, ui
 
     for ( uint32_t i = 0; i < rows; ++i )
     {
+        u = margin;
         for ( uint32_t j = 0; j < columns; ++j )
         {
             const RectI spriteRect {

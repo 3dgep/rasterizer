@@ -201,7 +201,7 @@ inline glm::vec3 operator*( const Camera2D& camera, const glm::vec3& v ) noexcep
 
 inline glm::mat3 operator*( const Camera2D& camera, const Transform2D& transform ) noexcept
 {
-    return camera.getTransform() * transform.getTransform();
+    return camera.getTransform() * transform.getMatrix();
 }
 
 inline AABB operator*( const Camera2D& camera, const AABB& aabb ) noexcept

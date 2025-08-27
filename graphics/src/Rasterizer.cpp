@@ -356,9 +356,9 @@ void Rasterizer::drawSprite( const Sprite& sprite, int x, int y )
     int sW = srcImage->getWidth();  // Source image width.
     int dW = dstImage->getWidth();  // Destination image width.
 
-    for ( int y = clipTop; y <= clipBottom; ++y )
+    for ( int y = clipTop; y < clipBottom; ++y )
     {
-        for ( int x = clipLeft; x <= clipRight; ++x )
+        for ( int x = clipLeft; x < clipRight; ++x )
         {
             // Compute clipped UV sprite texture coordinates.
             int u = uv.x + ( x - clipLeft );
@@ -400,10 +400,10 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
     const glm::ivec2 size         = sprite.getSize();
 
     Vertex2D verts[4] = {
-        { { 0, 0 }, { uv.x, uv.y }, color },                              // Top-left.
-        { { size.x, 0 }, { uv.x + size.y, uv.y }, color },                // Top-right.
-        { { size.x, size.y }, { uv.x + size.x, uv.y + size.y }, color },  // Bottom-right.
-        { { 0, size.y }, { uv.x, uv.y + size.y }, color },                // Bottom-left.
+        { { 0, 0 }, { uv.x, uv.y }, color },                                              // Top-left.
+        { { size.x - 1, 0 }, { uv.x + size.y - 1, uv.y }, color },                        // Top-right.
+        { { size.x - 1, size.y - 1 }, { uv.x + size.x - 1, uv.y + size.y - 1 }, color },  // Bottom-right.
+        { { 0, size.y - 1 }, { uv.x, uv.y + size.y - 1 }, color },                        // Bottom-left.
     };
 
     const uint32_t indices[6] = {
@@ -467,5 +467,69 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
 
         e[0].stepY();
         e[1].stepY();
+    }
+}
+
+void Rasterizer::drawTileMap( const TileMap& tileMap, int x, int y )
+{
+    int tileX        = 0;
+    int tileY        = 0;
+    int rows         = static_cast<int>( tileMap.getRows() );
+    int columns      = static_cast<int>( tileMap.getColumns() );
+    int spriteWidth  = static_cast<int>( tileMap.getSpriteWidth() );
+    int spriteHeight = static_cast<int>( tileMap.getSpriteHeight() );
+
+    for ( int i = 0; i < rows; ++i )
+    {
+        tileX = 0;
+        for ( int j = 0; j < columns; ++j )
+        {
+            int spriteId = tileMap[j, i];
+            if ( spriteId >= 0 )
+            {
+                drawSprite( tileMap.getSprite( j, i ), x + tileX, y + tileY );
+            }
+            tileX += spriteWidth;
+        }
+        tileY += spriteHeight;
+    }
+}
+
+void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform )
+{
+    // If the top-left 2x2 area of the matrix is identity, then there is no
+    // scale or rotation. In this case, just use the fast path to draw the sprite.
+    if ( glm::isIdentity( glm::mat2 { transform }, 0.0001f ) )
+    {
+        const int x = static_cast<int>( transform[2][0] );
+        const int y = static_cast<int>( transform[2][1] );
+
+        drawTileMap( tileMap, x, y );
+
+        return;
+    }
+
+    glm::mat3 tileOffset { 1 };
+    uint32_t  rows         = tileMap.getRows();
+    uint32_t  columns      = tileMap.getColumns();
+    uint32_t  spriteWidth  = tileMap.getSpriteWidth();
+    uint32_t  spriteHeight = tileMap.getSpriteHeight();
+
+    for ( uint32_t y = 0; y < rows; ++y )
+    {
+        tileOffset[2][0] = 0.0f;
+
+        for ( uint32_t x = 0; x < columns; ++x )
+        {
+            int spriteId = tileMap[x, y];
+            if ( spriteId >= 0 )
+            {
+                drawSprite( tileMap.getSprite( x, y ), transform * tileOffset );
+            }
+
+            tileOffset[2][0] += static_cast<float>( spriteWidth );
+        }
+
+        tileOffset[2][1] += static_cast<float>( spriteHeight );
     }
 }

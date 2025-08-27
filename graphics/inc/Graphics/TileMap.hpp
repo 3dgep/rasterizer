@@ -109,9 +109,26 @@ public:
     /// <returns>The height of each sprite in pixels.</returns>
     uint32_t getSpriteHeight() const noexcept;
 
+    /// <summary>
+    /// Gets the total width of the tile map in pixels.
+    /// Calculated by multiplying the number of columns by the sprite width.
+    /// </summary>
+    /// <returns>The total width of the tile map in pixels.</returns>
+    uint32_t getWidth() const noexcept
+    {
+        return m_Columns * getSpriteWidth();
+    }
 
+    /// <summary>
+    /// Gets the total height of the tile map in pixels.
+    /// Calculated by multiplying the number of rows by the sprite height.
+    /// </summary>
+    /// <returns>The total height of the tile map in pixels.</returns>
+    uint32_t getHeight() const noexcept
+    {
+        return m_Rows * getSpriteHeight();
+    }
 
-protected:
 private:
     uint32_t m_Columns = 0u;
     uint32_t m_Rows    = 0u;
