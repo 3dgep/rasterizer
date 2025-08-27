@@ -38,7 +38,7 @@ public:
     /// </summary>
     operator const glm::mat3&() const
     {
-        return getTransform();
+        return getMatrix();
     }
 
     /// <summary>
@@ -157,7 +157,7 @@ public:
     /// Get the view matrix of the camera.
     /// </summary>
     /// <returns>The camera's view matrix.</returns>
-    const glm::mat3& getTransform() const noexcept;
+    const glm::mat3& getMatrix() const noexcept;
 
     /// <summary>
     /// Transform a 2D point by the camera's transform.
@@ -166,7 +166,7 @@ public:
     /// <returns>The transformed point.</returns>
     glm::vec2 transformPoint( const glm::vec2& point ) const noexcept
     {
-        return getTransform() * glm::vec3( point, 1.0f );
+        return getMatrix() * glm::vec3( point, 1.0f );
     }
 
     /// <summary>
@@ -176,7 +176,7 @@ public:
     /// <returns></returns>
     glm::vec2 transformVector( const glm::vec2& v ) const noexcept
     {
-        return getTransform() * glm::vec3( v, 0.0f );
+        return getMatrix() * glm::vec3( v, 0.0f );
     }
 
 private:
@@ -191,22 +191,22 @@ private:
 
 inline glm::vec2 operator*( const Camera2D& camera, const glm::vec2& point ) noexcept
 {
-    return camera.getTransform() * glm::vec3( point, 1.0f );
+    return camera.getMatrix() * glm::vec3( point, 1.0f );
 }
 
 inline glm::vec3 operator*( const Camera2D& camera, const glm::vec3& v ) noexcept
 {
-    return camera.getTransform() * v;
+    return camera.getMatrix() * v;
 }
 
 inline glm::mat3 operator*( const Camera2D& camera, const Transform2D& transform ) noexcept
 {
-    return camera.getTransform() * transform.getMatrix();
+    return camera.getMatrix() * transform.getMatrix();
 }
 
 inline AABB operator*( const Camera2D& camera, const AABB& aabb ) noexcept
 {
-    const auto& mat = camera.getTransform();
+    const auto& mat = camera.getMatrix();
 
     const auto min = mat * glm::vec3 { aabb.min.x, aabb.min.y, 1.0f };
     const auto max = mat * glm::vec3 { aabb.max.x, aabb.max.y, 1.0f };

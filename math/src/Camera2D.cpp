@@ -40,7 +40,7 @@ void Camera2D::translate( const glm::vec2& translation, Space space ) noexcept
     }
 }
 
-const glm::mat3& Camera2D::getTransform() const noexcept
+const glm::mat3& Camera2D::getMatrix() const noexcept
 {
     if ( m_ViewMatrixDirty )
     {

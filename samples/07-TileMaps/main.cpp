@@ -121,7 +121,6 @@ int main()
         }
 
         rasterizer.drawTileMap( tileMap, transform );
-        //        rasterizer.drawSprite( spriteSheet->getSprite( 0 ), Transform2D { { 400, 225 }, static_cast<float>( timer.totalSeconds() ), { 1, 1 }, { 16, 16 } } );
 
         window.clear( Color::Black );
         window.present( image );
