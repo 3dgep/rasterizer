@@ -271,7 +271,7 @@ struct Image final
     /// Get the distance in bytes between rows of pixels.
     /// </summary>
     /// <returns>The distance in bytes between the rows of pixels.</returns>
-    uint32_t pitch() const noexcept
+    uint32_t getPitch() const noexcept
     {
         assert( m_Surface != nullptr );
         return m_Surface->pitch;
@@ -281,7 +281,7 @@ struct Image final
     /// Get the AABB that covers the entire image.
     /// </summary>
     /// <returns>The AABB of the image.</returns>
-    const AABB& aabb() const noexcept
+    const AABB& getAABB() const noexcept
     {
         return m_AABB;
     }

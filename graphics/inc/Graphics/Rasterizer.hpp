@@ -106,6 +106,18 @@ struct Rasterizer
         drawLine( line.p0.x, line.p0.y, line.p1.x, line.p1.y );
     }
 
+    void drawCircle( int x, int y, int r );
+
+    void drawCircle( float x, float y, float r )
+    {
+        drawCircle( static_cast<int>( x ), static_cast<int>( y ), static_cast<int>( r ) );
+    }
+
+    void drawCircle( const Circle& circle )
+    {
+        drawCircle( circle.center.x, circle.center.y, circle.radius );
+    }
+
     /// <summary>
     /// Draw a triangle using the current rasterizer state.<br>
     /// Required state:
@@ -150,7 +162,6 @@ struct Rasterizer
     {
         drawTileMap( tileMap, transform.getMatrix() );
     }
-
 
 private:
     /// <summary>

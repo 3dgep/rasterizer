@@ -296,6 +296,11 @@ struct AABB
         return all( greaterThanEqual( p, min ) ) && all( lessThanEqual( p, max ) );
     }
 
+    bool contains( const glm::ivec2& p) const noexcept
+    {
+        return contains( glm::vec3 { p, 0.0f } );
+    }
+
     /// <summary>
     /// Compute the outcode of a point.
     /// Source: https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm

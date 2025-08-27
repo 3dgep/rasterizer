@@ -136,7 +136,7 @@ void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
     if ( !image )
         return;
 
-    auto aabb = image->aabb();
+    auto aabb = image->getAABB();
     aabb.clamp( AABB::fromViewport( viewport ) );
 
     if ( !aabb.clip( x0, y0, x1, y1 ) )
@@ -166,6 +166,80 @@ void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
     }
 }
 
+// Source: Grok (Aug 27, 2025): What is the most efficient way to draw a circle in a 2D software rasterizer?
+void Rasterizer::drawCircle( int cx, int cy, int r )
+{
+    Image* image = state.colorTarget;
+
+    if ( !image )
+        return;
+
+    AABB aabb       = image->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+    AABB circleAABB = AABB::fromCircle( Circle { { cx, cy }, static_cast<float>( r ) } );
+
+    if ( !circleAABB.intersect( aabb ) )
+        return;
+
+    int x = 0;
+    int y = r;
+    int d = 3 - 2 * r;
+
+    switch ( state.fillMode )
+    {
+    case FillMode::WireFrame:
+    {
+        while ( x <= y )
+        {
+            // Plot the 8 octants of the circle.
+            for ( auto offset: { glm::ivec2 { x, y }, glm::ivec2 { -x, y }, glm::ivec2 { x, -y }, glm::ivec2 { -x, -y }, glm::ivec2 { y, x }, glm::ivec2 { -y, x }, glm::ivec2 { y, -x }, glm::ivec2 { -y, x }, glm::ivec2 { -y, -x } } )
+            {
+                glm::ivec2 p { cx + offset.x, cy + offset.y };
+                if ( aabb.contains( p ) ) // Clipping.
+                {
+                    image->plot<false>( p.x, p.y, state.color, state.blendMode );
+                }
+            }
+
+            ++x;
+            if ( d < 0 )
+            {
+                d += 4 * x + 6;
+            }
+            else
+            {
+                --y;
+                d += 4 * ( x - y ) + 10;
+            }
+        }
+    }
+    break;
+    case FillMode::Solid:
+    {
+        while ( x <= y )
+        {
+            // Draw horizontal lines to fill the circle.
+            for ( auto offset: { glm::ivec4 { -x, y, x, y }, glm::ivec4 {-x, -y, x, -y}, glm::ivec4{-y, x, y, x}, glm::ivec4{-y, -x, y, -x} } )
+            {
+                // Lines are already clipped.
+                drawLine( cx + offset.x, cy + offset.y, cx + offset.z, cy + offset.w );
+            }
+
+            ++x;
+            if ( d < 0 )
+            {
+                d += 4 * x + 6;
+            }
+            else
+            {
+                --y;
+                d += 4 * ( x - y ) + 10;
+            }
+        }
+    }
+    break;
+    }
+}
+
 void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
 {
     Image* image = state.colorTarget;
@@ -173,7 +247,7 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
     if ( !image )
         return;
 
-    auto aabb         = image->aabb().clamped( AABB { state.viewport } );
+    auto aabb         = image->getAABB().clamped( AABB { state.viewport } );
     auto triangleAABB = AABB::fromTriangle( p0, p1, p2 );
 
     if ( !triangleAABB.intersect( aabb ) )
@@ -235,7 +309,7 @@ void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ive
     if ( !image )
         return;
 
-    AABB dstAABB = image->aabb().clamped( AABB { state.viewport } );
+    AABB dstAABB = image->getAABB().clamped( AABB { state.viewport } );
     AABB srcAABB = AABB { p0, p1, p2, p3 };
 
     if ( !srcAABB.intersect( dstAABB ) )
@@ -297,7 +371,7 @@ void Rasterizer::drawAABB( math::AABB aabb )
     if ( !image )
         return;
 
-    AABB imageAABB = image->aabb();
+    AABB imageAABB = image->getAABB();
     imageAABB.clamp( AABB::fromViewport( viewport ) );
 
     if ( !aabb.intersect( imageAABB ) )
@@ -335,7 +409,7 @@ void Rasterizer::drawSprite( const Sprite& sprite, int x, int y )
     const Color      color        = sprite.getColor() * state.color;
     const BlendMode  blendMode    = sprite.getBlendMode();
     const AABB       viewportAABB = AABB::fromViewport( state.viewport );
-    const AABB       dstAABB      = dstImage->aabb().clamped( viewportAABB );
+    const AABB       dstAABB      = dstImage->getAABB().clamped( viewportAABB );
     const glm::ivec2 size         = sprite.getSize();
     glm::ivec2       uv           = sprite.getUV();
 
@@ -398,7 +472,7 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
     const Color      color        = sprite.getColor() * state.color;
     const BlendMode  blendMode    = sprite.getBlendMode();
     const AABB       viewportAABB = AABB::fromViewport( state.viewport );
-    AABB             dstAABB      = dstImage->aabb().clamped( viewportAABB );
+    AABB             dstAABB      = dstImage->getAABB().clamped( viewportAABB );
     const glm::ivec2 uv           = sprite.getUV();
     const glm::ivec2 size         = sprite.getSize();
 

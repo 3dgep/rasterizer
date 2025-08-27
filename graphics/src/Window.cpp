@@ -248,6 +248,43 @@ void Window::resize( int width, int height )
     }
 }
 
+glm::ivec2 Window::clientToImage( int _x, int _y, const Image& image ) const noexcept
+{
+    const float imageWidth   = static_cast<float>( image.getWidth() );
+    const float imageHeight  = static_cast<float>( image.getHeight() );
+    const float windowWidth  = static_cast<float>( m_Width );
+    const float windowHeight = static_cast<float>( m_Height );
+
+    const float aspectRatio = imageWidth / imageHeight;
+    const float scaleWidth  = windowWidth / imageWidth;
+    const float scaleHeight = windowHeight / imageHeight;
+
+    float width, height;
+
+    if ( scaleWidth < scaleHeight )
+    {
+        width  = windowWidth;
+        height = width / aspectRatio;  // Scale height according to aspect ratio.
+    }
+    else
+    {
+        height = windowHeight;
+        width  = height * aspectRatio;  // Scale width according to aspect ratio.
+    }
+
+    float cx = static_cast<float>( _x );
+    float cy = static_cast<float>( _y );
+
+    // Compute the offset into image space.
+    float x = ( windowWidth - width ) / 2.0f;
+    float y = ( windowHeight - height ) / 2.0f;
+    // Compute scale.
+    float sx = imageWidth / width;
+    float sy = imageHeight / height;
+
+    return { ( cx - x ) * sx, ( cy - y ) * sy };
+}
+
 void Window::clear( const Color& color )
 {
     SDL_SetRenderDrawColor( m_Renderer, color.r, color.g, color.b, color.a );
@@ -297,7 +334,7 @@ void Window::present( const Image& image )
     }
 
     // Copy the image data to the texture.
-    if ( !SDL_UpdateTexture( m_Texture, nullptr, image.data(), static_cast<int>( image.pitch() ) ) )
+    if ( !SDL_UpdateTexture( m_Texture, nullptr, image.data(), static_cast<int>( image.getPitch() ) ) )
     {
         SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to update texture: %s", SDL_GetError() );
         return;

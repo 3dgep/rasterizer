@@ -61,12 +61,37 @@ public:
 
     void resize( int width, int height );
 
+    /// <summary>
+    /// Convert coordinates from window client space to image space.
+    /// </summary>
+    /// <param name="x">The x-coordinate in window client space.</param>
+    /// <param name="y">The y-coordinate in window client space.</param>
+    /// <param name="image">The target image to convert coordinates for.</param>
+    /// <returns>The converted coordinates in image space.</returns>
+    glm::ivec2 clientToImage( int x, int y, const Image& image ) const noexcept;
+
+    glm::ivec2 clientToImage( float x, float y, const Image& image ) const noexcept
+    {
+        return clientToImage( static_cast<int>( std::lroundf( x ) ), static_cast<int>( std::lroundf( y ) ), image );
+    }
+
+    /// <summary>
+    /// Convert coordinates from window client space to image space.
+    /// </summary>
+    /// <param name="clientCoords">The coordinates in window client space.</param>
+    /// <param name="image">The target image to convert coordinates for.</param>
+    /// <returns>The converted coordinates in image space.</returns>
+    glm::ivec2 clientToImage( const glm::ivec2& clientCoords, const Image& image ) const noexcept
+    {
+        return clientToImage( clientCoords.x, clientCoords.y, image );
+    }
+
     void present();
 
     void present( const Image& image );
 
 private:
-    void          beginFrame();
+    void beginFrame();
 
     SDL_Window*   m_Window   = nullptr;
     SDL_Renderer* m_Renderer = nullptr;

@@ -15,8 +15,9 @@ add_sample( 04-ImGui )
 add_sample( 05-Sprites )
 add_sample( 06-FillRules )
 add_sample( 07-TileMaps )
+add_sample( 08-Circles )
 
 # Set the startup project.
 set_directory_properties( PROPERTIES
-	VS_STARTUP_PROJECT 07-TileMaps
+	VS_STARTUP_PROJECT 08-Circles
 )
