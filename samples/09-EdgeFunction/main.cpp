@@ -4,9 +4,65 @@
 #include <graphics/Rasterizer.hpp>
 #include <graphics/Window.hpp>
 
+#include <imgui.h>
+
 using namespace sr;
 
-constexpr int VERTEX_RADIUS = 10;
+constexpr int   VERTEX_RADIUS  = 10;
+constexpr float LINE_THICKNESS = 10;
+
+void drawThickLine( Rasterizer& rasterizer, const glm::vec2& v0, const glm::vec2& v1, const Color& color )
+{
+    // Pseudocode:
+    // 1. Set the rasterizer color to the given color.
+    // 2. Compute the direction vector of the line (v1 - v0).
+    // 3. Compute the perpendicular vector to the direction.
+    // 4. Normalize the perpendicular vector.
+    // 5. Scale the perpendicular vector by half the desired thickness.
+    // 6. Compute the four corners of the thick line as a quad.
+    // 7. Use rasterizer.drawQuad to draw the thick line.
+
+    glm::vec2 dir = v1 - v0;
+    if ( glm::length( dir ) == 0.0f )
+        return;
+
+    glm::vec2 perp          = glm::normalize( glm::vec2( -dir.y, dir.x ) );
+    float     halfThickness = LINE_THICKNESS * 0.5f;
+
+    glm::vec2 offset = perp * halfThickness;
+
+    glm::vec2 p0 = v0 - offset;
+    glm::vec2 p1 = v1 - offset;
+    glm::vec2 p2 = v1 + offset;
+    glm::vec2 p3 = v0 + offset;
+
+    rasterizer.state.fillMode = FillMode::Solid;
+    rasterizer.state.color    = color;
+    rasterizer.drawQuad(
+        glm::ivec2( glm::round( p0 ) ),
+        glm::ivec2( glm::round( p1 ) ),
+        glm::ivec2( glm::round( p2 ) ),
+        glm::ivec2( glm::round( p3 ) ) );
+
+    rasterizer.state.fillMode = FillMode::WireFrame;
+    rasterizer.state.color    = Color::Black;
+    rasterizer.drawQuad(
+        glm::ivec2( glm::round( p0 ) ),
+        glm::ivec2( glm::round( p1 ) ),
+        glm::ivec2( glm::round( p2 ) ),
+        glm::ivec2( glm::round( p3 ) ) );
+}
+
+void drawVertex( Rasterizer& rasterizer, const glm::ivec2& v, const Color& color )
+{
+    rasterizer.state.color    = color;
+    rasterizer.state.fillMode = FillMode::Solid;
+    rasterizer.drawCircle( v, VERTEX_RADIUS );
+
+    rasterizer.state.color    = Color::Black;
+    rasterizer.state.fillMode = FillMode::WireFrame;
+    rasterizer.drawCircle( v, VERTEX_RADIUS );
+}
 
 void drawLine( Rasterizer& rasterizer, const glm::ivec2& v0, const glm::ivec2& v1 )
 {
@@ -25,18 +81,9 @@ void drawLine( Rasterizer& rasterizer, const glm::ivec2& v0, const glm::ivec2& v
         }
     }
 
-    rasterizer.state.color    = Color::Red;
-    rasterizer.state.fillMode = FillMode::Solid;
-    rasterizer.drawCircle( v0, VERTEX_RADIUS );
-
-    rasterizer.state.color    = Color::Green;
-    rasterizer.state.fillMode = FillMode::Solid;
-    rasterizer.drawCircle( v1, VERTEX_RADIUS );
-
-    rasterizer.state.color    = Color::Black;
-    rasterizer.state.fillMode = FillMode::WireFrame;
-    rasterizer.drawCircle( v0, VERTEX_RADIUS );
-    rasterizer.drawCircle( v1, VERTEX_RADIUS );
+    drawThickLine( rasterizer, v0, v1, Color::Red );
+    drawVertex( rasterizer, v0, Color::Magenta );
+    drawVertex( rasterizer, v1, Color::Yellow );
 }
 
 void drawTriangle( Rasterizer& rasterizer, const glm::ivec2& v0, const glm::ivec2& v1, const glm::ivec2& v2 )
@@ -45,42 +92,94 @@ void drawTriangle( Rasterizer& rasterizer, const glm::ivec2& v0, const glm::ivec
     if ( !image )
         return;
 
+    BlendMode blendMode = BlendMode::AdditiveBlend;
+
     for ( int y = 0; y < image->getHeight(); ++y )
     {
         for ( int x = 0; x < image->getWidth(); ++x )
         {
             if ( orient2D( v0, v1, { x, y } ) > 0 )
             {
-                image->plot<false, false>( x, y, Color::Red );
+                image->plot<false>( x, y, Color::Red, blendMode );
             }
             if ( orient2D( v1, v2, { x, y } ) > 0 )
             {
-                image->plot<false, false>( x, y, Color::Green );
+                image->plot<false>( x, y, Color::Green, blendMode );
             }
             if ( orient2D( v2, v0, { x, y } ) > 0 )
             {
-                image->plot<false, false>( x, y, Color::Blue );
+                image->plot<false>( x, y, Color::Blue, blendMode );
             }
         }
     }
 
-    rasterizer.state.color    = Color::Red;
-    rasterizer.state.fillMode = FillMode::Solid;
-    rasterizer.drawCircle( v0, VERTEX_RADIUS );
+    drawThickLine( rasterizer, v0, v1, Color::Red );
+    drawThickLine( rasterizer, v1, v2, Color::Green );
+    drawThickLine( rasterizer, v2, v0, Color::Blue );
 
-    rasterizer.state.color    = Color::Green;
-    rasterizer.state.fillMode = FillMode::Solid;
-    rasterizer.drawCircle( v1, VERTEX_RADIUS );
+    drawVertex( rasterizer, v0, Color::Magenta );
+    drawVertex( rasterizer, v1, Color::Yellow );
+    drawVertex( rasterizer, v2, Color::Cyan );
+}
 
-    rasterizer.state.color    = Color::Blue;
-    rasterizer.state.fillMode = FillMode::Solid;
-    rasterizer.drawCircle( v2, VERTEX_RADIUS );
+void drawQuad( Rasterizer& rasterizer, const glm::ivec2& v0, const glm::ivec2& v1, const glm::ivec2& v2, const glm::ivec2& v3 )
+{
+    Image* image = rasterizer.state.colorTarget;
+    if ( !image )
+        return;
 
-    rasterizer.state.color    = Color::Black;
-    rasterizer.state.fillMode = FillMode::WireFrame;
-    rasterizer.drawCircle( v0, VERTEX_RADIUS );
-    rasterizer.drawCircle( v1, VERTEX_RADIUS );
-    rasterizer.drawCircle( v2, VERTEX_RADIUS );
+    BlendMode blendMode = BlendMode::AdditiveBlend;
+
+    for ( int y = 0; y < image->getHeight(); ++y )
+    {
+        for ( int x = 0; x < image->getWidth(); ++x )
+        {
+            glm::ivec2 p { x, y };
+            int        o01 = orient2D( v0, v1, p );
+            int        o12 = orient2D( v1, v2, p );
+            int        o20 = orient2D( v2, v0, p );
+            int        o23 = orient2D( v2, v3, p );
+            int        o30 = orient2D( v3, v0, p );
+            int        o02 = orient2D( v0, v2, p );
+
+            if ( o01 > 0 )
+            {
+                image->plot<false>( x, y, Color::Red, blendMode );
+            }
+            if ( o12 > 0 )
+            {
+                image->plot<false>( x, y, Color::Green, blendMode );
+            }
+            if ( o20 > 0 )
+            {
+                image->plot<false>( x, y, Color::Blue, blendMode );
+            }
+            if ( o23 > 0 )
+            {
+                image->plot<false>( x, y, Color::Red, blendMode );
+            }
+            if ( o30 > 0 )
+            {
+                image->plot<false>( x, y, Color::Green, blendMode );
+            }
+            if ( o02 > 0 )
+            {
+                image->plot<false>( x, y, Color::Blue, blendMode );
+            }
+        }
+    }
+
+    drawThickLine( rasterizer, v0, v1, Color::Red );
+    drawThickLine( rasterizer, v1, v2, Color::Green );
+    drawThickLine( rasterizer, v2, v0, Color::Blue );
+
+    drawThickLine( rasterizer, v2, v3, Color::Red );
+    drawThickLine( rasterizer, v3, v0, Color::Green );
+
+    drawVertex( rasterizer, v0, Color::Magenta );
+    drawVertex( rasterizer, v1, Color::Yellow );
+    drawVertex( rasterizer, v2, Color::Cyan );
+    drawVertex( rasterizer, v3, Color::Yellow );
 }
 
 int main()
@@ -90,7 +189,7 @@ int main()
         Line,
         Triangle,
         Quad,
-    } drawMode = DrawMode::Line;
+    } drawMode = DrawMode::Quad;
 
     Window     window( "Edge Function", 800, 600 );
     Image      image { 800, 600 };
@@ -181,7 +280,13 @@ int main()
             }
         }
 
-        image.clear( Color::White );
+        // ImGui window for drawMode selection
+        ImGui::Begin( "Draw Mode" );
+        static const char* drawModeItems[] = { "Line", "Triangle", "Quad" };
+        ImGui::Combo( "Draw Mode", reinterpret_cast<int*>( &drawMode ), drawModeItems, IM_ARRAYSIZE( drawModeItems ) );
+        ImGui::End();
+
+        image.clear( Color::Black );
 
         switch ( drawMode )
         {
@@ -192,6 +297,7 @@ int main()
             drawTriangle( rasterizer, verts[0], verts[1], verts[2] );
             break;
         case DrawMode::Quad:
+            drawQuad( rasterizer, verts[0], verts[1], verts[2], verts[3] );
             break;
         }
 

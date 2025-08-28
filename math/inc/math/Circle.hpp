@@ -6,10 +6,23 @@ namespace sr
 {
 inline namespace math
 {
+/// <summary>
+/// Represents a 2D circle defined by a center point and a radius.
+/// Provides utility methods for geometric queries such as edge positions,
+/// bounding box, and intersection tests with points and other circles.
+/// </summary>
 struct Circle
 {
+    /// <summary>
+    /// Default constructor. Initializes the circle at the origin with zero radius.
+    /// </summary>
     Circle() = default;
 
+    /// <summary>
+    /// Constructs a circle with the specified center and radius.
+    /// </summary>
+    /// <param name="center">The center point of the circle.</param>
+    /// <param name="radius">The radius of the circle.</param>
     Circle( const glm::vec2& center, float radius )
     : center { center }
     , radius { radius }
@@ -18,7 +31,7 @@ struct Circle
     /// <summary>
     /// Get the diameter of the circle.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The diameter of the circle.</returns>
     float diameter() const noexcept
     {
         return radius * 2.0f;
@@ -61,18 +74,18 @@ struct Circle
     }
 
     /// <summary>
-    /// Get the minimum point of the circle.
+    /// Get the minimum point (top-left corner) of the circle's bounding box.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The minimum point of the bounding box.</returns>
     glm::vec2 min() const noexcept
     {
         return { center.x - radius, center.y - radius };
     }
 
     /// <summary>
-    /// Get the maximum point of the circle.
+    /// Get the maximum point (bottom-right corner) of the circle's bounding box.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The maximum point of the bounding box.</returns>
     glm::vec2 max() const noexcept
     {
         return { center.x + radius, center.y + radius };
@@ -93,8 +106,28 @@ struct Circle
         return d < r * r;
     }
 
+    /// <summary>
+    /// Point-circle intersection test.
+    /// </summary>
+    /// <param name="p">The point to test for intersection with the circle.</param>
+    /// <returns>`true` if the point lies inside the circle, `false` otherwise.</returns>
+    bool intersect( const glm::vec2& p ) const noexcept
+    {
+        float dx = center.x - p.x;
+        float dy = center.y - p.y;
+        float d  = dx * dx + dy * dy;
+        return d < radius * radius;
+    }
+
+    /// <summary>
+    /// The center point of the circle.
+    /// </summary>
     glm::vec2 center { 0 };
-    float     radius { 0 };
+
+    /// <summary>
+    /// The radius of the circle.
+    /// </summary>
+    float radius { 0 };
 };
 }  // namespace math
 }  // namespace sr

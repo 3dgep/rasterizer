@@ -108,6 +108,11 @@ struct Rasterizer
 
     void drawCircle( int x, int y, int r );
 
+    void drawCircle( const glm::ivec2& center, int radius )
+    {
+        drawCircle( center.x, center.y, radius );
+    }
+
     void drawCircle( float x, float y, float r )
     {
         drawCircle( static_cast<int>( x ), static_cast<int>( y ), static_cast<int>( r ) );

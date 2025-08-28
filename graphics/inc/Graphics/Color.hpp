@@ -174,6 +174,7 @@ struct Color
     static const Color Lime;
     static const Color LimeGreen;
     static const Color Maroon;
+    static const Color Magenta;
     static const Color MediumAquaMarine;
     static const Color MediumBlue;
     static const Color MediumSeaGreen;

@@ -68,12 +68,7 @@ public:
     /// <param name="y">The y-coordinate in window client space.</param>
     /// <param name="image">The target image to convert coordinates for.</param>
     /// <returns>The converted coordinates in image space.</returns>
-    glm::ivec2 clientToImage( int x, int y, const Image& image ) const noexcept;
-
-    glm::ivec2 clientToImage( float x, float y, const Image& image ) const noexcept
-    {
-        return clientToImage( static_cast<int>( std::lroundf( x ) ), static_cast<int>( std::lroundf( y ) ), image );
-    }
+    glm::vec2 clientToImage( float x, float y, const Image& image ) const noexcept;
 
     /// <summary>
     /// Convert coordinates from window client space to image space.
@@ -81,7 +76,7 @@ public:
     /// <param name="clientCoords">The coordinates in window client space.</param>
     /// <param name="image">The target image to convert coordinates for.</param>
     /// <returns>The converted coordinates in image space.</returns>
-    glm::ivec2 clientToImage( const glm::ivec2& clientCoords, const Image& image ) const noexcept
+    glm::vec2 clientToImage( const glm::vec2& clientCoords, const Image& image ) const noexcept
     {
         return clientToImage( clientCoords.x, clientCoords.y, image );
     }

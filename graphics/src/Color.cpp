@@ -47,6 +47,7 @@ const Color Color::LightSkyBlue { 0xffface87 };
 const Color Color::Lime { 0xff00ff00 };
 const Color Color::LimeGreen { 0xff32cd32 };
 const Color Color::Maroon { 0xff000080 };
+const Color Color::Magenta { 0xffff00ff };
 const Color Color::MediumAquaMarine { 0xffaacd66 };
 const Color Color::MediumBlue { 0xffcd0000 };
 const Color Color::MediumSeaGreen { 0xff71b33c };
