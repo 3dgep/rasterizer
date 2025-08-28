@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
@@ -16,7 +17,7 @@ struct SDL_Context
 {
     SDL_Context()
     {
-        if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_GAMEPAD ) )
+        if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_GAMEPAD ) || !TTF_Init() )
         {
             SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL: %s", SDL_GetError() );
             throw std::runtime_error( SDL_GetError() );

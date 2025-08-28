@@ -10,6 +10,8 @@
 #include <math/Transform2D.hpp>
 #include <math/Viewport.hpp>
 
+struct TTF_TextEngine;
+
 namespace sr
 {
 inline namespace graphics
@@ -17,7 +19,9 @@ inline namespace graphics
 
 struct Rasterizer
 {
-    Rasterizer() = default;
+    Rasterizer();
+    Rasterizer( const Rasterizer& ) = delete;
+    virtual ~Rasterizer();
 
     /// <summary>
     /// Don't forget to configure the state of the rasterizer before calling any draw functions!
@@ -186,6 +190,8 @@ private:
     /// <param name="x1">The x-coordinate of the ending point.</param>
     /// <param name="y1">The y-coordinate of the ending point.</param>
     void drawLineHigh( int x0, int y0, int x1, int y1 );
+
+    TTF_TextEngine* m_TextEngine = nullptr;
 };
 }  // namespace graphics
 }  // namespace sr

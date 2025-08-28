@@ -8,6 +8,7 @@ FetchContent_Declare(
 	LDtkLoader
 	GIT_REPOSITORY https://github.com/Madour/LDtkLoader.git
 	GIT_TAG		   1.5.3.1
+	EXCLUDE_FROM_ALL
 )
 
 message( STATUS "Fetching LDtkLoader..." )

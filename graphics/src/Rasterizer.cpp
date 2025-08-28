@@ -1,8 +1,12 @@
 #include <graphics/Rasterizer.hpp>
 #include <graphics/Vertex.hpp>
 
+#include <SDL3_ttf/SDL_ttf.h>
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_query.hpp>  // glm::isIdentity.
+
+#include <iostream>
 
 using namespace sr::graphics;
 using namespace sr::math;
@@ -126,6 +130,20 @@ void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 )
         }
         D += 2 * dx;
     }
+}
+
+Rasterizer::Rasterizer()
+{
+    m_TextEngine = TTF_CreateSurfaceTextEngine();
+    if (!m_TextEngine)
+    {
+        std::cerr << "Failed to create Surface text engine." << std::endl;
+    }
+}
+
+Rasterizer::~Rasterizer()
+{
+    TTF_DestroySurfaceTextEngine( m_TextEngine );
 }
 
 void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )

@@ -6,6 +6,7 @@ set( INC_FILES
 	inc/graphics/Buffer.hpp
 	inc/graphics/Color.hpp
     inc/graphics/Enums.hpp
+    inc/graphics/Font.hpp
 	inc/graphics/Image.hpp
     inc/graphics/Rasterizer.hpp
     inc/graphics/ResourceManager.hpp
@@ -58,6 +59,7 @@ set( IMGUI_FILES
 set( SRC_FILES
     src/BlendMode.cpp
     src/Color.cpp
+    src/Font.cpp
     src/Image.cpp
     src/Rasterizer.cpp
     src/ResourceManager.cpp
@@ -68,6 +70,7 @@ set( SRC_FILES
     src/stb_image.cpp
     src/stb_image_write.cpp
     src/stb_truetype.cpp
+    src/tiny.inl
 )
 
 set( ALL_FILES 
@@ -87,5 +90,5 @@ target_include_directories( graphics
 )
 
 target_link_libraries( graphics
-    PUBLIC math SDL3::SDL3
+    PUBLIC math SDL3_ttf::SDL3_ttf SDL3::SDL3
 )
