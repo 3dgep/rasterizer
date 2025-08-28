@@ -1,4 +1,3 @@
-#include <iostream>
 #include <Timer.hpp>
 
 #include <graphics/Image.hpp>
@@ -10,7 +9,7 @@ using namespace sr;
 int main()
 {
     Window     window( "Clear Screen", 1280, 720 );
-    Image      image { 320, 180 };
+    Image      image { 800, 600 };
     Rasterizer rasterizer;
     Timer      timer;
 
@@ -47,16 +46,16 @@ int main()
             }
         }
 
-        window.clear( Color::Black );
-
         image.clear( Color::CornFlowerBlue );
+
         for ( int i = 0; i < image.getWidth(); ++i )
         {
             float hue              = static_cast<float>( i ) / static_cast<float>( image.getWidth() ) * 360.0f;
             rasterizer.state.color = Color::fromHSV( hue );
-            rasterizer.drawLine( i, 0, i, static_cast<int>( image.getHeight() ) );
+            rasterizer.drawLine( i, 0, i, image.getHeight() );
         }
 
+        window.clear( Color::Black );
         window.present( image );
     }
 
