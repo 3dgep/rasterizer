@@ -17,8 +17,9 @@ namespace sr
 inline namespace graphics
 {
 
-struct Rasterizer
+class Rasterizer
 {
+public:
     Rasterizer();
     Rasterizer( const Rasterizer& ) = delete;
     virtual ~Rasterizer();

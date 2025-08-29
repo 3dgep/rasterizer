@@ -13,6 +13,7 @@ set( INC_FILES
     inc/graphics/SpriteAnimation.hpp
     inc/graphics/Sprite.hpp
     inc/graphics/SpriteSheet.hpp
+    inc/graphics/Text.hpp
     inc/graphics/TileMap.hpp
     inc/graphics/Vertex.hpp
 	inc/graphics/Window.hpp
@@ -65,6 +66,7 @@ set( SRC_FILES
     src/ResourceManager.cpp
     src/SpriteAnimation.cpp
     src/SpriteSheet.cpp
+    src/Text.cpp
     src/TileMap.cpp
 	src/Window.cpp
     src/stb_image.cpp
