@@ -17,7 +17,7 @@ struct SDL_Context
 {
     SDL_Context()
     {
-        if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_GAMEPAD ) || !TTF_Init() )
+        if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_GAMEPAD )  )
         {
             SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL: %s", SDL_GetError() );
             throw std::runtime_error( SDL_GetError() );

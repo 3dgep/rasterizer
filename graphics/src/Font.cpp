@@ -153,20 +153,44 @@ TTF_HorizontalAlignment translateAlignment( Font::HorizontalAlignment alignment 
 
     return TTF_HORIZONTAL_ALIGN_INVALID;
 }
+
+struct SDL_ttf_context
+{
+    SDL_ttf_context()
+    {
+        if ( !TTF_Init() )
+        {
+            SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL_ttf: %s", SDL_GetError() );
+            throw std::runtime_error( SDL_GetError() );
+        }
+    }
+
+    ~SDL_ttf_context()
+    {
+        TTF_Quit();
+    }
+};
+
 }  // namespace
+
+const Font Font::DefaultFont {};
 
 Font::Font( float size )
 {
+    static SDL_ttf_context context; // Ensure the TTF library has been initialized.
+
     m_Font = TTF_OpenFontIO( SDL_IOFromConstMem( tiny_ttf, std::size( tiny_ttf ) ), true, size );
     if ( !m_Font )
     {
-        std::cerr << "Failed to create default font." << std::endl;
+        std::cerr << "Failed to create default font: " << SDL_GetError() << std::endl;
         return;
     }
 }
 
 Font::Font( const std::filesystem::path& fontFile, float size )
 {
+    static SDL_ttf_context context;  // Ensure the TTF library has been initialized.
+
     m_Font = TTF_OpenFont( fontFile.string().c_str(), size );
     if ( !m_Font )
     {
@@ -326,6 +350,8 @@ int Font::getLineSpacing() const
 Font& Font::setLineSpacing( int spacing )
 {
     TTF_SetFontLineSkip( m_Font, spacing );
+
+    return *this;
 }
 
 int Font::getCharSpacing() const

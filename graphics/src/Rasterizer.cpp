@@ -68,6 +68,37 @@ struct Edge2D
     }
 };
 
+void Rasterizer::drawText( const Font& font, std::string_view _text, int x, int y )
+{
+    Image* image = state.colorTarget;
+
+    if ( !image )
+        return;
+
+    if ( TTF_Text* text = TTF_CreateText( Text::TextEngine(), font.getTTF_Font(), _text.data(), _text.length() ) )
+    {
+        if ( !TTF_DrawSurfaceText( text, x, y, image->getSDL_Surface() ) )
+        {
+            std::cerr << "Failed to draw text to surface: " << SDL_GetError() << std::endl;
+        }
+
+        TTF_DestroyText( text );
+    }
+}
+
+void Rasterizer::drawText( const Text& text, int x, int y )
+{
+    Image* image = state.colorTarget;
+
+    if ( !image )
+        return;
+
+    if ( !TTF_DrawSurfaceText( text.getTTF_Text(), x, y, image->getSDL_Surface() ) )
+    {
+        std::cerr << "Failed to draw text to the surface: " << SDL_GetError() << std::endl;
+    }
+}
+
 // Source: Claud Sonnet 4 "Create a 2D Software Rasterizer in 2D in C++"
 void Rasterizer::drawLineLow( int x0, int y0, int x1, int y1 )
 {
@@ -132,30 +163,15 @@ void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 )
     }
 }
 
-Rasterizer::Rasterizer()
-{
-    m_TextEngine = TTF_CreateSurfaceTextEngine();
-    if (!m_TextEngine)
-    {
-        std::cerr << "Failed to create Surface text engine." << std::endl;
-    }
-}
-
-Rasterizer::~Rasterizer()
-{
-    TTF_DestroySurfaceTextEngine( m_TextEngine );
-}
-
 void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
 {
-    Image*   image    = state.colorTarget;
-    Viewport viewport = state.viewport;
+    Image* image = state.colorTarget;
 
     if ( !image )
         return;
 
     auto aabb = image->getAABB();
-    aabb.clamp( AABB::fromViewport( viewport ) );
+    aabb.clamp( AABB::fromViewport( state.viewport ) );
 
     if ( !aabb.clip( x0, y0, x1, y1 ) )
         return;
@@ -212,7 +228,7 @@ void Rasterizer::drawCircle( int cx, int cy, int r )
             for ( auto offset: { glm::ivec2 { x, y }, glm::ivec2 { -x, y }, glm::ivec2 { x, -y }, glm::ivec2 { -x, -y }, glm::ivec2 { y, x }, glm::ivec2 { -y, x }, glm::ivec2 { y, -x }, glm::ivec2 { -y, x }, glm::ivec2 { -y, -x } } )
             {
                 glm::ivec2 p { cx + offset.x, cy + offset.y };
-                if ( aabb.contains( p ) ) // Clipping.
+                if ( aabb.contains( p ) )  // Clipping.
                 {
                     image->plot<false>( p.x, p.y, state.color, state.blendMode );
                 }
@@ -236,7 +252,7 @@ void Rasterizer::drawCircle( int cx, int cy, int r )
         while ( x <= y )
         {
             // Draw horizontal lines to fill the circle.
-            for ( auto offset: { glm::ivec4 { -x, y, x, y }, glm::ivec4 {-x, -y, x, -y}, glm::ivec4{-y, x, y, x}, glm::ivec4{-y, -x, y, -x} } )
+            for ( auto offset: { glm::ivec4 { -x, y, x, y }, glm::ivec4 { -x, -y, x, -y }, glm::ivec4 { -y, x, y, x }, glm::ivec4 { -y, -x, y, -x } } )
             {
                 // Lines are already clipped.
                 drawLine( cx + offset.x, cy + offset.y, cx + offset.z, cy + offset.w );

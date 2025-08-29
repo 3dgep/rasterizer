@@ -1,6 +1,6 @@
 #pragma once
 
-#include "glm/vec2.hpp"
+#include <glm/vec2.hpp>
 
 #include <filesystem>
 
@@ -63,8 +63,10 @@ public:
         ExtraBlack = 950
     };
 
-    Font( float size = 12.0f );
-    Font( const std::filesystem::path& fontFile, float size = 12.0f );
+    static const Font DefaultFont;
+
+    explicit Font( float size = 12.0f );
+    explicit Font( const std::filesystem::path& fontFile, float size = 12.0f );
     Font( const Font& other );
     Font( Font&& other ) noexcept;
 
@@ -259,7 +261,7 @@ public:
     /// Enables or configures the outline for the font.
     /// </summary>
     /// <returns>A reference to the Font object with the outline set.</returns>
-    Font& setOutline(int outline);
+    Font& setOutline( int outline );
 
     /// <summary>
     /// Get the font's weight.
@@ -288,9 +290,16 @@ public:
     /// <returns>The width and height of the rendered string (in pixels).</returns>
     glm::ivec2 getStringSize( std::string_view text, int wrapWidth = 0 ) const;
 
-private:
-    friend class Text;
+    // For internal use.
+    TTF_Font* getTTF_Font() const
+    {
+        return m_Font;
+    }
+
+    // For internal use.
     Font( TTF_Font* font );
+
+private:
     TTF_Font* m_Font = nullptr;
 };
 }  // namespace graphics

@@ -2,8 +2,10 @@
 
 #include "BlendMode.hpp"
 #include "Color.hpp"
+#include "Font.hpp"
 #include "Image.hpp"
 #include "Sprite.hpp"
+#include "Text.hpp"
 #include "TileMap.hpp"
 
 #include <math/AABB.hpp>
@@ -20,10 +22,6 @@ inline namespace graphics
 class Rasterizer
 {
 public:
-    Rasterizer();
-    Rasterizer( const Rasterizer& ) = delete;
-    virtual ~Rasterizer();
-
     /// <summary>
     /// Don't forget to configure the state of the rasterizer before calling any draw functions!
     /// </summary>
@@ -173,6 +171,23 @@ public:
         drawTileMap( tileMap, transform.getMatrix() );
     }
 
+    /// <summary>
+    /// Draws the specified text at the given coordinates using the provided font.
+    /// </summary>
+    /// <param name="font">The font to use for rendering the text.</param>
+    /// <param name="text">The text string to be drawn.</param>
+    /// <param name="x">The x-coordinate where the text will be drawn.</param>
+    /// <param name="y">The y-coordinate where the text will be drawn.</param>
+    void drawText( const Font& font, std::string_view text, int x, int y );
+
+    /// <summary>
+    /// Draws the specified text at the given coordinates, if provided.
+    /// </summary>
+    /// <param name="text">The text object to be drawn.</param>
+    /// <param name="x">The x-coordinate where the text should be drawn. If not provided, the position of the Text object is used.</param>
+    /// <param name="y">The y-coordinate where the text should be drawn. If not provided, the position of the Text object is used.</param>
+    void drawText( const Text& text, int x = 0, int y = 0 );
+
 private:
     /// <summary>
     /// Draws a line between two points using an algorithm optimized for lines with a shallow slope (|dy| < |dx|).
@@ -191,8 +206,6 @@ private:
     /// <param name="x1">The x-coordinate of the ending point.</param>
     /// <param name="y1">The y-coordinate of the ending point.</param>
     void drawLineHigh( int x0, int y0, int x1, int y1 );
-
-    TTF_TextEngine* m_TextEngine = nullptr;
 };
 }  // namespace graphics
 }  // namespace sr

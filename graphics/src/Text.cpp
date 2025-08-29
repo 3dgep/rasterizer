@@ -45,16 +45,58 @@ Text::Direction translateDirection( TTF_Direction direction )
 
     return Text::Direction::Invalid;
 }
+
+struct SDL_ttf_context
+{
+    SDL_ttf_context()
+    {
+        if ( !TTF_Init() )
+        {
+            SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL_ttf: %s", SDL_GetError() );
+            throw std::runtime_error( SDL_GetError() );
+        }
+
+        textEngine = TTF_CreateSurfaceTextEngine();
+    }
+
+    ~SDL_ttf_context()
+    {
+        TTF_DestroySurfaceTextEngine( textEngine );
+        TTF_Quit();
+    }
+
+    TTF_TextEngine* textEngine = nullptr;
+};
+
 }  // namespace
+
+TTF_TextEngine* Text::TextEngine() {
+    static SDL_ttf_context context;
+    return context.textEngine;
+}
+
+Text::Text( const Font& font, std::string_view text )
+{
+    m_Font = TTF_CopyFont( font.getTTF_Font() );
+    m_Text = TTF_CreateText( TextEngine(), m_Font, text.data(), text.length() );
+
+    if (!m_Text)
+    {
+        std::cerr << "Failed to create Text: " << SDL_GetError();
+        return;
+    }
+}
 
 Text::Text( Text&& other ) noexcept
 {
+    m_Font = std::exchange( other.m_Font, nullptr );
     m_Text = std::exchange( other.m_Text, nullptr );
 }
 
 Text::~Text()
 {
     TTF_DestroyText( m_Text );
+    TTF_CloseFont( m_Font );
 }
 
 Text& Text::operator=( Text&& other ) noexcept
@@ -62,6 +104,7 @@ Text& Text::operator=( Text&& other ) noexcept
     if ( &other == this )
         return *this;
 
+    m_Font = std::exchange( other.m_Font, nullptr );
     m_Text = std::exchange( other.m_Text, nullptr );
 
     return *this;
@@ -135,7 +178,12 @@ Text::Direction Text::getDirection() const
 
 Text& Text::setFont( const Font& font )
 {
-    if ( !TTF_SetTextFont( m_Text, font.m_Font ) )
+    if ( m_Font )
+        TTF_CloseFont( m_Font );
+
+    m_Font = TTF_CopyFont( font.getTTF_Font() );
+
+    if ( !TTF_SetTextFont( m_Text, m_Font ) )
     {
         std::cerr << "Failed to set text font: " << SDL_GetError() << std::endl;
     }
@@ -145,8 +193,7 @@ Text& Text::setFont( const Font& font )
 
 Font Text::getFont() const
 {
-    TTF_Font* font = TTF_GetTextFont( m_Text );
-    return { TTF_CopyFont( font ) };
+    return { m_Font };
 }
 
 Text& Text::setPosition( const glm::ivec2& pos )
@@ -183,7 +230,7 @@ glm::ivec2 Text::getSize() const
 
 Text& Text::setWrapWidth( int width )
 {
-    if (!TTF_SetTextWrapWidth( m_Text, width  ))
+    if ( !TTF_SetTextWrapWidth( m_Text, width ) )
     {
         std::cerr << "Failed to set text wrap width: " << SDL_GetError() << std::endl;
     }
@@ -194,14 +241,10 @@ Text& Text::setWrapWidth( int width )
 int Text::getWrapWidth() const
 {
     int wrapWidth = -1;
-    if (!TTF_GetTextWrapWidth( m_Text, &wrapWidth ))
+    if ( !TTF_GetTextWrapWidth( m_Text, &wrapWidth ) )
     {
         std::cerr << "Failed to get text wrap width: " << SDL_GetError() << std::endl;
     }
 
     return wrapWidth;
 }
-
-Text::Text( TTF_Text* text )
-: m_Text { text }
-{}

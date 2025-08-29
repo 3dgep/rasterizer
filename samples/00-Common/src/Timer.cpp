@@ -19,6 +19,7 @@ void Timer::reset() noexcept
 
     elapsedTime = 0.0;
     totalTime = 0.0;
+    ticks       = 0;
 }
 
 void Timer::tick() noexcept
@@ -29,6 +30,7 @@ void Timer::tick() noexcept
 
     elapsedTime = delta.count();
     totalTime += elapsedTime;
+    ++ticks;
 }
 
 double Timer::elapsedSeconds() const noexcept
@@ -57,6 +59,11 @@ double Timer::totalMilliseconds() const noexcept
 double Timer::totalMicroseconds() const noexcept
 {
     return totalTime;
+}
+
+double Timer::FPS() const noexcept
+{
+    return static_cast<double>( ticks ) / totalSeconds();
 }
 
 void Timer::limitFPS(int fps) const noexcept

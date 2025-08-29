@@ -4,6 +4,7 @@
 #include "Font.hpp"
 
 struct TTF_Text;
+struct TTF_TextEngine;
 
 namespace sr
 {
@@ -22,6 +23,7 @@ public:
     };
 
     Text()              = default;
+    explicit Text( const Font& font, std::string_view text = {} );
     Text( const Text& ) = delete;
     Text( Text&& ) noexcept;
     ~Text();
@@ -87,7 +89,7 @@ public:
     /// Get the font used by the text object.
     /// </summary>
     /// <returns>The font used by the text object.</returns>
-    Font  getFont() const;
+    Font getFont() const;
 
     /// <summary>
     /// Sets the font used by the text object.
@@ -107,7 +109,7 @@ public:
     /// </summary>
     /// <param name="pos">The new top-left position of the Text object.</param>
     /// <returns>A reference to the modified Text object.</returns>
-    Text&      setPosition( const glm::ivec2& pos );
+    Text& setPosition( const glm::ivec2& pos );
 
     /// <summary>
     /// Get the size of the text (in pixels).
@@ -119,7 +121,7 @@ public:
     /// Get the wrap width of the Text object.
     /// </summary>
     /// <returns>The wrap width of the Text object, or 0 if the text is wrapped on newline characters.</returns>
-    int   getWrapWidth() const;
+    int getWrapWidth() const;
 
     /// <summary>
     /// Set the wrap width of the Text object.
@@ -128,10 +130,17 @@ public:
     /// <returns>A reference to the modified Text object.</returns>
     Text& setWrapWidth( int width );
 
-private:
-    friend class Rasterizer;
-    Text( TTF_Text* text );
+    // For internal use.
+    TTF_Text* getTTF_Text() const
+    {
+        return m_Text;
+    }
 
+    // Get a pointer to the text engine used for rendering text to a surface.
+    static TTF_TextEngine* TextEngine();
+
+private:
+    TTF_Font* m_Font = nullptr;
     TTF_Text* m_Text = nullptr;
 };
 }  // namespace graphics

@@ -11,6 +11,7 @@ int main()
     Window     window( "Clear Screen", 1280, 720 );
     Image      image { 800, 600 };
     Rasterizer rasterizer;
+    Text       fpsText( Font::DefaultFont, "FPS: 0" );
     Timer      timer;
 
     // Setup the rasterizer's render target state.
@@ -54,6 +55,14 @@ int main()
             rasterizer.state.color = Color::fromHSV( hue );
             rasterizer.drawLine( i, 0, i, image.getHeight() );
         }
+
+        if (timer.totalSeconds() > 1.0)
+        {
+            fpsText = std::format( "FPS: {:.0f}", timer.FPS() );
+            timer.reset();
+        }
+
+        rasterizer.drawText( fpsText, 10,10 );
 
         window.clear( Color::Black );
         window.present( image );

@@ -18,6 +18,8 @@ public:
     double totalMilliseconds() const noexcept;
     double totalMicroseconds() const noexcept;
 
+    double FPS() const noexcept;
+
     void limitFPS( int fps ) const noexcept;
     void limitFPS( double seconds ) const noexcept;
     void limitFPS( const std::chrono::high_resolution_clock::duration& duration ) const noexcept;
@@ -34,4 +36,6 @@ private:
 
     double elapsedTime;
     double totalTime;
+
+    uint64_t ticks = 0;
 };

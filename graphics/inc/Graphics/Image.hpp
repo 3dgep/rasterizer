@@ -306,6 +306,12 @@ struct Image final
         return static_cast<const Color*>( m_Surface->pixels );
     }
 
+    // For internal use.
+    SDL_Surface* getSDL_Surface() const
+    {
+        return m_Surface;
+    }
+
 private:
     /// <summary>
     /// Axis-aligned bounding box (used for clipping).
