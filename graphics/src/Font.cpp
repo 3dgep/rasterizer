@@ -6,7 +6,7 @@
 
 using namespace sr::graphics;
 
-#include "tiny.inl"
+#include "PressStart2P.h"
 
 namespace
 {
@@ -179,7 +179,7 @@ Font::Font( float size )
 {
     static SDL_ttf_context context; // Ensure the TTF library has been initialized.
 
-    m_Font = TTF_OpenFontIO( SDL_IOFromConstMem( tiny_ttf, std::size( tiny_ttf ) ), true, size );
+    m_Font = TTF_OpenFontIO( SDL_IOFromConstMem( PressStart2P, std::size( PressStart2P ) ), true, size );
     if ( !m_Font )
     {
         std::cerr << "Failed to create default font: " << SDL_GetError() << std::endl;

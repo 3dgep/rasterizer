@@ -102,7 +102,7 @@ void drawTexturedTriangle( Rasterizer& rasterizer, const Vertex2D& v0, const Ver
 }
 int main()
 {
-    Window     window( "Barycentric Coordinates", 1280, 720 );
+    Window     window( "Barycentric Coordinates", 800, 600 );
     Image      image { 800, 600 };
     Image      texture { "assets/textures/Smiley.png" };
     Rasterizer rasterizer;
