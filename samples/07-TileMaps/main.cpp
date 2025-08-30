@@ -91,12 +91,19 @@ int main()
                     break;
                 case SDLK_R:
                     transform.setRotation( 0.0f );
+                    transform.setScale( 1.0f );
                     break;
                 case SDLK_LEFT:
                     transform.rotate( -0.01f );
                     break;
                 case SDLK_RIGHT:
                     transform.rotate( 0.01f );
+                    break;
+                case SDLK_UP:
+                    transform.scale( 1.01f );
+                    break;
+                case SDLK_DOWN:
+                    transform.scale( 0.99f );
                     break;
                 case SDLK_V:
                     window.toggleVSync();

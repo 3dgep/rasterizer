@@ -100,6 +100,16 @@ public:
         m_TransformDirty = true;
     }
 
+    /// <summary>
+    /// Apply a scale to the object.
+    /// The current scale of the object is multiplied by this scale factor.
+    /// </summary>
+    /// <param name="factor">The scale factor to apply to the current scale of the object.</param>
+    void scale( float factor ) noexcept
+    {
+        scale( { factor, factor } );
+    }
+
     void rotate( float rotation ) noexcept
     {
         m_Rotation += rotation;

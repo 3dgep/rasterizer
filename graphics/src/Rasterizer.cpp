@@ -397,6 +397,80 @@ void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ive
     }
 }
 
+void Rasterizer::drawTexturedQuad( const Vertex2D& v0, const Vertex2D& v1, const Vertex2D& v2, const Vertex2D& v3, const Image& srcImage, std::optional<BlendMode> _blendMode )
+{
+    Image* dstImage = state.colorTarget;
+
+    if ( !dstImage )
+        return;
+
+    BlendMode blendMode = _blendMode.value_or( state.blendMode );
+    AABB dstAABB = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+
+    // Compute the AABB over the quad vertices.
+    AABB srcAABB = AABB {
+        v0.position, v1.position, v2.position, v3.position
+    };
+
+    // If the sprite AABB doesn't overlap with the destination AABB.
+    if ( !srcAABB.intersect( dstAABB ) )
+        return;
+
+    // Clamp the dstAABB by the srcAABB.
+    dstAABB.clamp( srcAABB );
+
+    const int minX = static_cast<int>( dstAABB.min.x );
+    const int minY = static_cast<int>( dstAABB.min.y );
+    const int maxX = static_cast<int>( dstAABB.max.x );
+    const int maxY = static_cast<int>( dstAABB.max.y );
+
+    glm::ivec2 p { minX, minY };
+
+    // Edge setup for the 2 triangles of the quad.
+    Edge2D e[] {
+        { v0.position, v1.position, v2.position, p },
+        { v2.position, v3.position, v0.position, p }
+    };
+
+    const Vertex2D verts[] = {
+        v0, v1, v2, v3
+    };
+
+    const uint32_t indices[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
+
+    for ( p.y = minY; p.y <= maxY; ++p.y )
+    {
+        for ( p.x = minX; p.x <= maxX; ++p.x )
+        {
+            for ( uint32_t i = 0; i < 2; ++i )
+            {
+                if ( e[i].inside() )
+                {
+                    const uint32_t i0 = indices[i * 3 + 0];
+                    const uint32_t i1 = indices[i * 3 + 1];
+                    const uint32_t i2 = indices[i * 3 + 2];
+
+                    const glm::vec3  bc       = e[i].barycentric();
+                    const glm::ivec2 texCoord = glm::round( verts[i0].texCoord * bc.x + verts[i1].texCoord * bc.y + verts[i2].texCoord * bc.z );
+                    const Color      color    = verts[i0].color * bc.x + verts[i1].color * bc.y + verts[i2].color * bc.z;
+
+                    const Color srcColor = srcImage.sample( texCoord.x, texCoord.y, AddressMode::Clamp ) * color;
+                    dstImage->plot<false>( p.x, p.y, srcColor, blendMode );
+                }
+            }
+
+            e[0].stepX();
+            e[1].stepX();
+        }
+
+        e[0].stepY();
+        e[1].stepY();
+    }
+}
+
 void Rasterizer::drawAABB( math::AABB aabb )
 {
     Image*   image    = state.colorTarget;
@@ -504,9 +578,6 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
     }
 
     const Color      color        = sprite.getColor() * state.color;
-    const BlendMode  blendMode    = sprite.getBlendMode();
-    const AABB       viewportAABB = AABB::fromViewport( state.viewport );
-    AABB             dstAABB      = dstImage->getAABB().clamped( viewportAABB );
     const glm::ivec2 uv           = sprite.getUV();
     const glm::ivec2 size         = sprite.getSize();
 
@@ -517,68 +588,13 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
         { { 0, size.y }, { uv.x, uv.y + size.y - 1 }, color },                    // Bottom-left.
     };
 
-    const uint32_t indices[6] = {
-        0, 1, 2,
-        2, 3, 0
-    };
-
     // Transform vertices
     for ( Vertex2D& v: verts )
     {
         v.position = transform * glm::vec3 { v.position, 1.0f };
     }
 
-    // Compute the AABB over the transformed sprite vertices.
-    AABB srcAABB = AABB {
-        verts[0].position, verts[1].position, verts[2].position, verts[3].position
-    };
-
-    // If the sprite AABB doesn't overlap with the destination AABB.
-    if ( !srcAABB.intersect( dstAABB ) )
-        return;
-
-    // Clamp the dstAABB by the srcAABB.
-    dstAABB.clamp( srcAABB );
-
-    const int minX = static_cast<int>( dstAABB.min.x );
-    const int minY = static_cast<int>( dstAABB.min.y );
-    const int maxX = static_cast<int>( dstAABB.max.x );
-    const int maxY = static_cast<int>( dstAABB.max.y );
-
-    glm::ivec2 p { minX, minY };
-
-    // Edge setup for the 2 triangles of the quad.
-    Edge2D e[] {
-        { verts[indices[0]].position, verts[indices[1]].position, verts[indices[2]].position, p },
-        { verts[indices[3]].position, verts[indices[4]].position, verts[indices[5]].position, p }
-    };
-
-    for ( p.y = minY; p.y <= maxY; ++p.y )
-    {
-        for ( p.x = minX; p.x <= maxX; ++p.x )
-        {
-            for ( uint32_t i = 0; i < 2; ++i )
-            {
-                if ( e[i].inside() )
-                {
-                    const uint32_t i0 = indices[i * 3 + 0];
-                    const uint32_t i1 = indices[i * 3 + 1];
-                    const uint32_t i2 = indices[i * 3 + 2];
-
-                    const glm::vec3  bc       = e[i].barycentric();
-                    const glm::ivec2 texCoord = glm::round( verts[i0].texCoord * bc.x + verts[i1].texCoord * bc.y + verts[i2].texCoord * bc.z );
-                    const Color      srcColor = srcImage->sample( texCoord.x, texCoord.y, AddressMode::Clamp ) * color;
-                    dstImage->plot<false>( p.x, p.y, srcColor, blendMode );
-                }
-            }
-
-            e[0].stepX();
-            e[1].stepX();
-        }
-
-        e[0].stepY();
-        e[1].stepY();
-    }
+    drawTexturedQuad( verts[0], verts[1], verts[2], verts[3], *srcImage, sprite.getBlendMode() );
 }
 
 void Rasterizer::drawTileMap( const TileMap& tileMap, int x, int y )
