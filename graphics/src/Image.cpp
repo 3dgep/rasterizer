@@ -46,9 +46,13 @@ Image::Image( const std::filesystem::path& fileName )
     stbi_image_free( data );
 }
 
-Image::Image( uint32_t width, uint32_t height )
+Image::Image( uint32_t width, uint32_t height, std::optional<Color> color )
 {
     resize( width, height );
+    if (color)
+    {
+        clear( *color );
+    }
 }
 
 Image& Image::operator=( const Image& copy )

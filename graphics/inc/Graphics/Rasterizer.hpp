@@ -141,6 +141,8 @@ public:
     /// <param name="p2">The third triangle coordinate (in screen coordinates).</param>
     void drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 );
 
+    void drawTexturedTriangle( const Vertex2D& v0, const Vertex2D& v1, const Vertex2D& v2, const Image& texture, std::optional<BlendMode> blendMode = {} );
+
     void drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 );
 
     void drawTexturedQuad( const Vertex2D& v0, const Vertex2D& v1, const Vertex2D& v2, const Vertex2D& v3, const Image& texture, std::optional<BlendMode> blendMode = {});

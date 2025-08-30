@@ -336,6 +336,62 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
     }
 }
 
+void Rasterizer::drawTexturedTriangle( const Vertex2D& v0, const Vertex2D& v1, const Vertex2D& v2, const Image& texture, std::optional<BlendMode> _blendMode )
+{
+    Image* image = state.colorTarget;
+
+    if ( !image )
+        return;
+
+    int area = orient2D( v0.position, v1.position, v2.position );
+
+    if ( area < 0 )
+    {
+        // Swap vertices if they are in clockwise order.
+        drawTexturedTriangle( v0, v2, v1, texture, _blendMode );
+        return;
+    }
+
+    const BlendMode blendMode    = _blendMode.value_or( state.blendMode );
+    auto            aabb         = image->getAABB().clamped( AABB { state.viewport } );
+    auto            triangleAABB = AABB::fromTriangle( v0.position, v1.position, v2.position );
+
+    if ( !triangleAABB.intersect( aabb ) )
+        return;
+
+    aabb.clamp( triangleAABB );
+
+    int minX = static_cast<int>( aabb.min.x );
+    int minY = static_cast<int>( aabb.min.y );
+    int maxX = static_cast<int>( aabb.max.x );
+    int maxY = static_cast<int>( aabb.max.y );
+
+    glm::ivec2 p { minX, minY };
+
+    // Edge setup.
+    Edge2D e { v0.position, v1.position, v2.position, p };
+
+    for ( p.y = minY; p.y <= maxY; p.y++ )
+    {
+        for ( p.x = minX; p.x <= maxX; p.x++ )
+        {
+            if ( e.inside() )
+            {
+                const glm::vec3  bc       = e.barycentric();
+                const glm::ivec2 texCoord = glm::round( v0.texCoord * bc.x + v1.texCoord * bc.y + v2.texCoord * bc.y );
+                const Color      color    = v0.color * bc.x + v1.color * bc.y + v1.color * bc.z;
+                const Color      srcColor = image->sample( texCoord.x, texCoord.y, AddressMode::Clamp ) * color;
+
+                image->plot<false>( p.x, p.y, srcColor, blendMode );
+            }
+
+            e.stepX();
+        }
+
+        e.stepY();
+    }
+}
+
 void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 )
 {
     Image* image = state.colorTarget;
@@ -405,7 +461,7 @@ void Rasterizer::drawTexturedQuad( const Vertex2D& v0, const Vertex2D& v1, const
         return;
 
     BlendMode blendMode = _blendMode.value_or( state.blendMode );
-    AABB dstAABB = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+    AABB      dstAABB   = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
 
     // Compute the AABB over the quad vertices.
     AABB srcAABB = AABB {
@@ -577,9 +633,9 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
         return;
     }
 
-    const Color      color        = sprite.getColor() * state.color;
-    const glm::ivec2 uv           = sprite.getUV();
-    const glm::ivec2 size         = sprite.getSize();
+    const Color      color = sprite.getColor() * state.color;
+    const glm::ivec2 uv    = sprite.getUV();
+    const glm::ivec2 size  = sprite.getSize();
 
     Vertex2D verts[4] = {
         { { 0, 0 }, { uv.x, uv.y }, color },                                      // Top-left.

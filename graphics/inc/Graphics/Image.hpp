@@ -47,7 +47,8 @@ struct Image final
     /// </summary>
     /// <param name="width">The image width (in pixels).</param>
     /// <param name="height">The image height (in pixels).</param>
-    Image( uint32_t width, uint32_t height );
+    /// <param name="color">Optional color to fill the texture with.</param>
+    Image( uint32_t width, uint32_t height, std::optional<Color> color = {} );
 
     /// <summary>
     /// Copy another image to this one.

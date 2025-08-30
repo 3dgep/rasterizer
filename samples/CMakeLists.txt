@@ -17,6 +17,7 @@ add_sample( 06-FillRules )
 add_sample( 07-TileMaps )
 add_sample( 08-Circles )
 add_sample( 09-EdgeFunction )
+add_sample( 10-Barycentric )
 
 # Set the startup project.
 set_directory_properties( PROPERTIES

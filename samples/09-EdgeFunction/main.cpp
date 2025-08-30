@@ -208,7 +208,6 @@ int main()
 
     // Set if the mouse is clicked over one of the vertices.
     glm::vec2* selectedVert = nullptr;
-
     glm::vec2 mousePos { 0 };
 
     // Setup the rasterizer's render target state.
