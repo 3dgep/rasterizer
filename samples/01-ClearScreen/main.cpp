@@ -8,11 +8,11 @@ using namespace sr;
 
 int main()
 {
-    Window     window( "Clear Screen", 1280, 720 );
+    Window     window( "Clear Screen", 800, 600 );
     Image      image { 800, 600 };
     Rasterizer rasterizer;
-    Text       fpsText( Font::DefaultFont, "FPS: 0" );
     Timer      timer;
+    Text fpsText { Font::DefaultFont, "FPS: 0" };
 
     // Setup the rasterizer's render target state.
     rasterizer.state.colorTarget = &image;
@@ -47,7 +47,7 @@ int main()
             }
         }
 
-        image.clear( Color::CornFlowerBlue );
+        image.clear( Color::Black );
 
         for ( int i = 0; i < image.getWidth(); ++i )
         {
@@ -56,13 +56,13 @@ int main()
             rasterizer.drawLine( i, 0, i, image.getHeight() );
         }
 
-        if (timer.totalSeconds() > 1.0)
+        if ( timer.totalSeconds() > 1.0 )
         {
             fpsText = std::format( "FPS: {:.0f}", timer.FPS() );
             timer.reset();
         }
 
-        rasterizer.drawText( fpsText, 10,10 );
+        rasterizer.drawText( fpsText, 10, 10 );
 
         window.clear( Color::Black );
         window.present( image );
