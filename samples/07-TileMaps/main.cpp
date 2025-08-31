@@ -101,9 +101,11 @@ int main()
                     break;
                 case SDLK_UP:
                     transform.scale( 1.01f );
+                    std::cout << "Scale: " << transform.getScale().x << std::endl;
                     break;
                 case SDLK_DOWN:
                     transform.scale( 0.99f );
+                    std::cout << "Scale: " << transform.getScale().x << std::endl;
                     break;
                 case SDLK_V:
                     window.toggleVSync();
@@ -115,7 +117,18 @@ int main()
                         window.toggleFullscreen();
                     }
                     break;
+                case SDLK_S:
+                    if ( ( event.key.mod & SDL_KMOD_CTRL ) != 0 )
+                    {
+                        image.save( "screenshot.bmp" );
+                        std::cout << "Screenshot saved..." << std::endl;
+                    }
+                    break;
                 }
+                break;
+            case SDL_EVENT_MOUSE_WHEEL:
+                transform.scale( event.wheel.integer_y > 0 ? 1.01f : 0.99f );
+                std::cout << "Scale: " << transform.getScale().x << std::endl;
                 break;
             }
         }

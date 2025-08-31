@@ -687,19 +687,16 @@ void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform
 
     for ( uint32_t y = 0; y < rows; ++y )
     {
-        tileOffset[2][0] = 0.0f;
-
+        double offsetX = 0.0f;
         for ( uint32_t x = 0; x < columns; ++x )
         {
             int spriteId = tileMap[x, y];
             if ( spriteId >= 0 )
             {
+                tileOffset[2][0] = static_cast<float>( x * spriteWidth ) - 1.0f;
+                tileOffset[2][1] = static_cast<float>( y * spriteHeight ) - 1.0f;
                 drawSprite( tileMap.getSprite( x, y ), transform * tileOffset );
             }
-
-            tileOffset[2][0] += static_cast<float>( spriteWidth );
         }
-
-        tileOffset[2][1] += static_cast<float>( spriteHeight );
     }
 }
