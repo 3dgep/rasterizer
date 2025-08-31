@@ -31,9 +31,16 @@ void drawTriangle( Rasterizer& rasterizer, const Vertex2D& v0, const Vertex2D& v
 
     float area = static_cast<float>( orient2D( v0.position, v1.position, v2.position ) );
 
-    for ( int y = 0; y < image->getHeight(); ++y )
+    AABB dstAABB = image->getAABB().clamped( AABB::fromTriangle( v0.position, v1.position, v2.position ) );
+
+    int minX = static_cast<int>( dstAABB.min.x );
+    int minY = static_cast<int>( dstAABB.min.y );
+    int maxX = static_cast<int>( dstAABB.max.x );
+    int maxY = static_cast<int>( dstAABB.max.y );
+
+    for ( int y = minY; y <= maxY; ++y )
     {
-        for ( int x = 0; x < image->getWidth(); ++x )
+        for ( int x = minX; x <= maxX; ++x )
         {
             glm::ivec2 p { x, y };
 
@@ -71,9 +78,16 @@ void drawTexturedTriangle( Rasterizer& rasterizer, const Vertex2D& v0, const Ver
 
     float area = static_cast<float>( orient2D( v0.position, v1.position, v2.position ) );
 
-    for ( int y = 0; y < image->getHeight(); ++y )
+    AABB dstAABB = image->getAABB().clamped( AABB::fromTriangle( v0.position, v1.position, v2.position ) );
+
+    int minX = static_cast<int>( dstAABB.min.x );
+    int minY = static_cast<int>( dstAABB.min.y );
+    int maxX = static_cast<int>( dstAABB.max.x );
+    int maxY = static_cast<int>( dstAABB.max.y );
+
+    for ( int y = minY; y <= maxY; ++y )
     {
-        for ( int x = 0; x < image->getWidth(); ++x )
+        for ( int x = minX; x < maxX; ++x )
         {
             glm::ivec2 p { x, y };
 
@@ -102,12 +116,20 @@ void drawTexturedTriangle( Rasterizer& rasterizer, const Vertex2D& v0, const Ver
 }
 int main()
 {
+    enum class DrawMode
+    {
+        Barycentric,
+        Textured
+    } drawMode = DrawMode::Barycentric;
+
     Window     window( "Barycentric Coordinates", 800, 600 );
     Image      image { 800, 600 };
     Image      texture { "assets/textures/Smiley.png" };
     Rasterizer rasterizer;
     Text       fpsText( Font::DefaultFont, "FPS: 0" );
     Timer      timer;
+
+    window.setVSync( false );
 
     Vertex2D initialVerts[] = {
         { { 3 * image.getWidth() / 4, image.getHeight() / 4 }, { 1.0f, 0.0f }, Color::Red },
@@ -139,6 +161,12 @@ int main()
                 {
                 case SDLK_ESCAPE:
                     window.destroy();
+                    break;
+                case SDLK_1:
+                    drawMode = DrawMode::Barycentric;
+                    break;
+                case SDLK_2:
+                    drawMode = DrawMode::Textured;
                     break;
                 case SDLK_R:
                     // Reset vertices to their original positions.
@@ -184,8 +212,15 @@ int main()
 
         image.clear( Color::Black );
 
-         drawTriangle( rasterizer, verts[0], verts[1], verts[2] );
-        //drawTexturedTriangle( rasterizer, verts[0], verts[1], verts[2], texture );
+        switch ( drawMode )
+        {
+        case DrawMode::Barycentric:
+             drawTriangle( rasterizer, verts[0], verts[1], verts[2] );
+            break;
+        case DrawMode::Textured:
+            drawTexturedTriangle( rasterizer, verts[0], verts[1], verts[2], texture );
+            break;
+        }
 
         if ( timer.totalSeconds() > 1.0 )
         {

@@ -145,7 +145,7 @@ public:
 
     void drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 );
 
-    void drawTexturedQuad( const Vertex2D& v0, const Vertex2D& v1, const Vertex2D& v2, const Vertex2D& v3, const Image& texture, std::optional<BlendMode> blendMode = {});
+    void drawTexturedQuad( const Vertex2D& v0, const Vertex2D& v1, const Vertex2D& v2, const Vertex2D& v3, const Image& texture, std::optional<BlendMode> blendMode = {} );
 
     /// <summary>
     /// Draws an axis-aligned bounding box (AABB).
@@ -177,6 +177,14 @@ public:
     }
 
     /// <summary>
+    /// Draws the specified text at the given coordinates, if provided.
+    /// </summary>
+    /// <param name="text">The text object to be drawn.</param>
+    /// <param name="x">The x-coordinate where the text should be drawn. If not provided, the position of the Text object is used.</param>
+    /// <param name="y">The y-coordinate where the text should be drawn. If not provided, the position of the Text object is used.</param>
+    void drawText( const Text& text, int x = 0, int y = 0 );
+
+    /// <summary>
     /// Draws the specified text at the given coordinates using the provided font.
     /// </summary>
     /// <param name="font">The font to use for rendering the text.</param>
@@ -184,14 +192,6 @@ public:
     /// <param name="x">The x-coordinate where the text will be drawn.</param>
     /// <param name="y">The y-coordinate where the text will be drawn.</param>
     void drawText( const Font& font, std::string_view text, int x, int y );
-
-    /// <summary>
-    /// Draws the specified text at the given coordinates, if provided.
-    /// </summary>
-    /// <param name="text">The text object to be drawn.</param>
-    /// <param name="x">The x-coordinate where the text should be drawn. If not provided, the position of the Text object is used.</param>
-    /// <param name="y">The y-coordinate where the text should be drawn. If not provided, the position of the Text object is used.</param>
-    void drawText( const Text& text, int x = 0, int y = 0 );
 
 private:
     /// <summary>

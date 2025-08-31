@@ -1,12 +1,11 @@
 #pragma once
 
+#include <math/Intrinsics.hpp>
 #include <math/Math.hpp>
 
-#include <SDL3/SDL_endian.h>
-
 #include <compare>
-#include <cstdint>
 
+// Note: SIMD optimizations in this file are provided by Claude Sonnet 4 (Aug 31, 2025) Prompt: "I want to apply SIMD optimizations to this Color class. But I also want to maintain platform independence, so SIMD should only be used on the platforms that support it."
 namespace sr
 {
 inline namespace graphics
@@ -44,16 +43,16 @@ struct Color
     constexpr auto operator<=>( const Color& rhs ) const noexcept;
     constexpr bool operator==( const Color& rhs ) const noexcept;
 
-    constexpr Color  operator+( const Color& rhs ) const noexcept;
-    constexpr Color& operator+=( const Color& rhs ) noexcept;
-    constexpr Color  operator-( const Color& rhs ) const noexcept;
-    constexpr Color& operator-=( const Color& rhs ) noexcept;
-    constexpr Color  operator*( const Color& rhs ) const noexcept;
-    constexpr Color& operator*=( const Color& rhs ) noexcept;
-    constexpr Color  operator*( float rhs ) const noexcept;
-    constexpr Color& operator*=( float rhs ) noexcept;
-    constexpr Color  operator/( float rhs ) const noexcept;
-    constexpr Color& operator/=( float rhs ) noexcept;
+    Color  operator+( const Color& rhs ) const noexcept;
+    Color& operator+=( const Color& rhs ) noexcept;
+    Color  operator-( const Color& rhs ) const noexcept;
+    Color& operator-=( const Color& rhs ) noexcept;
+    Color  operator*( const Color& rhs ) const noexcept;
+    Color& operator*=( const Color& rhs ) noexcept;
+    Color  operator*( float rhs ) const noexcept;
+    Color& operator*=( float rhs ) noexcept;
+    Color  operator/( float rhs ) const noexcept;
+    Color& operator/=( float rhs ) noexcept;
 
     /// <summary>
     /// Return this color with a specified alpha value.
@@ -245,87 +244,190 @@ constexpr auto Color::operator<=>( const Color& rhs ) const noexcept
     return a <=> rhs.a;
 }
 
-constexpr Color Color::operator+( const Color& rhs ) const noexcept
+inline Color Color::operator+( const Color& rhs ) const noexcept
 {
+#if defined( SR_SIMD_SSE2 )
+    // Note: static_cast is safe here - we're just transferring bit patterns
+    __m128i this_vec = _mm_cvtsi32_si128( static_cast<int>( rgba ) );
+    __m128i rhs_vec  = _mm_cvtsi32_si128( static_cast<int>( rhs.rgba ) );
+
+    __m128i result = simd_add_saturated_u8( this_vec, rhs_vec );
+
+    return Color( static_cast<uint32_t>( _mm_cvtsi128_si32( result ) ) );
+#elif defined( SR_SIMD_NEON )
+    uint32x2_t this_vec = vdup_n_u32( rgba );
+    uint32x2_t rhs_vec  = vdup_n_u32( rhs.rgba );
+
+    uint8x8_t this_u8 = vreinterpret_u8_u32( this_vec );
+    uint8x8_t rhs_u8  = vreinterpret_u8_u32( rhs_vec );
+
+    uint8x8_t result = vqadd_u8( this_u8, rhs_u8 );
+
+    return Color( vget_lane_u32( vreinterpret_u32_u8( result ), 0 ) );
+#else
+    // Fallback scalar implementation
     return {
         static_cast<uint8_t>( math::min( r + rhs.r, 255 ) ),
         static_cast<uint8_t>( math::min( g + rhs.g, 255 ) ),
         static_cast<uint8_t>( math::min( b + rhs.b, 255 ) ),
         static_cast<uint8_t>( math::min( a + rhs.a, 255 ) ),
     };
+#endif
 }
 
-constexpr Color& Color::operator+=( const Color& rhs ) noexcept
+inline Color& Color::operator+=( const Color& rhs ) noexcept
 {
-    r = static_cast<uint8_t>( math::min( r + rhs.r, 255 ) );
-    g = static_cast<uint8_t>( math::min( g + rhs.g, 255 ) );
-    b = static_cast<uint8_t>( math::min( b + rhs.b, 255 ) );
-    a = static_cast<uint8_t>( math::min( a + rhs.a, 255 ) );
-
+    *this = *this + rhs;
     return *this;
 }
 
-constexpr Color Color::operator-( const Color& rhs ) const noexcept
+inline Color Color::operator-( const Color& rhs ) const noexcept
 {
+#if defined( SR_SIMD_SSE2 )
+    __m128i this_vec = _mm_cvtsi32_si128( static_cast<int>( rgba ) );
+    __m128i rhs_vec  = _mm_cvtsi32_si128( static_cast<int>( rhs.rgba ) );
+
+    __m128i result = simd_sub_saturated_u8( this_vec, rhs_vec );
+
+    return Color( static_cast<uint32_t>( _mm_cvtsi128_si32( result ) ) );
+#elif defined( SR_SIMD_NEON )
+    uint32x2_t this_vec = vdup_n_u32( rgba );
+    uint32x2_t rhs_vec  = vdup_n_u32( rhs.rgba );
+
+    uint8x8_t this_u8 = vreinterpret_u8_u32( this_vec );
+    uint8x8_t rhs_u8  = vreinterpret_u8_u32( rhs_vec );
+
+    uint8x8_t result = vqsub_u8( this_u8, rhs_u8 );
+
+    return Color( vget_lane_u32( vreinterpret_u32_u8( result ), 0 ) );
+#else
+    // Fallback scalar implementation
     return {
         static_cast<uint8_t>( math::max( r - rhs.r, 0 ) ),
         static_cast<uint8_t>( math::max( g - rhs.g, 0 ) ),
         static_cast<uint8_t>( math::max( b - rhs.b, 0 ) ),
         static_cast<uint8_t>( math::max( a - rhs.a, 0 ) ),
     };
+#endif
 }
 
-constexpr Color& Color::operator-=( const Color& rhs ) noexcept
+inline Color& Color::operator-=( const Color& rhs ) noexcept
 {
-    r = static_cast<uint8_t>( math::max( r - rhs.r, 0 ) );
-    g = static_cast<uint8_t>( math::max( g - rhs.g, 0 ) );
-    b = static_cast<uint8_t>( math::max( b - rhs.b, 0 ) );
-    a = static_cast<uint8_t>( math::max( a - rhs.a, 0 ) );
-
+    *this = *this - rhs;
     return *this;
 }
 
-constexpr Color Color::operator*( const Color& rhs ) const noexcept
+inline Color Color::operator*( const Color& rhs ) const noexcept
 {
+#if defined( SR_SIMD_SSE2 )
+    __m128i this_vec = _mm_cvtsi32_si128( static_cast<int>( rgba ) );
+    __m128i rhs_vec  = _mm_cvtsi32_si128( static_cast<int>( rhs.rgba ) );
+
+    __m128i result = simd_multiply_u8( this_vec, rhs_vec );
+
+    return Color( static_cast<uint32_t>( _mm_cvtsi128_si32( result ) ) );
+#elif defined( SR_SIMD_NEON )
+    uint32x2_t this_vec = vdup_n_u32( rgba );
+    uint32x2_t rhs_vec  = vdup_n_u32( rhs.rgba );
+
+    uint8x8_t this_u8 = vreinterpret_u8_u32( this_vec );
+    uint8x8_t rhs_u8  = vreinterpret_u8_u32( rhs_vec );
+
+    uint16x4_t this_u16 = vget_low_u16( vmovl_u8( this_u8 ) );
+    uint16x4_t rhs_u16  = vget_low_u16( vmovl_u8( rhs_u8 ) );
+
+    uint16x4_t result = vmul_u16( this_u16, rhs_u16 );
+    result            = vshr_n_u16( vadd_u16( result, vshr_n_u16( result, 8 ) ), 8 );
+
+    uint8x8_t result_u8 = vmovn_u16( vcombine_u16( result, result ) );
+
+    return Color( vget_lane_u32( vreinterpret_u32_u8( result_u8 ), 0 ) );
+#else
+    // Fallback scalar implementation
     const auto red   = static_cast<uint8_t>( r * rhs.r / 255 );
     const auto green = static_cast<uint8_t>( g * rhs.g / 255 );
     const auto blue  = static_cast<uint8_t>( b * rhs.b / 255 );
     const auto alpha = static_cast<uint8_t>( a * rhs.a / 255 );
 
     return { red, green, blue, alpha };
+#endif
 }
 
-constexpr Color& Color::operator*=( const Color& rhs ) noexcept
+inline Color& Color::operator*=( const Color& rhs ) noexcept
 {
-    r = static_cast<uint8_t>( r * rhs.r / 255 );
-    g = static_cast<uint8_t>( g * rhs.g / 255 );
-    b = static_cast<uint8_t>( b * rhs.b / 255 );
-    a = static_cast<uint8_t>( a * rhs.a / 255 );
-
+    *this = *this * rhs;
     return *this;
 }
 
-constexpr Color Color::operator*( float rhs ) const noexcept
+inline Color Color::operator*( float rhs ) const noexcept
 {
+#if defined( SR_SIMD_SSE2 )
+    // Load the 4 uint8_t components into a 128-bit register
+    __m128i rgba_i = _mm_cvtsi32_si128( static_cast<int>( rgba ) );
+
+    // Convert to 32-bit floats
+    __m128i rgba_i32 = _mm_unpacklo_epi8( rgba_i, _mm_setzero_si128() );
+    rgba_i32         = _mm_unpacklo_epi16( rgba_i32, _mm_setzero_si128() );
+    __m128 rgba_f    = _mm_cvtepi32_ps( rgba_i32 );
+
+    // Multiply by scalar
+    __m128 rhs_vec  = _mm_set1_ps( rhs );
+    __m128 result_f = _mm_mul_ps( rgba_f, rhs_vec );
+
+    // Clamp to [0, 255]
+    result_f = _mm_max_ps( result_f, _mm_setzero_ps() );
+    result_f = _mm_min_ps( result_f, _mm_set1_ps( 255.0f ) );
+
+    // Convert back to integers
+    __m128i result_i32 = _mm_cvtps_epi32( result_f );
+    __m128i result_i16 = _mm_packs_epi32( result_i32, result_i32 );
+    __m128i result_i8  = _mm_packus_epi16( result_i16, result_i16 );
+
+    return Color( static_cast<uint32_t>( _mm_cvtsi128_si32( result_i8 ) ) );
+
+#elif defined( SR_SIMD_NEON )
+    // Load into NEON registers
+    uint32x2_t rgba_u32 = vdup_n_u32( rgba );
+    uint8x8_t  rgba_u8  = vreinterpret_u8_u32( rgba_u32 );
+
+    // Convert first 4 bytes to 32-bit integers, then to floats
+    uint16x4_t  rgba_u16      = vget_low_u16( vmovl_u8( rgba_u8 ) );
+    uint32x4_t  rgba_u32_wide = vmovl_u16( rgba_u16 );
+    float32x4_t rgba_f        = vcvtq_f32_u32( rgba_u32_wide );
+
+    // Multiply by scalar
+    float32x4_t rhs_vec  = vdupq_n_f32( rhs );
+    float32x4_t result_f = vmulq_f32( rgba_f, rhs_vec );
+
+    // Clamp to [0, 255]
+    result_f = vmaxq_f32( result_f, vdupq_n_f32( 0.0f ) );
+    result_f = vminq_f32( result_f, vdupq_n_f32( 255.0f ) );
+
+    // Convert back to uint8
+    uint32x4_t result_u32 = vcvtq_u32_f32( result_f );
+    uint16x4_t result_u16 = vqmovn_u32( result_u32 );
+    uint8x8_t  result_u8  = vqmovn_u16( vcombine_u16( result_u16, result_u16 ) );
+
+    return Color( vget_lane_u32( vreinterpret_u32_u8( result_u8 ), 0 ) );
+
+#else
+    // Fallback scalar implementation
     const auto red   = static_cast<uint8_t>( math::clamp( static_cast<float>( r ) * rhs, 0.0f, 255.0f ) );
     const auto green = static_cast<uint8_t>( math::clamp( static_cast<float>( g ) * rhs, 0.0f, 255.0f ) );
     const auto blue  = static_cast<uint8_t>( math::clamp( static_cast<float>( b ) * rhs, 0.0f, 255.0f ) );
     const auto alpha = static_cast<uint8_t>( math::clamp( static_cast<float>( a ) * rhs, 0.0f, 255.0f ) );
 
     return { red, green, blue, alpha };
+#endif
 }
 
-constexpr Color& Color::operator*=( float rhs ) noexcept
+inline Color& Color::operator*=( float rhs ) noexcept
 {
-    r = static_cast<uint8_t>( math::clamp( static_cast<float>( r ) * rhs, 0.0f, 255.0f ) );
-    g = static_cast<uint8_t>( math::clamp( static_cast<float>( g ) * rhs, 0.0f, 255.0f ) );
-    b = static_cast<uint8_t>( math::clamp( static_cast<float>( b ) * rhs, 0.0f, 255.0f ) );
-    a = static_cast<uint8_t>( math::clamp( static_cast<float>( a ) * rhs, 0.0f, 255.0f ) );
-
+    *this = *this * rhs;
     return *this;
 }
 
-constexpr Color Color::operator/( float rhs ) const noexcept
+inline Color Color::operator/( float rhs ) const noexcept
 {
     assert( rhs != 0.0f );
 
@@ -334,7 +436,7 @@ constexpr Color Color::operator/( float rhs ) const noexcept
     return operator*( rhs );
 }
 
-constexpr Color& Color::operator/=( float rhs ) noexcept
+inline Color& Color::operator/=( float rhs ) noexcept
 {
     assert( rhs != 0.0f );
 
@@ -436,7 +538,7 @@ Color Color::fromHSV( float H, float S, float V ) noexcept
     return fromFloats( r, g, b );
 }
 
-constexpr Color operator*( float lhs, const Color& rhs )
+inline Color operator*( float lhs, const Color& rhs )
 {
     return rhs * lhs;
 }
@@ -447,14 +549,34 @@ constexpr Color operator*( float lhs, const Color& rhs )
 /// <param name="c1">The first color.</param>
 /// <param name="c2">The second color.</param>
 /// <returns>The component-wise minimum of the two colors.</returns>
-constexpr Color min( const Color& c1, const Color& c2 )
+inline Color min( const Color& c1, const Color& c2 )
 {
+#if defined( SR_SIMD_SSE2 )
+    __m128i c1_vec = _mm_cvtsi32_si128( static_cast<int>( c1.rgba ) );
+    __m128i c2_vec = _mm_cvtsi32_si128( static_cast<int>( c2.rgba ) );
+
+    __m128i result = simd_min_u8( c1_vec, c2_vec );
+
+    return Color( static_cast<uint32_t>( _mm_cvtsi128_si32( result ) ) );
+#elif defined( SR_SIMD_NEON )
+    uint32x2_t c1_vec = vdup_n_u32( c1.rgba );
+    uint32x2_t c2_vec = vdup_n_u32( c2.rgba );
+
+    uint8x8_t c1_u8 = vreinterpret_u8_u32( c1_vec );
+    uint8x8_t c2_u8 = vreinterpret_u8_u32( c2_vec );
+
+    uint8x8_t result = vmin_u8( c1_u8, c2_u8 );
+
+    return Color( vget_lane_u32( vreinterpret_u32_u8( result ), 0 ) );
+#else
+    // Fallback scalar implementation
     const auto r = math::min( c1.r, c2.r );
     const auto g = math::min( c1.g, c2.g );
     const auto b = math::min( c1.b, c2.b );
     const auto a = math::min( c1.a, c2.a );
 
     return { r, g, b, a };
+#endif
 }
 
 /// <summary>
@@ -463,14 +585,34 @@ constexpr Color min( const Color& c1, const Color& c2 )
 /// <param name="c1">The first color.</param>
 /// <param name="c2">The second color.</param>
 /// <returns>The component-wise maximum of the two colors.</returns>
-constexpr Color max( const Color& c1, const Color& c2 )
+inline Color max( const Color& c1, const Color& c2 )
 {
+#if defined( SR_SIMD_SSE2 )
+    __m128i c1_vec = _mm_cvtsi32_si128( static_cast<int>( c1.rgba ) );
+    __m128i c2_vec = _mm_cvtsi32_si128( static_cast<int>( c2.rgba ) );
+
+    __m128i result = simd_max_u8( c1_vec, c2_vec );
+
+    return Color( static_cast<uint32_t>( _mm_cvtsi128_si32( result ) ) );
+#elif defined( SR_SIMD_NEON )
+    uint32x2_t c1_vec = vdup_n_u32( c1.rgba );
+    uint32x2_t c2_vec = vdup_n_u32( c2.rgba );
+
+    uint8x8_t c1_u8 = vreinterpret_u8_u32( c1_vec );
+    uint8x8_t c2_u8 = vreinterpret_u8_u32( c2_vec );
+
+    uint8x8_t result = vmax_u8( c1_u8, c2_u8 );
+
+    return Color( vget_lane_u32( vreinterpret_u32_u8( result ), 0 ) );
+#else
+    // Fallback scalar implementation
     const auto r = math::max( c1.r, c2.r );
     const auto g = math::max( c1.g, c2.g );
     const auto b = math::max( c1.b, c2.b );
     const auto a = math::max( c1.a, c2.a );
 
     return { r, g, b, a };
+#endif
 }
 
 }  // namespace graphics

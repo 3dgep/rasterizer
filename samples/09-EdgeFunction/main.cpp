@@ -135,12 +135,13 @@ void drawQuad( Rasterizer& rasterizer, const glm::ivec2& v0, const glm::ivec2& v
         for ( int x = 0; x < image->getWidth(); ++x )
         {
             glm::ivec2 p { x, y };
-            int        o01 = orient2D( v0, v1, p );
-            int        o12 = orient2D( v1, v2, p );
-            int        o20 = orient2D( v2, v0, p );
-            int        o23 = orient2D( v2, v3, p );
-            int        o30 = orient2D( v3, v0, p );
-            int        o02 = orient2D( v0, v2, p );
+
+            int o01 = orient2D( v0, v1, p );
+            int o12 = orient2D( v1, v2, p );
+            int o20 = orient2D( v2, v0, p );
+            int o23 = orient2D( v2, v3, p );
+            int o30 = orient2D( v3, v0, p );
+            int o02 = orient2D( v0, v2, p );
 
             if ( o01 > 0 )
             {
@@ -208,7 +209,7 @@ int main()
 
     // Set if the mouse is clicked over one of the vertices.
     glm::vec2* selectedVert = nullptr;
-    glm::vec2 mousePos { 0 };
+    glm::vec2  mousePos { 0 };
 
     // Setup the rasterizer's render target state.
     rasterizer.state.colorTarget = &image;

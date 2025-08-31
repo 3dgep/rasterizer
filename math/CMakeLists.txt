@@ -6,6 +6,7 @@ set( INC_FILES
     inc/math/Camera2D.hpp
     inc/math/Camera3D.hpp
     inc/math/Circle.hpp
+    inc/math/Intrinsics.hpp
     inc/math/Line.hpp
     inc/math/Math.hpp
     inc/math/OutCodes.hpp

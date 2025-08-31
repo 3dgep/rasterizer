@@ -51,6 +51,42 @@ constexpr T clamp( T v, T minVal, T maxVal ) noexcept
     return min( max( v, minVal ), maxVal );
 }
 
+// Fast modulo for positive numbers - much faster than division-based approach
+constexpr int fast_positive_mod( int x, int divisor ) noexcept
+{
+    // For power-of-2 divisors, use bitwise AND (extremely fast)
+    if ( ( divisor & ( divisor - 1 ) ) == 0 )
+    {
+        return x & ( divisor - 1 );
+    }
+
+    // For non-power-of-2, use optimized modulo
+    // This avoids the expensive division in the original fast_mod
+    return x >= 0 ? x % divisor : ( divisor + ( x % divisor ) ) % divisor;
+}
+
+// Optimized floor that works well for typical coordinate ranges
+constexpr int fast_floor_int( float x ) noexcept
+{
+    const int i = static_cast<int>( x );
+    return i - ( x < i );  // Branchless: subtract 1 if x was negative and truncated up
+}
+
+// Fast modulo that handles negative numbers correctly
+constexpr int fast_mod_signed( int x, int divisor ) noexcept
+{
+    if ( x >= 0 )
+    {
+        return fast_positive_mod( x, divisor );
+    }
+    else
+    {
+        // Handle negative case: make it positive, then mod
+        const int pos_mod = fast_positive_mod( -x, divisor );
+        return pos_mod == 0 ? 0 : divisor - pos_mod;
+    }
+}
+
 /// <summary>
 /// Compute the area of a triangle in 2D.
 /// Source: "Real-Time Collision Detection" (Chapter 3.4), Christer Ericson, 2005, Elsevier Inc.
@@ -253,5 +289,6 @@ inline bool pointInsideTriangle( const glm::vec2& p, const glm::vec2& a, const g
     const glm::vec3 bc = barycentric( a, b, c, p );
     return barycentricInside( bc );
 }
+
 }  // namespace math
 }  // namespace sr

@@ -49,7 +49,7 @@ Image::Image( const std::filesystem::path& fileName )
 Image::Image( uint32_t width, uint32_t height, std::optional<Color> color )
 {
     resize( width, height );
-    if (color)
+    if ( color )
     {
         clear( *color );
     }
@@ -85,15 +85,19 @@ Image& Image::operator=( Image&& other ) noexcept
 
 namespace
 {
-constexpr int fast_floor( float x ) noexcept
+// Precompute power-of-2 check results to avoid repeated computation
+struct AddressingInfo
 {
-    return static_cast<int>( static_cast<double>( x ) + 1073741823.0 ) - 1073741823;
-}
+    int  size;
+    int  mask;  // size - 1 if power of 2, otherwise -1
+    bool isPowerOf2;
 
-constexpr int fast_mod( int x, int y ) noexcept
-{
-    return x - y * fast_floor( static_cast<float>( x ) / static_cast<float>( y ) );
-}
+    constexpr AddressingInfo( int s ) noexcept
+    : size( s )
+    , mask( ( s & ( s - 1 ) ) == 0 ? s - 1 : -1 )
+    , isPowerOf2( ( s & ( s - 1 ) ) == 0 )
+    {}
+};
 }  // namespace
 
 const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexcept
@@ -103,19 +107,75 @@ const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexce
     const int w = m_Surface->w;
     const int h = m_Surface->h;
 
+    // Precompute addressing info to optimize repeated operations
+    static thread_local int            cached_w = -1, cached_h = -1;
+    static thread_local AddressingInfo w_info { 1 }, h_info { 1 };
+
+    if ( cached_w != w )
+    {
+        cached_w = w;
+        w_info   = AddressingInfo { w };
+    }
+    if ( cached_h != h )
+    {
+        cached_h = h;
+        h_info   = AddressingInfo { h };
+    }
+
     switch ( addressMode )
     {
     case AddressMode::Wrap:
-        u = fast_mod( u, w );
-        v = fast_mod( v, h );
+        // Optimized wrap using bitwise operations for power-of-2, fast mod otherwise
+        if ( w_info.isPowerOf2 )
+            u = u & w_info.mask;  // Extremely fast for power-of-2
+        else
+            u = fast_mod_signed( u, w );
+
+        if ( h_info.isPowerOf2 )
+            v = v & h_info.mask;
+        else
+            v = fast_mod_signed( v, h );
         break;
     case AddressMode::Mirror:
-        u = u / w % 2 == 0 ? fast_mod( u, w ) : ( w - 1 ) - fast_mod( u, w );
-        v = v / h % 2 == 0 ? fast_mod( v, h ) : ( h - 1 ) - fast_mod( v, h );
-        break;
+    {
+        // Optimize mirror mode by reducing redundant calculations
+        int u_mod, v_mod;
+        int u_div, v_div;
+
+        if ( w_info.isPowerOf2 )
+        {
+            u_mod = u & w_info.mask;
+            u_div = u >> ( count_trailing_zeros( w ) );  // Fast division by power-of-2
+        }
+        else
+        {
+            u_div = u / w;
+            u_mod = fast_mod_signed( u, w );
+        }
+
+        if ( h_info.isPowerOf2 )
+        {
+            v_mod = v & h_info.mask;
+            v_div = v >> ( count_trailing_zeros( h ) );
+        }
+        else
+        {
+            v_div = v / h;
+            v_mod = fast_mod_signed( v, h );
+        }
+
+        // Apply mirroring using branchless selection
+        const bool u_flip = ( u_div & 1 ) != 0;
+        const bool v_flip = ( v_div & 1 ) != 0;
+
+        u = u_flip ? ( w - 1 ) - u_mod : u_mod;
+        v = v_flip ? ( h - 1 ) - v_mod : v_mod;
+    }
+    break;
     case AddressMode::Clamp:
-        u = math::clamp( u, 0, w - 1 );
-        v = math::clamp( v, 0, h - 1 );
+        // Branchless clamping - often faster than std::clamp due to avoided branches
+        u = u < 0 ? 0 : ( u >= w ? w - 1 : u );
+        v = v < 0 ? 0 : ( v >= h ? h - 1 : v );
         break;
     }
 

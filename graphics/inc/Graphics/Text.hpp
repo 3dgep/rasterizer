@@ -23,7 +23,7 @@ public:
     };
 
     Text()              = default;
-    explicit Text( const Font& font, std::string_view text = {} );
+    explicit Text( Font font, std::string_view text = {} );
     Text( const Text& ) = delete;
     Text( Text&& ) noexcept;
     ~Text();
@@ -89,7 +89,7 @@ public:
     /// Get the font used by the text object.
     /// </summary>
     /// <returns>The font used by the text object.</returns>
-    Font getFont() const;
+    const Font& getFont() const;
 
     /// <summary>
     /// Sets the font used by the text object.
@@ -140,7 +140,7 @@ public:
     static TTF_TextEngine* TextEngine();
 
 private:
-    TTF_Font* m_Font = nullptr;
+    Font      m_Font;
     TTF_Text* m_Text = nullptr;
 };
 }  // namespace graphics

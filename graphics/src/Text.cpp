@@ -75,10 +75,10 @@ TTF_TextEngine* Text::TextEngine() {
     return context.textEngine;
 }
 
-Text::Text( const Font& font, std::string_view text )
+Text::Text( Font font, std::string_view text )
+: m_Font { std::move( font ) }
 {
-    m_Font = TTF_CopyFont( font.getTTF_Font() );
-    m_Text = TTF_CreateText( TextEngine(), m_Font, text.data(), text.length() );
+    m_Text = TTF_CreateText( TextEngine(), m_Font.getTTF_Font(), text.data(), text.length() );
 
     if (!m_Text)
     {
@@ -89,14 +89,13 @@ Text::Text( const Font& font, std::string_view text )
 
 Text::Text( Text&& other ) noexcept
 {
-    m_Font = std::exchange( other.m_Font, nullptr );
+    m_Font = std::move( other.m_Font );
     m_Text = std::exchange( other.m_Text, nullptr );
 }
 
 Text::~Text()
 {
     TTF_DestroyText( m_Text );
-    TTF_CloseFont( m_Font );
 }
 
 Text& Text::operator=( Text&& other ) noexcept
@@ -104,7 +103,7 @@ Text& Text::operator=( Text&& other ) noexcept
     if ( &other == this )
         return *this;
 
-    m_Font = std::exchange( other.m_Font, nullptr );
+    m_Font = std::move( other.m_Font );
     m_Text = std::exchange( other.m_Text, nullptr );
 
     return *this;
@@ -178,12 +177,9 @@ Text::Direction Text::getDirection() const
 
 Text& Text::setFont( const Font& font )
 {
-    if ( m_Font )
-        TTF_CloseFont( m_Font );
+    m_Font = font;
 
-    m_Font = TTF_CopyFont( font.getTTF_Font() );
-
-    if ( !TTF_SetTextFont( m_Text, m_Font ) )
+    if ( !TTF_SetTextFont( m_Text, m_Font.getTTF_Font() ) )
     {
         std::cerr << "Failed to set text font: " << SDL_GetError() << std::endl;
     }
@@ -191,9 +187,9 @@ Text& Text::setFont( const Font& font )
     return *this;
 }
 
-Font Text::getFont() const
+const Font& Text::getFont() const
 {
-    return { m_Font };
+    return m_Font;
 }
 
 Text& Text::setPosition( const glm::ivec2& pos )

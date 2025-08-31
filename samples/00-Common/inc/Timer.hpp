@@ -18,6 +18,10 @@ public:
     double totalMilliseconds() const noexcept;
     double totalMicroseconds() const noexcept;
 
+    /// <summary>
+    /// Get the Frames Per Second (FPS) since the timer was last reset.
+    /// </summary>
+    /// <returns></returns>
     double FPS() const noexcept;
 
     void limitFPS( int fps ) const noexcept;

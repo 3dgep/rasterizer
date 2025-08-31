@@ -68,22 +68,9 @@ struct Edge2D
     }
 };
 
-void Rasterizer::drawText( const Font& font, std::string_view _text, int x, int y )
+void Rasterizer::drawText( const Font& font, std::string_view text, int x, int y )
 {
-    Image* image = state.colorTarget;
-
-    if ( !image )
-        return;
-
-    if ( TTF_Text* text = TTF_CreateText( Text::TextEngine(), font.getTTF_Font(), _text.data(), _text.length() ) )
-    {
-        if ( !TTF_DrawSurfaceText( text, x, y, image->getSDL_Surface() ) )
-        {
-            std::cerr << "Failed to draw text to surface: " << SDL_GetError() << std::endl;
-        }
-
-        TTF_DestroyText( text );
-    }
+    drawText( Text { font, text }, x, y );
 }
 
 void Rasterizer::drawText( const Text& text, int x, int y )
