@@ -365,10 +365,9 @@ void Rasterizer::drawTriangle( const Vertex2Di& v0, const Vertex2Di& v1, const V
             if ( e.inside() )
             {
                 const glm::vec3  bc       = e.barycentric();
-                const glm::ivec2 texCoord = glm::round( v0.texCoord * bc.x + v1.texCoord * bc.y + v2.texCoord * bc.y );
-                const Color      color    = v0.color * bc.x + v1.color * bc.y + v1.color * bc.z;
+                const glm::ivec2 texCoord = glm::round( math::interpolate( v0.texCoord, v1.texCoord, v2.texCoord, bc ) );
+                const Color      color    = interpolate( v0.color, v1.color, v2.color, bc );
                 const Color      srcColor = image->sample( texCoord.x, texCoord.y, addressMode ) * color;
-
                 image->plot<false>( p.x, p.y, srcColor, blendMode );
             }
 
@@ -385,9 +384,9 @@ void Rasterizer::drawTriangle( const Vertex2D& _v0, const Vertex2D& _v1, const V
     float w = static_cast<float>( texture.getWidth() - 1 );
     float h = static_cast<float>( texture.getHeight() - 1 );
 
-    const Vertex2Di v0 { _v0.position, { _v0.texCoord.x * w, _v0.texCoord.y * h}, _v0.color };
-    const Vertex2Di v1 { _v1.position, { _v1.texCoord.x * w, _v1.texCoord.y * h}, _v1.color };
-    const Vertex2Di v2 { _v2.position, { _v2.texCoord.x * w, _v2.texCoord.y * h}, _v2.color };
+    const Vertex2Di v0 { _v0.position, { _v0.texCoord.x * w, _v0.texCoord.y * h }, _v0.color };
+    const Vertex2Di v1 { _v1.position, { _v1.texCoord.x * w, _v1.texCoord.y * h }, _v1.color };
+    const Vertex2Di v2 { _v2.position, { _v2.texCoord.x * w, _v2.texCoord.y * h }, _v2.color };
 
     drawTriangle( v0, v1, v2, texture, addressMode, blendMode );
 }
@@ -503,18 +502,24 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
         {
             for ( uint32_t i = 0; i < 2; ++i )
             {
-                if ( e[i].inside() )
+                const Edge2D& edge = e[i];
+                if ( edge.inside() )
                 {
                     const uint32_t i0 = indices[i * 3 + 0];
                     const uint32_t i1 = indices[i * 3 + 1];
                     const uint32_t i2 = indices[i * 3 + 2];
 
-                    const glm::vec3  bc       = e[i].barycentric();
-                    const glm::ivec2 texCoord = glm::round( verts[i0].texCoord * bc.x + verts[i1].texCoord * bc.y + verts[i2].texCoord * bc.z );
-                    const Color      color    = verts[i0].color * bc.x + verts[i1].color * bc.y + verts[i2].color * bc.z;
+                    const Vertex2Di& a = verts[i0];
+                    const Vertex2Di& b = verts[i1];
+                    const Vertex2Di& c = verts[i2];
 
-                    const Color srcColor = srcImage.sample( texCoord.x, texCoord.y, addressMode ) * color;
-                    dstImage->plot<false>( p.x, p.y, srcColor, blendMode );
+                    const glm::vec3  bc         = edge.barycentric();
+                    const glm::ivec2 texCoord   = glm::round( sr::math::interpolate( a.texCoord, b.texCoord, c.texCoord, bc ) );
+                    const Color      color      = interpolate( a.color, b.color, c.color, bc );
+                    const Color      srcColor   = srcImage.sample( texCoord.x, texCoord.y, addressMode );
+                    const Color      finalColor = srcColor * color;
+
+                    dstImage->plot<false>( p.x, p.y, finalColor, blendMode );
                 }
             }
 

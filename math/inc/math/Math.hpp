@@ -3,6 +3,7 @@
 #include <glm/geometric.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 namespace sr
 {
@@ -169,7 +170,7 @@ constexpr int orient2D( const glm::ivec2& a, const glm::ivec2& b, const glm::ive
 /// <summary>
 /// Check to see if a line (in screen space) from <code>(ax, ay)</code> to <code>(bx, by)</code> is a top-left edge.
 /// A line is a top-left edge if the first point is above and to the left of the second point.
-/// Note: In screen-space, <code>a</code> is above <code>b</code> if <code>ay < by</code>. And <code>a</code> is to the left of <code>b</code> if <code>ax < bx</code>.
+/// Note: In screen-space, <code>a</code> is above <code>b</code> if <code>ay > by</code>. And <code>a</code> is to the left of <code>b</code> if <code>ax < bx</code>.
 /// </summary>
 /// <param name="ax">The x-coordinate of the start of the line.</param>
 /// <param name="ay">The y-coordinate of the start of the line.</param>
@@ -312,6 +313,88 @@ inline bool pointInsideTriangle( const glm::vec2& p, const glm::vec2& a, const g
 {
     const glm::vec3 bc = barycentric( a, b, c, p );
     return barycentricInside( bc );
+}
+
+/// <summary>
+/// Interpolates between three 2D vectors using barycentric coordinates.
+/// </summary>
+/// <param name="v0">The first 2D vector to interpolate.</param>
+/// <param name="v1">The second 2D vector to interpolate.</param>
+/// <param name="v2">The third 2D vector to interpolate.</param>
+/// <param name="bc">The barycentric coordinates (as a 3D vector) used for interpolation.</param>
+/// <returns>The interpolated 2D vector computed as v0 * bc.x + v1 * bc.y + v2 * bc.z.</returns>
+inline glm::vec2 interpolate( const glm::vec2& v0, const glm::vec2& v1, const glm::vec2& v2, const glm::vec3& bc )
+{
+    glm::vec2 i;
+
+    // i = v0 * bc.x;
+    i.x = v0.x * bc.x;
+    i.y = v0.y * bc.x;
+
+    // i += v1 * bc.y;
+    i.x = std::fma( v1.x, bc.y, i.x );
+    i.y = std::fma( v1.y, bc.y, i.y );
+
+    // i += v2 * bc.z;
+    i.x = std::fma( v2.x, bc.z, i.x );
+    i.y = std::fma( v2.y, bc.z, i.y );
+
+    return i;
+}
+
+/// <summary>
+/// Interpolates between three 3D vectors using barycentric coordinates.
+/// </summary>
+/// <param name="v0">The first 3D vector (corresponding to the first vertex of the triangle).</param>
+/// <param name="v1">The second 3D vector (corresponding to the second vertex of the triangle).</param>
+/// <param name="v2">The third 3D vector (corresponding to the third vertex of the triangle).</param>
+/// <param name="bc">The barycentric coordinates used for interpolation.</param>
+/// <returns>A 3D vector representing the interpolated value based on the input vectors and barycentric coordinates.</returns>
+inline glm::vec3 interpolate( const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& bc )
+{
+    glm::vec3 i;
+
+    // i = v0 * bc.x;
+    i.x = v0.x * bc.x;
+    i.y = v0.y * bc.x;
+    i.z = v0.z * bc.x;
+
+    // i += v1 * bc.y;
+    i.x = std::fma( v1.x, bc.y, i.x );
+    i.y = std::fma( v1.y, bc.y, i.y );
+    i.z = std::fma( v1.z, bc.y, i.z );
+
+    // i += v2 * bc.z;
+    i.x = std::fma( v2.x, bc.z, i.x );
+    i.y = std::fma( v2.y, bc.z, i.y );
+    i.z = std::fma( v2.z, bc.z, i.z );
+
+    return i;
+}
+
+inline glm::vec4 interpolate( const glm::vec4& v0, const glm::vec4& v1, const glm::vec4& v2, const glm::vec3& bc )
+{
+    glm::vec4 i;
+
+    // i = v0 * bc.x;
+    i.x = v0.x * bc.x;
+    i.y = v0.y * bc.x;
+    i.z = v0.z * bc.x;
+    i.w = v0.w * bc.x;
+
+    // i += v1 * bc.y;
+    i.x = std::fma( v1.x, bc.y, i.x );
+    i.y = std::fma( v1.y, bc.y, i.y );
+    i.z = std::fma( v1.z, bc.y, i.z );
+    i.w = std::fma( v1.w, bc.y, i.w );
+
+    // i += v2 * bc.z;
+    i.x = std::fma( v2.x, bc.z, i.x );
+    i.y = std::fma( v2.y, bc.z, i.y );
+    i.z = std::fma( v2.z, bc.z, i.z );
+    i.w = std::fma( v2.w, bc.z, i.w );
+
+    return i;
 }
 
 }  // namespace math

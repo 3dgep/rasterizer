@@ -83,23 +83,6 @@ Image& Image::operator=( Image&& other ) noexcept
     return *this;
 }
 
-namespace
-{
-// Precompute power-of-2 check results to avoid repeated computation
-struct AddressingInfo
-{
-    int  size;
-    int  mask;  // size - 1 if power of 2, otherwise -1
-    bool isPowerOf2;
-
-    constexpr AddressingInfo( int s ) noexcept
-    : size( s )
-    , mask( ( s & ( s - 1 ) ) == 0 ? s - 1 : -1 )
-    , isPowerOf2( ( s & ( s - 1 ) ) == 0 )
-    {}
-};
-}  // namespace
-
 const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexcept
 {
     assert( m_Surface != nullptr );
@@ -107,32 +90,17 @@ const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexce
     const int w = m_Surface->w;
     const int h = m_Surface->h;
 
-    // Precompute addressing info to optimize repeated operations
-    static thread_local int            cached_w = -1, cached_h = -1;
-    static thread_local AddressingInfo w_info { 1 }, h_info { 1 };
-
-    if ( cached_w != w )
-    {
-        cached_w = w;
-        w_info   = AddressingInfo { w };
-    }
-    if ( cached_h != h )
-    {
-        cached_h = h;
-        h_info   = AddressingInfo { h };
-    }
-
     switch ( addressMode )
     {
     case AddressMode::Wrap:
         // Optimized wrap using bitwise operations for power-of-2, fast mod otherwise
-        if ( w_info.isPowerOf2 )
-            u = u & w_info.mask;  // Extremely fast for power-of-2
+        if ( widthInfo.isPowerOf2 )
+            u = u & widthInfo.mask;  // Extremely fast for power-of-2
         else
             u = fast_mod_signed( u, w );
 
-        if ( h_info.isPowerOf2 )
-            v = v & h_info.mask;
+        if ( heightInfo.isPowerOf2 )
+            v = v & heightInfo.mask;
         else
             v = fast_mod_signed( v, h );
         break;
@@ -200,6 +168,15 @@ void Image::resize( uint32_t width, uint32_t height )
         SDL_DestroySurface( m_Surface );
 
     m_Surface = SDL_CreateSurface( width, height, SDL_PIXELFORMAT_RGBA32 );
+
+    if ( !m_Surface )
+    {
+        std::cerr << "Failed to create surface: " << SDL_GetError() << std::endl;
+        return;
+    }
+
+    widthInfo = AddressingInfo { m_Surface->w };
+    heightInfo = AddressingInfo { m_Surface->h };
 
     m_AABB = {
         { 0, 0, 0 },

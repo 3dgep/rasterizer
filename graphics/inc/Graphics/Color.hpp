@@ -615,5 +615,33 @@ inline Color max( const Color& c1, const Color& c2 )
 #endif
 }
 
+inline Color interpolate( const Color& c0, const Color& c1, const Color& c2, const glm::vec3& bc )
+{
+    // c = c0 * bc.x
+    float r = static_cast<float>( c0.r ) * bc.x;
+    float g = static_cast<float>( c0.g ) * bc.x;
+    float b = static_cast<float>( c0.b ) * bc.x;
+    float a = static_cast<float>( c0.a ) * bc.x;
+
+    // c += c1 * bc.y
+    r = std::fma<float>( c1.r, bc.y, r );
+    g = std::fma<float>( c1.g, bc.y, g );
+    b = std::fma<float>( c1.b, bc.y, b );
+    a = std::fma<float>( c1.a, bc.y, a );
+
+    // c += c2 * bc.z
+    r = std::fma<float>( c2.r, bc.z, r );
+    g = std::fma<float>( c2.g, bc.z, g );
+    b = std::fma<float>( c2.b, bc.z, b );
+    a = std::fma<float>( c2.a, bc.z, a );
+
+    return {
+        static_cast<uint8_t>(r),
+        static_cast<uint8_t>(g),
+        static_cast<uint8_t>(b),
+        static_cast<uint8_t>(a)
+    };
+}
+
 }  // namespace graphics
 }  // namespace sr

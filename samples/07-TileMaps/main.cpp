@@ -43,6 +43,7 @@ int main()
     Image      image { 800, 512 };
     Rasterizer rasterizer;
     Timer      timer;
+    Text       fpsText( Font::DefaultFont, "FPS: 0" );
 
     // Setup the rasterizer's render target state.
     rasterizer.state.colorTarget = &image;
@@ -141,6 +142,15 @@ int main()
         }
 
         rasterizer.drawTileMap( tileMap, transform );
+
+                if ( timer.totalSeconds() > 1.0 )
+        {
+            fpsText = std::format( "FPS: {:.0f}", timer.FPS() );
+            timer.reset();
+        }
+
+        rasterizer.drawText( fpsText, 10, 10 );
+
 
         window.clear( Color::Black );
         window.present( image );

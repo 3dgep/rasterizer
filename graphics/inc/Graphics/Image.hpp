@@ -314,6 +314,23 @@ struct Image final
     }
 
 private:
+    // Precompute power-of-2 check results to avoid repeated computation
+    struct AddressingInfo
+    {
+        int  size;
+        int  mask;  // size - 1 if power of 2, otherwise -1
+        bool isPowerOf2;
+
+        constexpr AddressingInfo( int s ) noexcept
+        : size( s )
+        , mask( ( s & ( s - 1 ) ) == 0 ? s - 1 : -1 )
+        , isPowerOf2( ( s & ( s - 1 ) ) == 0 )
+        {}
+    };
+
+    AddressingInfo widthInfo { 0 };
+    AddressingInfo heightInfo { 0 };
+
     /// <summary>
     /// Axis-aligned bounding box (used for clipping).
     /// </summary>

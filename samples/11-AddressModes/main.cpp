@@ -18,6 +18,8 @@ int main()
     AddressMode addressMode = AddressMode::Clamp;
     Text        fpsText { Font::DefaultFont, "FPS: 0" };
 
+    window.setVSync( false );
+
     int w = image.getWidth();
     int h = image.getHeight();
 
