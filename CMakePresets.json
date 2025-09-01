@@ -12,6 +12,17 @@
             "description": "Visual Studio 2022 Generator.",
             "generator": "Visual Studio 17 2022",
             "binaryDir": "${sourceDir}/out/build/${presetName}"
+        },
+        {
+            "name": "gcc",
+            "displayName": "GCC 11.4.0 x86_64-linux-gnu",
+            "description": "GCC Generator.",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "/usr/bin/gcc",
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++"
+            }
         }
     ],
     "buildPresets": [
@@ -25,6 +36,18 @@
             "name": "x64-release",
             "displayName": "Windows (Release)",
             "configurePreset": "vs17",
+            "configuration": "Release"
+        },
+        {
+            "name": "gcc-debug",
+            "displayName": "Linux (Debug)",
+            "configurePreset": "gcc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "gcc-release",
+            "displayName": "Linux (Release)",
+            "configurePreset": "gcc",
             "configuration": "Release"
         }
     ]

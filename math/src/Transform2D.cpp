@@ -1,4 +1,4 @@
-#include <Math/Transform2D.hpp>
+#include <math/Transform2D.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/trigonometric.hpp>

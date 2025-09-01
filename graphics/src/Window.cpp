@@ -122,7 +122,7 @@ void Window::create( std::string_view title, int width, int height, bool fullscr
     if ( !SDL_CreateWindowAndRenderer( title.data(), width, height, flags, &m_Window, &m_Renderer ) )
     {
         SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to create window and renderer: %s", SDL_GetError() );
-        throw std::exception( SDL_GetError() );
+        throw std::runtime_error( SDL_GetError() );
     }
 
     // Enable vsync.

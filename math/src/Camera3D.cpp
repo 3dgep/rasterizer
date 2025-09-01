@@ -1,4 +1,4 @@
-#include <Math/Camera3D.hpp>
+#include <math/Camera3D.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>

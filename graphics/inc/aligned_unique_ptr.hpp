@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <type_traits>
+#include <cstdlib>
 
 #if defined( _MSC_VER )
     #define aligned_malloc( size, alignment ) _aligned_malloc( ( size ), ( alignment ) )

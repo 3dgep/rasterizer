@@ -19,7 +19,7 @@ SpriteAnimation::SpriteAnimation( std::shared_ptr<SpriteSheet> spriteSheet, floa
     }
     else
     {
-        m_Frames = std::vector( std::from_range, frames );  // C++23 introduces the range constructor.
+        m_Frames = std::vector( frames.begin(), frames.end() );  // C++23 introduces the range constructor.
     }
 }
 

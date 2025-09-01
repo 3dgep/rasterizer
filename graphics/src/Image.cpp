@@ -4,6 +4,9 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
+#include <climits> // For INT_MAX
+#include <cstring> // For std::memcpy
+
 using namespace sr::graphics;
 
 Image::Image() = default;

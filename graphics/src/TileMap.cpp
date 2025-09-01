@@ -64,5 +64,5 @@ const Sprite& TileMap::getSprite( size_t x, size_t y ) const
 
 void TileMap::setSpriteGrid( std::span<const int> spriteGrid )
 {
-    m_SpriteGrid = std::vector( std::from_range, spriteGrid );
+    m_SpriteGrid = std::vector( spriteGrid.begin(), spriteGrid.end() );
 }

@@ -1,4 +1,4 @@
-#include <Graphics/BlendMode.hpp>
+#include <graphics/BlendMode.hpp>
 
 using namespace sr::graphics;
 

@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <utility>
+#include <optional>
 
 namespace sr
 {
