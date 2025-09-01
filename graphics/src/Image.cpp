@@ -137,40 +137,8 @@ const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexce
             v = fast_mod_signed( v, h );
         break;
     case AddressMode::Mirror:
-    {
-        // Optimize mirror mode by reducing redundant calculations
-        int u_mod, v_mod;
-        int u_div, v_div;
-
-        if ( w_info.isPowerOf2 )
-        {
-            u_mod = u & w_info.mask;
-            u_div = u >> ( count_trailing_zeros( w ) );  // Fast division by power-of-2
-        }
-        else
-        {
-            u_div = u / w;
-            u_mod = fast_mod_signed( u, w );
-        }
-
-        if ( h_info.isPowerOf2 )
-        {
-            v_mod = v & h_info.mask;
-            v_div = v >> ( count_trailing_zeros( h ) );
-        }
-        else
-        {
-            v_div = v / h;
-            v_mod = fast_mod_signed( v, h );
-        }
-
-        // Apply mirroring using branchless selection
-        const bool u_flip = ( u_div & 1 ) != 0;
-        const bool v_flip = ( v_div & 1 ) != 0;
-
-        u = u_flip ? ( w - 1 ) - u_mod : u_mod;
-        v = v_flip ? ( h - 1 ) - v_mod : v_mod;
-    }
+        u = mirror_coord( u, w );
+        v = mirror_coord( v, h );
     break;
     case AddressMode::Clamp:
         // Branchless clamping - often faster than std::clamp due to avoided branches

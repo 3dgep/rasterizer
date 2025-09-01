@@ -323,7 +323,7 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
     }
 }
 
-void Rasterizer::drawTexturedTriangle( const Vertex2D& v0, const Vertex2D& v1, const Vertex2D& v2, const Image& texture, std::optional<BlendMode> _blendMode )
+void Rasterizer::drawTriangle( const Vertex2Di& v0, const Vertex2Di& v1, const Vertex2Di& v2, const Image& texture, AddressMode addressMode, std::optional<BlendMode> _blendMode )
 {
     Image* image = state.colorTarget;
 
@@ -335,7 +335,7 @@ void Rasterizer::drawTexturedTriangle( const Vertex2D& v0, const Vertex2D& v1, c
     if ( area < 0 )
     {
         // Swap vertices if they are in clockwise order.
-        drawTexturedTriangle( v0, v2, v1, texture, _blendMode );
+        drawTriangle( v0, v2, v1, texture, addressMode, _blendMode );
         return;
     }
 
@@ -367,7 +367,7 @@ void Rasterizer::drawTexturedTriangle( const Vertex2D& v0, const Vertex2D& v1, c
                 const glm::vec3  bc       = e.barycentric();
                 const glm::ivec2 texCoord = glm::round( v0.texCoord * bc.x + v1.texCoord * bc.y + v2.texCoord * bc.y );
                 const Color      color    = v0.color * bc.x + v1.color * bc.y + v1.color * bc.z;
-                const Color      srcColor = image->sample( texCoord.x, texCoord.y, AddressMode::Clamp ) * color;
+                const Color      srcColor = image->sample( texCoord.x, texCoord.y, addressMode ) * color;
 
                 image->plot<false>( p.x, p.y, srcColor, blendMode );
             }
@@ -377,6 +377,19 @@ void Rasterizer::drawTexturedTriangle( const Vertex2D& v0, const Vertex2D& v1, c
 
         e.stepY();
     }
+}
+
+void Rasterizer::drawTriangle( const Vertex2D& _v0, const Vertex2D& _v1, const Vertex2D& _v2, const Image& texture, AddressMode addressMode, std::optional<BlendMode> blendMode )
+{
+    // Convert to integer texture coordinates.
+    float w = static_cast<float>( texture.getWidth() - 1 );
+    float h = static_cast<float>( texture.getHeight() - 1 );
+
+    const Vertex2Di v0 { _v0.position, { _v0.texCoord.x * w, _v0.texCoord.y * h}, _v0.color };
+    const Vertex2Di v1 { _v1.position, { _v1.texCoord.x * w, _v1.texCoord.y * h}, _v1.color };
+    const Vertex2Di v2 { _v2.position, { _v2.texCoord.x * w, _v2.texCoord.y * h}, _v2.color };
+
+    drawTriangle( v0, v1, v2, texture, addressMode, blendMode );
 }
 
 void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 )
@@ -440,7 +453,7 @@ void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ive
     }
 }
 
-void Rasterizer::drawTexturedQuad( const Vertex2D& v0, const Vertex2D& v1, const Vertex2D& v2, const Vertex2D& v3, const Image& srcImage, std::optional<BlendMode> _blendMode )
+void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Vertex2Di& v2, const Vertex2Di& v3, const Image& srcImage, AddressMode addressMode, std::optional<BlendMode> _blendMode )
 {
     Image* dstImage = state.colorTarget;
 
@@ -475,7 +488,7 @@ void Rasterizer::drawTexturedQuad( const Vertex2D& v0, const Vertex2D& v1, const
         { v2.position, v3.position, v0.position, p }
     };
 
-    const Vertex2D verts[] = {
+    const Vertex2Di verts[] = {
         v0, v1, v2, v3
     };
 
@@ -500,7 +513,7 @@ void Rasterizer::drawTexturedQuad( const Vertex2D& v0, const Vertex2D& v1, const
                     const glm::ivec2 texCoord = glm::round( verts[i0].texCoord * bc.x + verts[i1].texCoord * bc.y + verts[i2].texCoord * bc.z );
                     const Color      color    = verts[i0].color * bc.x + verts[i1].color * bc.y + verts[i2].color * bc.z;
 
-                    const Color srcColor = srcImage.sample( texCoord.x, texCoord.y, AddressMode::Clamp ) * color;
+                    const Color srcColor = srcImage.sample( texCoord.x, texCoord.y, addressMode ) * color;
                     dstImage->plot<false>( p.x, p.y, srcColor, blendMode );
                 }
             }
@@ -512,6 +525,20 @@ void Rasterizer::drawTexturedQuad( const Vertex2D& v0, const Vertex2D& v1, const
         e[0].stepY();
         e[1].stepY();
     }
+}
+
+void Rasterizer::drawQuad( const Vertex2D& _v0, const Vertex2D& _v1, const Vertex2D& _v2, const Vertex2D& _v3, const Image& texture, AddressMode addressMode, std::optional<BlendMode> blendMode )
+{
+    // Convert to integer texture coordinates.
+    float w = static_cast<float>( texture.getWidth() - 1 );
+    float h = static_cast<float>( texture.getHeight() - 1 );
+
+    const Vertex2Di v0 { _v0.position, { _v0.texCoord.x * w, _v0.texCoord.y * h }, _v0.color };
+    const Vertex2Di v1 { _v1.position, { _v1.texCoord.x * w, _v1.texCoord.y * h }, _v1.color };
+    const Vertex2Di v2 { _v2.position, { _v2.texCoord.x * w, _v2.texCoord.y * h }, _v2.color };
+    const Vertex2Di v3 { _v3.position, { _v3.texCoord.x * w, _v3.texCoord.y * h }, _v3.color };
+
+    drawQuad( v0, v1, v2, v3, texture, addressMode, blendMode );
 }
 
 void Rasterizer::drawAABB( math::AABB aabb )
@@ -624,7 +651,7 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
     const glm::ivec2 uv    = sprite.getUV();
     const glm::ivec2 size  = sprite.getSize();
 
-    Vertex2D verts[4] = {
+    Vertex2Di verts[4] = {
         { { 0, 0 }, { uv.x, uv.y }, color },                                      // Top-left.
         { { size.x, 0 }, { uv.x + size.y - 1, uv.y }, color },                    // Top-right.
         { { size.x, size.y }, { uv.x + size.x - 1, uv.y + size.y - 1 }, color },  // Bottom-right.
@@ -632,12 +659,12 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
     };
 
     // Transform vertices
-    for ( Vertex2D& v: verts )
+    for ( Vertex2Di& v: verts )
     {
         v.position = transform * glm::vec3 { v.position, 1.0f };
     }
 
-    drawTexturedQuad( verts[0], verts[1], verts[2], verts[3], *srcImage, sprite.getBlendMode() );
+    drawQuad( verts[0], verts[1], verts[2], verts[3], *srcImage, AddressMode::Clamp, sprite.getBlendMode() );
 }
 
 void Rasterizer::drawTileMap( const TileMap& tileMap, int x, int y )
@@ -693,8 +720,9 @@ void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform
             int spriteId = tileMap[x, y];
             if ( spriteId >= 0 )
             {
-                tileOffset[2][0] = static_cast<float>( x * spriteWidth ) - 1.0f;
+                tileOffset[2][0] = static_cast<float>( x * spriteWidth ) - 1.0f;  // Offset by -1 to avoid black lines when scaling.
                 tileOffset[2][1] = static_cast<float>( y * spriteHeight ) - 1.0f;
+
                 drawSprite( tileMap.getSprite( x, y ), transform * tileOffset );
             }
         }

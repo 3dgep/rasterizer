@@ -87,6 +87,30 @@ constexpr int fast_mod_signed( int x, int divisor ) noexcept
     }
 }
 
+// Floor division that works correctly with negative numbers
+constexpr int floor_div( int x, int divisor ) noexcept
+{
+    return ( x / divisor ) - ( x % divisor != 0 && ( ( x < 0 ) ^ ( divisor < 0 ) ) );
+}
+
+// Mirror coordinate calculation that works for both positive and negative coords
+constexpr int mirror_coord( int coord, int size ) noexcept
+{
+    // Get the tile number (which reflection we're in)
+    const int tile = floor_div( coord, size );
+
+    // Get position within the tile [0, size-1]
+    int pos = coord - tile * size;  // This is equivalent to proper floor modulo
+
+    // If we're in an odd tile, flip the coordinate
+    if ( tile & 1 )
+    {
+        pos = size - 1 - pos;
+    }
+
+    return pos;
+}
+
 /// <summary>
 /// Compute the area of a triangle in 2D.
 /// Source: "Real-Time Collision Detection" (Chapter 3.4), Christer Ericson, 2005, Elsevier Inc.

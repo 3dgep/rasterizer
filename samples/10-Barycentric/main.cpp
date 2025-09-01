@@ -4,6 +4,8 @@
 #include <graphics/Rasterizer.hpp>
 #include <graphics/Window.hpp>
 
+#include <imgui.h>
+
 using namespace sr;
 
 constexpr int   VERTEX_RADIUS  = 10;
@@ -129,8 +131,6 @@ int main()
     Text       fpsText( Font::DefaultFont, "FPS: 0" );
     Timer      timer;
 
-    window.setVSync( false );
-
     Vertex2D initialVerts[] = {
         { { 3 * image.getWidth() / 4, image.getHeight() / 4 }, { 1.0f, 0.0f }, Color::Red },
         { { 3 * image.getWidth() / 4, 3 * image.getHeight() / 4 }, { 1.0f, 1.0f }, Color::Green },
@@ -207,6 +207,20 @@ int main()
                     selectedVert->position += mouseDelta;
                 }
                 break;
+            }
+        }
+
+        // ImGui: DrawMode selection
+        {
+            const char* drawModeItems[] = { "Barycentric", "Textured" };
+            int         drawModeIndex   = static_cast<int>( drawMode );
+            if ( ImGui::Begin( "Settings" ) )
+            {
+                if ( ImGui::Combo( "Draw Mode", &drawModeIndex, drawModeItems, IM_ARRAYSIZE( drawModeItems ) ) )
+                {
+                    drawMode = static_cast<DrawMode>( drawModeIndex );
+                }
+                ImGui::End();
             }
         }
 
