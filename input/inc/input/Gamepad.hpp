@@ -106,6 +106,8 @@ struct GamepadState
 class Gamepad
 {
 public:
+    static constexpr int MAX_PLAYERS = 4;
+
     Gamepad( int player );
 
     GamepadState getState( DeadZone deadZone = DeadZone::IndependentAxis );

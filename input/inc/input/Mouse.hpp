@@ -4,6 +4,19 @@ namespace sr
 {
 inline namespace input
 {
+/// <summary>
+/// The mouse button that was pressed or released.
+/// </summary>
+enum class MouseButton
+{
+    None     = 0,  ///< Unknown mouse button.
+    Left     = 1,  ///< The left mouse button.
+    Right    = 2,  ///< The right mouse button.
+    Middle   = 3,  ///< The middle mouse button.
+    XButton1 = 4,  ///< The first extra mouse button.
+    XButton2 = 5   ///< The second extra mouse button.
+};
+
 struct MouseState
 {
     /// <summary>
@@ -84,7 +97,6 @@ struct MouseState
     /// <returns>`true` if they are not equal, `false` otherwise.</returns>
     bool operator!=( const MouseState& ) const = default;
 };
-
 
 namespace Mouse
 {
