@@ -32,6 +32,7 @@ set( ALL_FILES
 )
 
 add_library( math STATIC ${ALL_FILES} )
+add_library( sr::math ALIAS math )
 
 target_compile_features( math PUBLIC cxx_std_20 )
 

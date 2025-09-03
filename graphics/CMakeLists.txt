@@ -84,6 +84,7 @@ set( ALL_FILES
 )
 
 add_library( graphics STATIC ${ALL_FILES} )
+add_library( sr::graphics ALIAS graphics )
 
 target_compile_features( graphics PUBLIC cxx_std_23 )
 
