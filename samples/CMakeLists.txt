@@ -19,8 +19,9 @@ add_sample( 08-Circles )
 add_sample( 09-EdgeFunction )
 add_sample( 10-Barycentric )
 add_sample( 11-AddressModes )
+add_sample( 12-Audio )
 
 # Set the startup project.
 set_directory_properties( PROPERTIES
-	VS_STARTUP_PROJECT 08-Circles
+	VS_STARTUP_PROJECT 12-Audio
 )

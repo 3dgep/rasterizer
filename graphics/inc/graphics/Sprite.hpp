@@ -16,6 +16,10 @@ class Sprite
 public:
     Sprite() = default;
 
+    explicit Sprite( const std::filesystem::path& fileName, const BlendMode& blendMode = BlendMode {} );
+
+    explicit Sprite( const std::filesystem::path& fileName, const math::RectI& rect, const BlendMode& blendMode = BlendMode {} );
+
     /// <summary>
     /// Constructs a Sprite object with the specified image and blend mode.
     /// </summary>

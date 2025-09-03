@@ -24,6 +24,25 @@ set( INC_FILES
     inc/stb_truetype.h
 )
 
+set( SRC_FILES
+    src/BlendMode.cpp
+    src/Color.cpp
+    src/Font.cpp
+    src/Image.cpp
+    src/Rasterizer.cpp
+    src/ResourceManager.cpp
+    src/Sprite.cpp
+    src/SpriteAnimation.cpp
+    src/SpriteSheet.cpp
+    src/Text.cpp
+    src/TileMap.cpp
+	src/Window.cpp
+    src/stb_image.cpp
+    src/stb_image_write.cpp
+    src/stb_truetype.cpp
+    src/tiny.inl
+)
+
 set( IMGUI_INC_FILES 
     ../externals/imgui/imconfig.h
     ../externals/imgui/imgui.h
@@ -55,24 +74,6 @@ set( IMGUI_FILES
     ${IMGUI_INC_FILES}
     ${IMGUI_SRC_FILES}
     ${IMGUI_BACKEND_FILES}
-)
-
-set( SRC_FILES
-    src/BlendMode.cpp
-    src/Color.cpp
-    src/Font.cpp
-    src/Image.cpp
-    src/Rasterizer.cpp
-    src/ResourceManager.cpp
-    src/SpriteAnimation.cpp
-    src/SpriteSheet.cpp
-    src/Text.cpp
-    src/TileMap.cpp
-	src/Window.cpp
-    src/stb_image.cpp
-    src/stb_image_write.cpp
-    src/stb_truetype.cpp
-    src/tiny.inl
 )
 
 set( ALL_FILES 
