@@ -138,9 +138,9 @@ GamepadState Gamepad::getState( DeadZone deadZone )
     return state;
 }
 
-bool Gamepad::setVibration( float lowFrequency, float highFrequency, float leftTrigger, float rightTrigger )
+bool Gamepad::setVibration( float leftMotor, float rightMotor, float leftTrigger, float rightTrigger )
 {
-    return SDL_RumbleGamepad( gamepad, static_cast<Uint16>( lowFrequency * 65535.0f ), static_cast<Uint16>( highFrequency * 65535.0f ), UINT_MAX ) &&
+    return SDL_RumbleGamepad( gamepad, static_cast<Uint16>( leftMotor * 65535.0f ), static_cast<Uint16>( rightMotor * 65535.0f ), UINT_MAX ) &&
            SDL_RumbleGamepadTriggers( gamepad, static_cast<Uint16>( leftTrigger * 65535.0f ), static_cast<Uint16>( rightTrigger * 65535.0f ), UINT_MAX );
 }
 

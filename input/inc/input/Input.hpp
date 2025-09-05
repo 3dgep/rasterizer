@@ -101,6 +101,12 @@ bool getKeyDown( SDL_Scancode key );
 /// <returns></returns>
 bool getKeyUp( SDL_Scancode key );
 
+bool getMod( SDL_Keymod mod );
+
+bool getModDown( SDL_Keymod mod );
+
+bool getModUp( SDL_Keymod mod );
+
 /// <summary>
 /// Returns true when the given mouse button is held down.
 /// </summary>

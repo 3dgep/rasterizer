@@ -224,6 +224,16 @@ glm::ivec2 Text::getSize() const
     return size;
 }
 
+int Text::getWidth() const
+{
+    return getSize().x;
+}
+
+int Text::getHeight() const
+{
+    return getSize().y;
+}
+
 Text& Text::setWrapWidth( int width )
 {
     if ( !TTF_SetTextWrapWidth( m_Text, width ) )

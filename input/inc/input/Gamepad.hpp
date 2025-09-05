@@ -118,7 +118,7 @@ public:
 
     GamepadState getState( DeadZone deadZone = DeadZone::IndependentAxis );
 
-    bool setVibration( float lowFrequency, float highFrequency, float leftTrigger = 0.0f, float rightTrigger = 0.0f );
+    bool setVibration( float leftMotor, float rightMotor, float leftTrigger = 0.0f, float rightTrigger = 0.0f );
 
 private:
     // Poll the gamepad if it is attached or detached.

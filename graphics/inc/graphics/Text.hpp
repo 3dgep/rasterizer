@@ -117,6 +117,10 @@ public:
     /// <returns>The width & height of the rendered Text object (in pixels).</returns>
     glm::ivec2 getSize() const;
 
+    int getWidth() const;
+
+    int getHeight() const;
+
     /// <summary>
     /// Get the wrap width of the Text object.
     /// </summary>

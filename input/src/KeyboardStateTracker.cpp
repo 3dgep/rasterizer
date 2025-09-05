@@ -15,6 +15,9 @@ bool KeyboardStateTracker::update( const KeyboardState& state ) noexcept
         released.keys[i] = !state.keys[i] && lastState.keys[i];
     }
 
+    pressed.mods = state.mods & ~lastState.mods;
+    released.mods = ~state.mods & lastState.mods;
+
     if ( lastState != state )
     {
         lastState = state;

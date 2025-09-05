@@ -1368,6 +1368,21 @@ bool Input::getKeyUp( SDL_Scancode key )
     return g_KeyboardStateTracker.isKeyReleased( key );
 }
 
+bool Input::getMod( SDL_Keymod mod )
+{
+    return g_KeyboardStateTracker.getLastState()[mod];
+}
+
+bool Input::getModDown( SDL_Keymod mod )
+{
+    return g_KeyboardStateTracker.pressed[mod];
+}
+
+bool Input::getModUp( SDL_Keymod mod )
+{
+    return g_KeyboardStateTracker.released[mod];
+}
+
 bool Input::getMouseButton( MouseButton button )
 {
     switch ( button )

@@ -50,12 +50,12 @@ struct MouseState
     bool xButton2;
 
     /// <summary>
-    /// The x-coordinate of the mouse cursor relative to the top-left corner of the window that received the mouse event.
+    /// The mouse cursor position relative to the top-left corner of the window that received the mouse event.
     /// </summary>
     float x;
 
     /// <summary>
-    /// The y-coordinate of the mouse cursor relative to the top-left corner of the window that received the mouse event.
+    /// The mouse cursor relative to the top-left corner of the window that received the mouse event.
     /// </summary>
     float y;
 
