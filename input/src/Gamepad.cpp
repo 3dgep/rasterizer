@@ -65,6 +65,31 @@ Gamepad::Gamepad( int player )
     pollGamepad();
 }
 
+Gamepad::Gamepad( Gamepad&& other ) noexcept
+: playerId { std::exchange( other.playerId, -1 )}
+, gamepad { std::exchange( other.gamepad, nullptr )}
+{}
+
+Gamepad::~Gamepad()
+{
+    if ( gamepad )
+        SDL_CloseGamepad( gamepad );
+}
+
+Gamepad& Gamepad::operator=( Gamepad&& rhs ) noexcept
+{
+    if ( this == &rhs )
+        return *this;
+
+    if (gamepad)
+        SDL_CloseGamepad( gamepad );
+
+    playerId = std::exchange( rhs.playerId, -1 );
+    gamepad  = std::exchange( rhs.gamepad, nullptr );
+
+    return *this;
+}
+
 GamepadState Gamepad::getState( DeadZone deadZone )
 {
     GamepadState state {};

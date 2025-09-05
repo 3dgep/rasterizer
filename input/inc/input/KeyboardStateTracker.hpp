@@ -8,8 +8,8 @@ inline namespace input
 {
 struct KeyboardStateTracker
 {
-    KeyboardState released;
-    KeyboardState pressed;
+    KeyboardState pressed;   ///< True fi the key was pressed this frame.
+    KeyboardState released;  ///< True if the key was released this frame.
 
     KeyboardStateTracker() noexcept;
 
@@ -26,5 +26,5 @@ struct KeyboardStateTracker
 private:
     KeyboardState lastState;
 };
-}
-}
+}  // namespace input
+}  // namespace sr

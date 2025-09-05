@@ -66,7 +66,7 @@ struct GamepadState
 
     bool connected;
 
-        bool isConnected() const noexcept;
+    bool isConnected() const noexcept;
 
     bool isAPressed() const noexcept;
     bool isBPressed() const noexcept;
@@ -108,7 +108,13 @@ class Gamepad
 public:
     static constexpr int MAX_PLAYERS = 4;
 
-    Gamepad( int player );
+    explicit Gamepad( int player );
+    Gamepad( const Gamepad& ) = delete;
+    Gamepad( Gamepad&& ) noexcept;
+    ~Gamepad();
+
+    Gamepad& operator=( const Gamepad& ) = delete;
+    Gamepad& operator=( Gamepad&& ) noexcept;
 
     GamepadState getState( DeadZone deadZone = DeadZone::IndependentAxis );
 
@@ -118,7 +124,7 @@ private:
     // Poll the gamepad if it is attached or detached.
     bool pollGamepad();
 
-    int          playerId = 0;
+    int          playerId = -1;
     SDL_Gamepad* gamepad  = nullptr;
 };
 

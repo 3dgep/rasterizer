@@ -136,6 +136,26 @@ void addAxisCallback( std::string_view axisName, AxisCallback callback );
 /// <param name="callback">The callback function used to return the value of the button.</param>
 void addButtonCallback( std::string_view buttonName, ButtonCallback callback );
 
+/// <summary>
+/// Map a button name to a button callback function.
+/// </summary>
+/// <remarks>
+/// The callback function should return true when the button was pressed this frame.
+/// </remarks>
+/// <param name="buttonName">The button name to map to the callback function.</param>
+/// <param name="callback">The callback function to evaluate the state of the button.</param>
+void addButtonDownCallback( std::string_view buttonName, ButtonCallback callback );
+
+/// <summary>
+/// Map a button name to a button callback function.
+/// </summary>
+/// <remarks>
+/// The callback function should return true when the button was released this frame.
+/// </remarks>
+/// <param name="buttonName">The button name to map to the callback function.</param>
+/// <param name="callback">The callback function to evaluate the state of the button.</param>
+void addButtonUpCallback( std::string_view buttonName, ButtonCallback callback );
+
 }  // namespace Input
 }  // namespace input
 }  // namespace sr

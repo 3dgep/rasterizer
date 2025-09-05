@@ -1,7 +1,6 @@
 #pragma once
 
 #include <SDL3/SDL_scancode.h>
-#include <SDL3/SDL_keycode.h>
 
 #include <array>
 
@@ -17,7 +16,7 @@ struct KeyboardState
 
     bool operator[]( SDL_Scancode key ) const noexcept
     {
-        return isKeyDown( key );
+        return keys[key];
     }
 
     bool operator==( const KeyboardState& rhs ) const = default;

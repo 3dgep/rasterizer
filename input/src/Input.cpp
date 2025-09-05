@@ -9,6 +9,13 @@ using namespace sr::input;
 namespace
 {
 
+Gamepad g_Gamepads[Gamepad::MAX_PLAYERS] {
+    Gamepad { 0 },
+    Gamepad { 1 },
+    Gamepad { 2 },
+    Gamepad { 3 }
+};
+
 GamepadStateTracker  g_GamepadStateTrackers[Gamepad::MAX_PLAYERS];
 KeyboardStateTracker g_KeyboardStateTracker;
 MouseStateTracker    g_MouseStateTracker;
@@ -162,7 +169,7 @@ std::map<std::string, AxisCallback> g_AxisMap = {
              rightTrigger += state.triggers.right;
          }
 
-         const float ctrl            = keyboardState.getLastState().LeftControl ? 1.0f : 0.0f;
+         const float ctrl            = keyboardState.getLastState()[SDL_SCANCODE_LCTRL] ? 1.0f : 0.0f;
          const float leftMouseButton = mouseState.getLastState().leftButton ? 1.0f : 0.0f;
 
          return std::clamp( rightTrigger + ctrl + leftMouseButton, 0.0f, 1.0f );
@@ -176,13 +183,13 @@ std::map<std::string, AxisCallback> g_AxisMap = {
              leftTrigger += state.triggers.left;
          }
 
-         const float alt              = keyboardState.getLastState().LeftAlt ? 1.0f : 0.0f;
+         const float alt              = keyboardState.getLastState()[SDL_SCANCODE_LALT] ? 1.0f : 0.0f;
          const float rightMouseButton = mouseState.getLastState().rightButton ? 1.0f : 0.0f;
 
          return std::clamp( leftTrigger + alt + rightMouseButton, 0.0f, 1.0f );
      } },
     { "Fire3", []( std::span<const GamepadStateTracker>, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
-         const float shift             = keyboardState.getLastState().LeftShift ? 1.0f : 0.0f;
+         const float shift             = keyboardState.getLastState()[SDL_SCANCODE_LSHIFT] ? 1.0f : 0.0f;
          const float middleMouseButton = mouseState.getLastState().middleButton ? 1.0f : 0.0f;
 
          return std::clamp( shift + middleMouseButton, 0.0f, 1.0f );
@@ -196,7 +203,7 @@ std::map<std::string, AxisCallback> g_AxisMap = {
              a += state.buttons.a ? 1.0f : 0.0f;
          }
 
-         const float space = keyboardState.getLastState().Space ? 1.0f : 0.0f;
+         const float space = keyboardState.getLastState()[SDL_SCANCODE_SPACE] ? 1.0f : 0.0f;
 
          return std::clamp( a + space, 0.0f, 1.0f );
      } },
@@ -206,9 +213,9 @@ std::map<std::string, AxisCallback> g_AxisMap = {
     { "Mouse Y", []( std::span<const GamepadStateTracker>, const KeyboardStateTracker&, const MouseStateTracker& mouseState ) {
          return static_cast<float>( mouseState.y );
      } },
-    { "Mouse ScrollWheel", []( std::span<const GamepadStateTracker>, const KeyboardStateTracker&, const MouseStateTracker& mouseState ) {
-         return static_cast<float>( mouseState.vScrollWheel );
-     } },
+    //{ "Mouse ScrollWheel", []( std::span<const GamepadStateTracker>, const KeyboardStateTracker&, const MouseStateTracker& mouseState ) {
+    //     return static_cast<float>( mouseState.vScrollWheel );
+    // } },
     { "Submit", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& ) {
          float a = 0.0f;
 
@@ -219,8 +226,8 @@ std::map<std::string, AxisCallback> g_AxisMap = {
          }
 
          auto        keyState = keyboardState.getLastState();
-         const float enter    = keyState.Enter ? 1.0f : 0.0f;
-         const float space    = keyState.Space ? 1.0f : 0.0f;
+         const float enter    = keyState[SDL_SCANCODE_RETURN] ? 1.0f : 0.0f;
+         const float space    = keyState[SDL_SCANCODE_SPACE] ? 1.0f : 0.0f;
 
          return std::clamp( a + enter + space, 0.0f, 1.0f );
      } },
@@ -234,15 +241,15 @@ std::map<std::string, AxisCallback> g_AxisMap = {
          }
 
          auto        keyState = keyboardState.getLastState();
-         const float esc      = keyState.Escape ? 1.0f : 0.0f;
+         const float esc      = keyState[SDL_SCANCODE_ESCAPE] ? 1.0f : 0.0f;
 
          return std::clamp( b + esc, 0.0f, 1.0f );
      } },
 };
 
-static std::map<std::string, ButtonCallback> g_ButtonMap = {
+std::map<std::string, ButtonCallback> g_ButtonMap = {
     { "win", []( std::span<const GamepadStateTracker>, const KeyboardStateTracker& keyboardState, const MouseStateTracker& ) {
-         return keyboardState.getLastState().LeftWindows || keyboardState.getLastState().RightWindows;
+         return keyboardState.getLastState()[SDL_SCANCODE_LGUI] || keyboardState.getLastState()[SDL_SCANCODE_RGUI];
      } },
     { "mouse 0", []( std::span<const GamepadStateTracker>, const KeyboardStateTracker&, const MouseStateTracker& mouseState ) {
          return mouseState.getLastState().leftButton;
@@ -583,9 +590,9 @@ static std::map<std::string, ButtonCallback> g_ButtonMap = {
      } },
 };
 
-static std::map<std::string, ButtonCallback> g_ButtonDownMap = {
+std::map<std::string, ButtonCallback> g_ButtonDownMap = {
     { "win", []( std::span<const GamepadStateTracker>, const KeyboardStateTracker& keyboardState, const MouseStateTracker& ) {
-         return keyboardState.isKeyPressed( KeyCode::LeftWindows ) || keyboardState.isKeyPressed( KeyCode::RightWindows );
+         return keyboardState.isKeyPressed( SDL_SCANCODE_LGUI ) || keyboardState.isKeyPressed( SDL_SCANCODE_RGUI );
      } },
     { "mouse 0", []( std::span<const GamepadStateTracker>, const KeyboardStateTracker&, const MouseStateTracker& mouseState ) {
          return mouseState.leftButton == ButtonState::Pressed;
@@ -912,9 +919,9 @@ static std::map<std::string, ButtonCallback> g_ButtonDownMap = {
      } },
 };
 
-static std::map<std::string, ButtonCallback> g_ButtonUpMap = {
+std::map<std::string, ButtonCallback> g_ButtonUpMap = {
     { "win", []( std::span<const GamepadStateTracker>, const KeyboardStateTracker& keyboardState, const MouseStateTracker& ) {
-         return keyboardState.isKeyReleased( KeyCode::LeftWindows ) || keyboardState.isKeyReleased( KeyCode::RightWindows );
+         return keyboardState.isKeyReleased( SDL_SCANCODE_LGUI ) || keyboardState.isKeyReleased( SDL_SCANCODE_RGUI );
      } },
     { "mouse 0", []( std::span<const GamepadStateTracker>, const KeyboardStateTracker&, const MouseStateTracker& mouseState ) {
          return mouseState.leftButton == ButtonState::Released;
@@ -1241,10 +1248,12 @@ static std::map<std::string, ButtonCallback> g_ButtonUpMap = {
      } },
 };
 
+}
+
 void Input::update()
 {
-    for ( int i = 0; i < GamePad::MAX_PLAYERS; ++i )
-        g_GamepadStateTrackers[i].update( GamePad::getState( i ) );
+    for ( int i = 0; i < Gamepad::MAX_PLAYERS; ++i )
+        g_GamepadStateTrackers[i].update( g_Gamepads[ i ].getState() );
 
     g_KeyboardStateTracker.update( Keyboard::getState() );
     g_MouseStateTracker.update( Mouse::getState() );
@@ -1344,17 +1353,17 @@ bool Input::getKeyUp( std::string_view keyName )
     return false;
 }
 
-bool Input::getKey( KeyCode key )
+bool Input::getKey( SDL_Scancode key )
 {
     return g_KeyboardStateTracker.getLastState().isKeyDown( key );
 }
 
-bool Input::getKeyDown( KeyCode key )
+bool Input::getKeyDown( SDL_Scancode key )
 {
     return g_KeyboardStateTracker.isKeyPressed( key );
 }
 
-bool Input::getKeyUp( KeyCode key )
+bool Input::getKeyUp( SDL_Scancode key )
 {
     return g_KeyboardStateTracker.isKeyReleased( key );
 }
@@ -1414,24 +1423,22 @@ bool Input::getMouseButtonUp( MouseButton button )
     }
 }
 
-void Input::mapAxis( std::string_view axisName, AxisCallback callback )
+void Input::addAxisCallback( std::string_view axisName, AxisCallback callback )
 {
     g_AxisMap[std::string( axisName )] = std::move( callback );
 }
 
-void Input::mapButton( std::string_view buttonName, ButtonCallback callback )
+void Input::addButtonCallback( std::string_view buttonName, ButtonCallback callback )
 {
     g_ButtonMap[std::string( buttonName )] = std::move( callback );
 }
 
-void Input::mapButtonDown( std::string_view buttonName, ButtonCallback callback )
+void Input::addButtonDownCallback( std::string_view buttonName, ButtonCallback callback )
 {
     g_ButtonDownMap[std::string( buttonName )] = std::move( callback );
 }
 
-void Input::mapButtonUp( std::string_view buttonName, ButtonCallback callback )
+void Input::addButtonUpCallback( std::string_view buttonName, ButtonCallback callback )
 {
     g_ButtonUpMap[std::string( buttonName )] = std::move( callback );
 }
-
-}  // namespace

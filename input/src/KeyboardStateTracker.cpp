@@ -9,9 +9,9 @@ KeyboardStateTracker::KeyboardStateTracker() noexcept  // NOLINT(cppcoreguidelin
 
 bool KeyboardStateTracker::update( const KeyboardState& state ) noexcept
 {
-    for ( size_t i = 0; i < state.keys.size(); ++i )
+    for ( size_t i = 0; i < lastState.keys.size(); ++i )
     {
-        pressed.keys[i] = state.keys[i] && !lastState.keys[i];
+        pressed.keys[i]  = state.keys[i] && !lastState.keys[i];
         released.keys[i] = !state.keys[i] && lastState.keys[i];
     }
 
