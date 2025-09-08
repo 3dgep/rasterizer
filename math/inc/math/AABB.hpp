@@ -147,6 +147,36 @@ struct AABB
         return *this;
     }
 
+    float left() const noexcept
+    {
+        return min.x;
+    }
+
+    float right() const noexcept
+    {
+        return max.x;
+    }
+
+    float top() const noexcept
+    {
+        return min.y;
+    }
+
+    float bottom() const noexcept
+    {
+        return max.y;
+    }
+
+    float front() const noexcept
+    {
+        return min.z;
+    }
+
+    float back() const noexcept
+    {
+        return max.z;
+    }
+
     /// <summary>
     /// Compute the center point of the AABB.
     /// </summary>

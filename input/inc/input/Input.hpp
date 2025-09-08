@@ -98,13 +98,28 @@ bool getKeyDown( SDL_Scancode key );
 /// Returns `true` in the frame that the key is released.
 /// </summary>
 /// <param name="key">The SDL_Scancode enum to query.</param>
-/// <returns></returns>
+/// <returns>`true` if the key was released this frame, `false` otherwise.</returns>
 bool getKeyUp( SDL_Scancode key );
 
+/// <summary>
+/// Returns `true` while the user is holding down a specific modifier key.
+/// </summary>
+/// <param name="mod">The SDL_Keymod to query.</param>
+/// <returns>`true` if the modifier key is being held down, `false` otherwise.</returns>
 bool getMod( SDL_Keymod mod );
 
+/// <summary>
+/// Returns `true` in the frame that a specific modifier key is pressed down.
+/// </summary>
+/// <param name="mod">The SDL_Keymod to query.</param>
+/// <returns>`true` if the modifier key is pressed this frame, `false` otherwise.</returns>
 bool getModDown( SDL_Keymod mod );
 
+/// <summary>
+/// Returns `true` in the frame the that modifier key is released.
+/// </summary>
+/// <param name="mod">The SDL_Keymod to query.</param>
+/// <returns>`true` if the modifier key was released this frame, `false` otherwise.</returns>
 bool getModUp( SDL_Keymod mod );
 
 /// <summary>

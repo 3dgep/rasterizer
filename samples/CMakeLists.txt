@@ -21,8 +21,9 @@ add_sample( 10-Barycentric )
 add_sample( 11-AddressModes )
 add_sample( 12-Audio )
 add_sample( 13-Input )
+add_sample( 14-Pong )
 
 # Set the startup project.
 set_directory_properties( PROPERTIES
-	VS_STARTUP_PROJECT 13-Input
+	VS_STARTUP_PROJECT 15-Pong
 )
