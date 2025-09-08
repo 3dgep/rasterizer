@@ -40,7 +40,6 @@ set( SRC_FILES
     src/stb_image.cpp
     src/stb_image_write.cpp
     src/stb_truetype.cpp
-    src/tiny.inl
 )
 
 set( IMGUI_INC_FILES 

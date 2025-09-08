@@ -6,6 +6,7 @@ set( INC_FILES
     inc/Ball.hpp
     inc/Game.hpp
     inc/Menu.hpp
+    inc/Sound.hpp
 )
 
 set( SRC_FILES
@@ -13,6 +14,7 @@ set( SRC_FILES
     src/Ball.cpp
     src/Game.cpp
     src/Menu.cpp
+    src/Sound.cpp
 )
 
 
@@ -25,5 +27,5 @@ target_include_directories( ${TARGET_NAME}
 )
 
 target_link_libraries( ${TARGET_NAME} 
-    PRIVATE sr::graphics sr::math 00-Common
+    PRIVATE sr::graphics sr::math sr::input Audio::Audio 00-Common
 )

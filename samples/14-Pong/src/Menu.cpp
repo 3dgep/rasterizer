@@ -1,4 +1,5 @@
 #include <Menu.hpp>
+#include <Sound.hpp>
 
 using namespace sr::graphics;
 
@@ -19,6 +20,8 @@ void Menu::update( float deltaTime )
 {
     m_Ball.update( deltaTime );
 
+    Sound::updateAll( deltaTime ); // Update sound effects.
+
     // Check for collision with the sides of the screen.
     auto p = m_Ball.getPosition();
     auto v = m_Ball.getVelocity();
@@ -28,22 +31,26 @@ void Menu::update( float deltaTime )
     {
         p.x -= aabb.left();
         v.x *= -1.0f;
+        Sound::WallSound.play();
     }
     else if (aabb.right() >= m_ScreenWidth)
     {
         p.x += m_ScreenWidth - aabb.right() - 1;
         v.x *= -1.0f;
+        Sound::WallSound.play();
     }
 
     if (aabb.top() <= 0)
     {
         p.y -= aabb.top();
         v.y *= -1.0f;
+        Sound::WallSound.play();
     }
     else if (aabb.bottom() >= m_ScreenHeight)
     {
         p.y += m_ScreenHeight - aabb.bottom() - 1;
         v.y *= -1.0f;
+        Sound::WallSound.play();
     }
 
     m_Ball.setPosition( p );
