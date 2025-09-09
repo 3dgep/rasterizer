@@ -5,15 +5,18 @@ set( TARGET_NAME 14-Pong )
 set( INC_FILES
     inc/Ball.hpp
     inc/Game.hpp
-    inc/Menu.hpp
+    inc/MenuState.hpp
+    inc/Scores.hpp
     inc/Sound.hpp
+    inc/State.hpp
 )
 
 set( SRC_FILES
     main.cpp
     src/Ball.cpp
     src/Game.cpp
-    src/Menu.cpp
+    src/MenuState.cpp
+    src/Scores.cpp
     src/Sound.cpp
 )
 
