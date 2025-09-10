@@ -24,8 +24,13 @@ GameState::GameState( int screenWidth, int screenHeight )
 {
     // Controls for the left paddle.
     Input::addAxisCallback( "P1", []( std::span<const GamepadStateTracker> gamepadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+#if _DEBUG
+        float leftY  = gamepadStates[0].getLastState().thumbSticks.leftY;
+        float rightY = 0.0f;
+#else
         float leftY  = gamepadStates[0].getLastState().thumbSticks.leftY;
         float rightY = gamepadStates[0].getLastState().thumbSticks.rightY;
+#endif
 
         float w = keyboardState.isKeyDown( SDL_SCANCODE_W ) ? 1.0f : 0.0f;
         float s = keyboardState.isKeyDown( SDL_SCANCODE_S ) ? 1.0f : 0.0f;
@@ -35,9 +40,13 @@ GameState::GameState( int screenWidth, int screenHeight )
 
     // Controls for the right paddle.
     Input::addAxisCallback( "P2", []( std::span<const GamepadStateTracker> gamepadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+#if _DEBUG
+        float leftY  = 0.0f;
+        float rightY = gamepadStates[0].getLastState().thumbSticks.rightY;
+#else
         float leftY  = gamepadStates[1].getLastState().thumbSticks.leftY;
         float rightY = gamepadStates[1].getLastState().thumbSticks.rightY;
-
+#endif
         float up   = keyboardState.isKeyDown( SDL_SCANCODE_UP ) ? 1.0f : 0.0f;
         float down = keyboardState.isKeyDown( SDL_SCANCODE_DOWN ) ? 1.0f : 0.0f;
 
@@ -57,9 +66,9 @@ void GameState::beginState()
     m_P1Paddle.setY( m_ScreenHeight / 2 );
     m_P2Paddle.setY( m_ScreenHeight / 2 );
 
-    std::bernoulli_distribution d( 0.5 ); // 50% chance who gets to serve first.
+    std::bernoulli_distribution d( 0.5 );  // 50% chance who gets to serve first.
 
-    setState( d(rng) ? State::P1Serve : State::P2Serve );
+    setState( d( rng ) ? State::P1Serve : State::P2Serve );
 }
 
 State* GameState::update( float deltaTime )
@@ -190,7 +199,7 @@ void GameState::updatePlay( float deltaTime )
     // Check collisions with walls.
     checkWallCollisions();
 
-    if (Scores::getP1Score() == 10 || Scores::getP2Score() == 10)
+    if ( Scores::getP1Score() == 10 || Scores::getP2Score() == 10 )
     {
         setState( State::GameOver );
     }
@@ -199,7 +208,7 @@ void GameState::updatePlay( float deltaTime )
 void GameState::updateGameOver( float deltaTime )
 {
     m_TotalTime += deltaTime;
-    if (m_TotalTime > 3.0f) // wait 3 seconds...
+    if ( m_TotalTime > 3.0f )  // wait 3 seconds...
     {
         setState( State::None );
     }
@@ -207,7 +216,9 @@ void GameState::updateGameOver( float deltaTime )
 
 void GameState::updatePaddle( Paddle& paddle, std::string_view input, float deltaTime )
 {
-    float y = paddle.getY();
+    float y        = paddle.getY();
+    float initialY = y;
+
     y += Input::getAxis( input ) * deltaTime * 260.0f;
     paddle.setY( y );
 
@@ -223,6 +234,9 @@ void GameState::updatePaddle( Paddle& paddle, std::string_view input, float delt
     }
 
     paddle.setY( y );
+
+    float velY = deltaTime > 0.0f ? ( y - initialY ) / deltaTime : 0.0f;
+    paddle.setVelocity( glm::vec2 { 0, velY } );
 }
 
 void GameState::checkWallCollisions()

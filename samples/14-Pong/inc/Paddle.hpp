@@ -20,6 +20,8 @@ public:
     float getY() const noexcept;
 
     const glm::vec2& getVelocity() const noexcept;
+    void             setVelocity( const glm::vec2& velocity );
+
     sr::math::AABB   getAABB() const noexcept;
 
     void draw( sr::Rasterizer& rasterizer );

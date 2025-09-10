@@ -37,6 +37,11 @@ const glm::vec2& Paddle::getVelocity() const noexcept
     return m_Velocity;
 }
 
+void Paddle::setVelocity( const glm::vec2& velocity )
+{
+    m_Velocity = velocity;
+}
+
 sr::math::AABB Paddle::getAABB() const noexcept
 {
     return m_AABB + glm::vec3 { m_Position, 0 };
@@ -53,6 +58,9 @@ void Paddle::draw( sr::Rasterizer& rasterizer )
     rasterizer.state.color    = Color::Red;
     rasterizer.state.fillMode = FillMode::WireFrame;
     rasterizer.drawAABB( getAABB() );
+
+    rasterizer.state.color = Color::Green;
+    rasterizer.drawLine( m_Position, m_Position + m_Velocity );
 #endif
 }
 
