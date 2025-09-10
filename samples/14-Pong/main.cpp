@@ -1,10 +1,13 @@
 #include "Game.hpp"
+#include "Sound.hpp"
 
 #include <Timer.hpp>
 
 #include <graphics/Image.hpp>
 #include <graphics/Rasterizer.hpp>
 #include <graphics/Window.hpp>
+
+#include <input/Input.hpp>
 
 using namespace sr;
 
@@ -50,9 +53,16 @@ int main()
             }
         }
 
+        float deltaTime = std::min( static_cast<float>( timer.elapsedSeconds() ), 1.0f / 60.0f );
+
+        Input::update(); // Update the input state after polling events.
+        Sound::updateAll( deltaTime );  // Update sound effects.
+
+        //ImGui::ShowDemoWindow();
+
         image.clear( Color::Black );
 
-        game.update( static_cast<float>( timer.elapsedSeconds() ) );
+        game.update( deltaTime );
         game.draw( rasterizer );
 
         if ( timer.totalSeconds() > 1.0 )

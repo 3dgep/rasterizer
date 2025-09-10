@@ -26,6 +26,17 @@ void Ball::draw( sr::Rasterizer& rasterizer )
     rasterizer.state.fillMode = FillMode::Solid;
 
     rasterizer.drawAABB( getAABB() );
+
+#if _DEBUG
+    rasterizer.state.color = Color::Red;
+    rasterizer.state.fillMode = FillMode::WireFrame;
+    rasterizer.drawAABB( getAABB() );
+#endif
+}
+
+int Ball::getRadius() const noexcept
+{
+    return 2;  // static_cast<int>( m_AABB.width() / 2.0f );
 }
 
 sr::AABB Ball::getAABB() const noexcept
@@ -41,6 +52,11 @@ const glm::vec2& Ball::getPosition() const noexcept
 void Ball::setPosition( const glm::vec2& position )
 {
     m_Position = position;
+}
+
+void Ball::setX( float x )
+{
+    m_Position.x = x;
 }
 
 const glm::vec2& Ball::getVelocity() const noexcept

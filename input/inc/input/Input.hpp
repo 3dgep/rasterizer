@@ -144,6 +144,31 @@ bool getMouseButtonDown( MouseButton button );
 bool getMouseButtonUp( MouseButton button );
 
 /// <summary>
+/// Retrieves the current X position of the mouse cursor.
+/// </summary>
+/// <returns>The X-coordinate of the mouse cursor as a floating-point value.</returns>
+float getMouseX();
+
+/// <summary>
+/// Retrieves the current Y position of the mouse cursor.
+/// </summary>
+/// <returns>The Y-coordinate of the mouse cursor as a floating-point value.</returns>
+float getMouseY();
+
+
+/// <summary>
+/// Retrieves the horizontal movement of the mouse since the last check.
+/// </summary>
+/// <returns>The change in the mouse's X position.</returns>
+float getMouseMoveX();
+
+/// <summary>
+/// Retrieves the vertical movement of the mouse since the last check.
+/// </summary>
+/// <returns>The change in the mouse's Y position.</returns>
+float getMouseMoveY();
+
+/// <summary>
 /// Map an axis name to an axis callback function.
 /// </summary>
 /// <param name="axisName">The name of the axis to map.</param>

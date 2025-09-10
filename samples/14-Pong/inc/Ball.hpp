@@ -14,10 +14,13 @@ public:
 
     void draw( sr::Rasterizer& rasterizer );
 
+    int getRadius() const noexcept;
+
     sr::AABB getAABB() const noexcept;
 
     const glm::vec2& getPosition() const noexcept;
     void             setPosition( const glm::vec2& position );
+    void             setX( float x );
 
     const glm::vec2& getVelocity() const noexcept;
     void             setVelocity( const glm::vec2& velocity );

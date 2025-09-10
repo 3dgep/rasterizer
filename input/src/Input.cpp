@@ -588,6 +588,35 @@ std::map<std::string, ButtonCallback> g_ButtonMap = {
     { "joystick 4 dpad right", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker&, const MouseStateTracker& ) {
          return gamePadStates[3].getLastState().dPad.right;
      } },
+    { "Submit", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& ) {
+         bool a = false;
+
+         for ( auto& gamePadState: gamePadStates )
+         {
+             const auto state = gamePadState.getLastState();
+             a                = a || state.buttons.a;
+         }
+
+         auto       keyState = keyboardState.getLastState();
+         const bool enter    = keyState[SDL_SCANCODE_RETURN];
+         const bool space    = keyState[SDL_SCANCODE_SPACE];
+
+         return a || enter || space;
+     } },
+    { "Cancel", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& ) {
+         bool b = false;
+
+         for ( auto& gamePadState: gamePadStates )
+         {
+             const auto state = gamePadState.getLastState();
+             b                = b || state.buttons.b;
+         }
+
+         auto       keyState = keyboardState.getLastState();
+         const bool esc      = keyState[SDL_SCANCODE_ESCAPE];
+
+         return b || esc;
+     } },
 };
 
 std::map<std::string, ButtonCallback> g_ButtonDownMap = {
@@ -916,6 +945,31 @@ std::map<std::string, ButtonCallback> g_ButtonDownMap = {
      } },
     { "joystick 4 dpad right", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker&, const MouseStateTracker& ) {
          return gamePadStates[3].dPadRight == ButtonState::Pressed;
+     } },
+    { "Submit", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& ) {
+         bool a = false;
+
+         for ( auto& gamePadState: gamePadStates )
+         {
+             a = a || gamePadState.a == ButtonState::Pressed;
+         }
+
+         const bool enter = keyboardState.isKeyPressed( SDL_SCANCODE_RETURN );
+         const bool space = keyboardState.isKeyPressed( SDL_SCANCODE_SPACE );
+
+         return a || enter || space;
+     } },
+    { "Cancel", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& ) {
+         bool b = false;
+
+         for ( auto& gamePadState: gamePadStates )
+         {
+             b = b || gamePadState.b == ButtonState::Pressed;
+         }
+
+         const bool esc = keyboardState.isKeyPressed( SDL_SCANCODE_ESCAPE );
+
+         return b || esc;
      } },
 };
 
@@ -1246,14 +1300,39 @@ std::map<std::string, ButtonCallback> g_ButtonUpMap = {
     { "joystick 4 dpad right", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker&, const MouseStateTracker& ) {
          return gamePadStates[3].dPadRight == ButtonState::Released;
      } },
+    { "Submit", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& ) {
+         bool a = false;
+
+         for ( auto& gamePadState: gamePadStates )
+         {
+             a = a || gamePadState.a == ButtonState::Released;
+         }
+
+         const bool enter = keyboardState.isKeyReleased( SDL_SCANCODE_RETURN );
+         const bool space = keyboardState.isKeyReleased( SDL_SCANCODE_SPACE );
+
+         return a || enter || space;
+     } },
+    { "Cancel", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& ) {
+         bool b = false;
+
+         for ( auto& gamePadState: gamePadStates )
+         {
+             b = b || gamePadState.b == ButtonState::Released;
+         }
+
+         const bool esc = keyboardState.isKeyReleased( SDL_SCANCODE_ESCAPE );
+
+         return b || esc;
+     } },
 };
 
-}
+}  // namespace
 
 void Input::update()
 {
     for ( int i = 0; i < Gamepad::MAX_PLAYERS; ++i )
-        g_GamepadStateTrackers[i].update( g_Gamepads[ i ].getState() );
+        g_GamepadStateTrackers[i].update( g_Gamepads[i].getState() );
 
     g_KeyboardStateTracker.update( Keyboard::getState() );
     g_MouseStateTracker.update( Mouse::getState() );
@@ -1436,6 +1515,26 @@ bool Input::getMouseButtonUp( MouseButton button )
     default:
         return false;
     }
+}
+
+float Input::getMouseX()
+{
+    return g_MouseStateTracker.getLastState().x;
+}
+
+float Input::getMouseY()
+{
+    return g_MouseStateTracker.getLastState().y;
+}
+
+float Input::getMouseMoveX()
+{
+    return g_MouseStateTracker.x;
+}
+
+float Input::getMouseMoveY()
+{
+    return g_MouseStateTracker.y;
 }
 
 void Input::addAxisCallback( std::string_view axisName, AxisCallback callback )

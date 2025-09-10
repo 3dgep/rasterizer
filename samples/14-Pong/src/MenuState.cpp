@@ -1,19 +1,20 @@
+#include "GameState.hpp"
+
 #include <MenuState.hpp>
 #include <Scores.hpp>
 #include <Sound.hpp>
 
+#include <input/Input.hpp>
+
+using namespace sr::input;
 using namespace sr::graphics;
 
 MenuState::MenuState( int screenWidth, int screenHeight )
-: m_ScreenWidth { screenWidth }
-, m_ScreenHeight { screenHeight }
-, m_ScoreFont { "assets/fonts/pong-score/pong-score.otf", 40.0f }
-, m_P1Score { m_ScoreFont }
-, m_P2Score { m_ScoreFont }
+    : StateBase( screenWidth, screenHeight )
 {
     m_Ball.setPosition( { m_ScreenWidth / 2, m_ScreenHeight / 2 } );
 
-    glm::vec2 v = normalize(glm::vec2{ 1, -2 }) * 260.0f;
+    glm::vec2 v = normalize( glm::vec2 { 1, -2 } ) * 260.0f;
     m_Ball.setVelocity( v );
 }
 
@@ -27,33 +28,31 @@ State* MenuState::update( float deltaTime )
 {
     m_Ball.update( deltaTime );
 
-    Sound::updateAll( deltaTime ); // Update sound effects.
-
     // Check for collision with the sides of the screen.
-    auto p = m_Ball.getPosition();
-    auto v = m_Ball.getVelocity();
+    auto p    = m_Ball.getPosition();
+    auto v    = m_Ball.getVelocity();
     auto aabb = m_Ball.getAABB();
 
-    if (aabb.left() <= 0)
+    if ( aabb.left() <= 0 )
     {
         p.x -= aabb.left();
         v.x *= -1.0f;
         Sound::WallSound.play();
     }
-    else if (aabb.right() >= m_ScreenWidth)
+    else if ( aabb.right() >= m_ScreenWidth )
     {
         p.x += m_ScreenWidth - aabb.right() - 1;
         v.x *= -1.0f;
         Sound::WallSound.play();
     }
 
-    if (aabb.top() <= 0)
+    if ( aabb.top() <= 0 )
     {
         p.y -= aabb.top();
         v.y *= -1.0f;
         Sound::WallSound.play();
     }
-    else if (aabb.bottom() >= m_ScreenHeight)
+    else if ( aabb.bottom() >= m_ScreenHeight )
     {
         p.y += m_ScreenHeight - aabb.bottom() - 1;
         v.y *= -1.0f;
@@ -63,22 +62,19 @@ State* MenuState::update( float deltaTime )
     m_Ball.setPosition( p );
     m_Ball.setVelocity( v );
 
+    // Switch to the game state with the "Submit" button is pressed.
+    // This is mapped to the "Enter" key, the "Space" key, and the "A" button on any gamepad.
+    if ( Input::getButtonUp( "Submit" ) )
+    {
+        return new GameState( m_ScreenWidth, m_ScreenHeight );
+    }
+
     return nullptr;
 }
 
 void MenuState::draw( sr::Rasterizer& rasterizer )
 {
-    rasterizer.drawText( m_P1Score,  m_ScreenWidth / 4, 10 );
-    rasterizer.drawText( m_P1Score, 3 * m_ScreenWidth / 4, 10 );
-
-    const int lineWidth = 4;
-    const int x         = m_ScreenWidth / 2;
-
-    // Draw the stippled middle line.
-    for (int y = 0; y < m_ScreenHeight; y += lineWidth * 2)
-    {
-        rasterizer.drawLine( x, y, x, y + lineWidth - 1 );
-    }
+    StateBase::draw( rasterizer );
 
     m_Ball.draw( rasterizer );
 }

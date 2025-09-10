@@ -5,8 +5,8 @@
 
 namespace
 {
-int P1Score { 1 };
-int P2Score { 1 };
+int P1Score { 0 };
+int P2Score { 0 };
 }  // namespace
 
 void Scores::loadScores( const std::filesystem::path& scoreFile )

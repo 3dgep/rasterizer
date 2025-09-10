@@ -32,6 +32,11 @@ void KeyboardStateTracker::reset() noexcept
     memset( this, 0, sizeof( KeyboardStateTracker ) );
 }
 
+bool KeyboardStateTracker::isKeyDown( SDL_Scancode key ) const noexcept
+{
+    return lastState[key];
+}
+
 bool KeyboardStateTracker::isKeyPressed( SDL_Scancode key ) const noexcept
 {
     return pressed.isKeyDown( key );

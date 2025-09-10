@@ -17,6 +17,8 @@ struct KeyboardStateTracker
 
     void reset() noexcept;
 
+    bool isKeyDown( SDL_Scancode key ) const noexcept;
+
     bool isKeyPressed( SDL_Scancode key ) const noexcept;
 
     bool isKeyReleased( SDL_Scancode key ) const noexcept;

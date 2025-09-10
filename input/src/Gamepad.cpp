@@ -157,10 +157,8 @@ bool Gamepad::pollGamepad()
     }
     else
     {
-        if ( SDL_IsGamepad( playerId ) )
-        {
-            gamepad = SDL_OpenGamepad( playerId );
-        }
+        // Try to open the gamepad for a particular player index.
+        gamepad = SDL_GetGamepadFromPlayerIndex( playerId );
     }
 
     return gamepad != nullptr;
