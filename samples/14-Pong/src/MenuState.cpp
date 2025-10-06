@@ -6,7 +6,7 @@
 
 #include <input/Input.hpp>
 
-using namespace sr::input;
+using namespace input;
 using namespace sr::graphics;
 
 MenuState::MenuState( int screenWidth, int screenHeight )

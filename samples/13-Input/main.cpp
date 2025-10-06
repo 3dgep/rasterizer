@@ -7,6 +7,7 @@
 #include <input/Input.hpp>
 
 using namespace sr;
+using namespace input;
 
 int main()
 {
@@ -52,16 +53,18 @@ int main()
 
         Input::update();  // This has to be called once every frame to update the input state.
 
-        if ( Input::getKeyDown( SDL_SCANCODE_ESCAPE ) )
+        using Keyboard::Key;
+
+        if ( Input::getKeyDown( Key::Escape ) )
             window.destroy();
 
-        if ( Input::getKeyDown( SDL_SCANCODE_V ) )
+        if ( Input::getKeyDown( Key::V ) )
             window.toggleVSync();
 
-        if ( Input::getKeyDown( SDL_SCANCODE_F11 ) || Input::getMod( SDL_KMOD_ALT ) && Input::getKeyDown( SDL_SCANCODE_RETURN ) )
+        if ( Input::getKeyDown( Key::F11 ) || Input::getKeyDown( Key::AltKey ) && Input::getKeyDown( Key::Enter ) )
             window.toggleFullscreen();
 
-        MouseState mouseState = Mouse::getState();
+        Mouse::State mouseState = Mouse::getState();
         // Convert mouse position to image space:
         auto imagePos = window.clientToImage( mouseState.x, mouseState.y, image );
 

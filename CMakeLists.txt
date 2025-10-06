@@ -21,7 +21,6 @@ endif(MSVC)
 
 add_subdirectory( externals EXCLUDE_FROM_ALL )
 add_subdirectory( graphics )
-add_subdirectory( input )
 add_subdirectory( math )
 
 if(SR_BUILD_SAMPLES)

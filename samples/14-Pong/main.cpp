@@ -10,6 +10,7 @@
 #include <input/Input.hpp>
 
 using namespace sr;
+using namespace input;
 
 int main()
 {

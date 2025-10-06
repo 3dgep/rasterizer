@@ -36,5 +36,5 @@ target_include_directories( ${TARGET_NAME}
 )
 
 target_link_libraries( ${TARGET_NAME} 
-    PRIVATE sr::graphics sr::math sr::input Audio::Audio 00-Common
+    PRIVATE sr::graphics sr::math input::SDL3 Audio::Audio 00-Common
 )

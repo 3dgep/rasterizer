@@ -1,10 +1,12 @@
 set( SDL_TEST_LIBRARY OFF CACHE BOOL "Build the SDL3_test library" )
 set( SDL_DISABLE_UNINSTALL  ON CACHE BOOL "Disable uninstallation of SDL3" )
+set( INPUT_USE_SDL3 ON CACHE BOOL "Use SDL3 for input handling" )
 
 add_subdirectory( Audio )
 add_subdirectory( SDL )
 add_subdirectory( SDL_ttf )
 add_subdirectory( glm )
+add_subdirectory( input )
 
 set( SDL_TARGETS
 	SDL_uclibc
@@ -33,4 +35,4 @@ endmacro()
 
 set_targets_folder( "${GLM_TARGETS}" "externals/glm" )
 set_targets_folder( "${SDL_TARGETS}" "externals/SDL" )
-set_targets_folder( "Audio" "externals" )
+set_targets_folder( "Audio;input_SDL3" "externals" )

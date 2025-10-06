@@ -13,3 +13,6 @@
 [submodule "externals/Audio"]
 	path = externals/Audio
 	url = https://github.com/3dgep/Audio.git
+[submodule "externals/input"]
+	path = externals/input
+	url = https://github.com/3dgep/input.git

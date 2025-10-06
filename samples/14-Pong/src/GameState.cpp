@@ -9,8 +9,10 @@
 #include <algorithm>
 #include <random>
 
-using namespace sr::input;
+using namespace input;
 using namespace sr::math;
+
+using Keyboard::Key;
 
 namespace
 {
@@ -32,23 +34,23 @@ GameState::GameState( int screenWidth, int screenHeight )
         float rightY = gamepadStates[0].getLastState().thumbSticks.rightY;
 #endif
 
-        float w = keyboardState.isKeyDown( SDL_SCANCODE_W ) ? 1.0f : 0.0f;
-        float s = keyboardState.isKeyDown( SDL_SCANCODE_S ) ? 1.0f : 0.0f;
+        float w = keyboardState.lastState.W ? 1.0f : 0.0f;
+        float s = keyboardState.lastState.S ? 1.0f : 0.0f;
 
         return std::clamp( s - w + leftY + rightY, -1.0f, 1.0f );
     } );
 
     // Controls for the right paddle.
     Input::addAxisCallback( "P2", []( std::span<const GamepadStateTracker> gamepadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
-#if _DEBUG
+#if 0 // _DEBUG
         float leftY  = 0.0f;
         float rightY = gamepadStates[0].getLastState().thumbSticks.rightY;
 #else
         float leftY  = gamepadStates[1].getLastState().thumbSticks.leftY;
         float rightY = gamepadStates[1].getLastState().thumbSticks.rightY;
 #endif
-        float up   = keyboardState.isKeyDown( SDL_SCANCODE_UP ) ? 1.0f : 0.0f;
-        float down = keyboardState.isKeyDown( SDL_SCANCODE_DOWN ) ? 1.0f : 0.0f;
+        float up   = keyboardState.lastState.Up ? 1.0f : 0.0f;
+        float down = keyboardState.lastState.Down ? 1.0f : 0.0f;
 
         return std::clamp( down - up + leftY + rightY, -1.0f, 1.0f );
     } );
