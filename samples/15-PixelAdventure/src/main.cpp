@@ -11,7 +11,7 @@ constexpr int SCREEN_HEIGHT = 256;
 
 int main()
 {
-    Window     window( "Pixel Adventure", SCREEN_WIDTH, SCREEN_HEIGHT );
+    Window     window( "Pixel Adventure", SCREEN_WIDTH, SCREEN_HEIGHT, true );
     Image      image { SCREEN_WIDTH, SCREEN_HEIGHT };
     Rasterizer rasterizer;
     Timer      timer;
@@ -60,7 +60,7 @@ int main()
 
         rasterizer.drawText( fpsText, 10, 10 );
 
-        window.clear( Color { 33, 31, 48 } );
+        window.clear( Color { 0x301F21 } );
         window.present( image );
     }
 

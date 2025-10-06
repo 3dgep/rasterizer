@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <thread>
 
-using std::chrono::high_resolution_clock;
 using std::chrono::duration;
+using std::chrono::high_resolution_clock;
 
 Timer::Timer() noexcept
 {
@@ -13,20 +13,20 @@ Timer::Timer() noexcept
 
 void Timer::reset() noexcept
 {
-    t0 = high_resolution_clock::now();
-    t1 = t0;
+    t0         = high_resolution_clock::now();
+    t1         = t0;
     beginFrame = t0;
 
     elapsedTime = 0.0;
-    totalTime = 0.0;
+    totalTime   = 0.0;
     ticks       = 0;
 }
 
 void Timer::tick() noexcept
 {
-    t1 = high_resolution_clock::now();
+    t1                                       = high_resolution_clock::now();
     const duration<double, std::micro> delta = t1 - t0;
-    t0 = t1;
+    t0                                       = t1;
 
     elapsedTime = delta.count();
     totalTime += elapsedTime;
@@ -66,30 +66,28 @@ double Timer::FPS() const noexcept
     return static_cast<double>( ticks ) / totalSeconds();
 }
 
-void Timer::limitFPS(int fps) const noexcept
+void Timer::limitFPS( int fps ) const noexcept
 {
-    limitFPS(1.0 / static_cast<double>(std::max(1, fps)));
+    limitFPS( 1.0 / static_cast<double>( std::max( 1, fps ) ) );
 }
 
-void Timer::limitFPS(double seconds) const noexcept
+void Timer::limitFPS( double seconds ) const noexcept
 {
-    limitFPS(duration<double>(std::max(0.0, seconds)));
+    limitFPS( duration<double>( std::max( 0.0, seconds ) ) );
 }
 
-void Timer::limitFPS(const high_resolution_clock::duration& duration) const noexcept
+void Timer::limitFPS( const high_resolution_clock::duration& duration ) const noexcept
 {
     const auto endTime = beginFrame + duration;
 
 #if 1
     // This uses less CPU power than a busy loop, but it's less accurate.
-    std::this_thread::sleep_until(endTime);
+    std::this_thread::sleep_until( endTime );
 #else
     // This busy loop uses more CPU power than this_thread::sleep_until, but it's more accurate.
-    while (high_resolution_clock::now() < endTime)
+    while ( high_resolution_clock::now() < endTime )
         std::this_thread::yield();
 #endif
 
     beginFrame = endTime;
 }
-
-

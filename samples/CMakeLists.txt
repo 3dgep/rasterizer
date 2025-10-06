@@ -7,6 +7,24 @@ function( add_sample DIR_NAME )
 	)
 endfunction()
 
+include(FetchContent)
+
+FetchContent_Declare(
+	LDtkLoader
+	GIT_REPOSITORY https://github.com/Madour/LDtkLoader.git
+	GIT_TAG		   1.5.3.1
+	GIT_SHALLOW TRUE
+	EXCLUDE_FROM_ALL
+)
+
+message( STATUS "Fetching LDtkLoader..." )
+FetchContent_MakeAvailable(LDtkLoader)
+
+set_target_properties(
+	LDtkLoader
+    PROPERTIES FOLDER externals
+)
+
 add_sample( 00-Common )
 add_sample( 01-ClearScreen )
 add_sample( 02-Images )
