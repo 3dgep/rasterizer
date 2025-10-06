@@ -1,6 +1,7 @@
 #pragma once
 
 #include "StateBase.hpp"
+#include "GameState.hpp"
 
 #include <graphics/Rasterizer.hpp>
 
@@ -16,4 +17,7 @@ public:
     State* update( float deltaTime ) override;
 
     void draw(sr::graphics::Rasterizer& rasterizer) override;
+
+private:
+    GameState::AIDifficulty m_SelectedAIDifficulty = GameState::AIDifficulty::Medium;
 };

@@ -5,9 +5,29 @@
 class GameState : public StateBase
 {
 public:
+    enum class AIDifficulty
+    {
+        None,    // Two-player mode
+        Easy,    // AI reacts slowly and makes mistakes
+        Medium,  // AI reacts moderately
+        Hard     // AI reacts quickly and accurately
+    };
+
     GameState() = default;
 
     GameState( int screenWidth, int screenHeight );
+
+    /// <summary>
+    /// Set the AI difficulty for player 2.
+    /// </summary>
+    /// <param name="difficulty">The AI difficulty level.</param>
+    void setAIDifficulty( AIDifficulty difficulty );
+
+    /// <summary>
+    /// Get the current AI difficulty.
+    /// </summary>
+    /// <returns>The current AI difficulty level.</returns>
+    AIDifficulty getAIDifficulty() const noexcept;
 
     /// <summary>
     /// Starts the game state.
@@ -46,6 +66,7 @@ private:
     void updatePlay( float deltaTime );
     void updateGameOver( float deltaTime );
     void updatePaddle( Paddle& paddle, std::string_view input, float deltaTime );
+    void updateAIPaddle( Paddle& paddle, float deltaTime );
 
     void checkWallCollisions();
 
@@ -56,6 +77,11 @@ private:
     // Internal game state.
     State m_State = State::None;
     float m_TotalTime = 0.0f;
+
+    // AI settings
+    AIDifficulty m_AIDifficulty = AIDifficulty::None;
+    float        m_AIReactionDelay = 0.0f;  // Time before AI reacts
+    float        m_AIErrorMargin = 0.0f;    // How far off the AI aims
 
     sr::Text m_GameOverText;
 };

@@ -14,7 +14,7 @@ using namespace input;
 
 int main()
 {
-    Window     window { "Pong", 454, 262 };
+    Window     window { "Pong", 454, 262, true };
     Rasterizer rasterizer;
     Image      image { 454, 262 };
     Game       game { image.getWidth(), image.getHeight() };

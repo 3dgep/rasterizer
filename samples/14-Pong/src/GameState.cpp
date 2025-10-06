@@ -7,6 +7,7 @@
 #include <input/Input.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <random>
 
 using namespace input;
@@ -72,6 +73,40 @@ GameState::GameState( int screenWidth, int screenHeight )
 
         return std::clamp( down - up + leftY + rightY, -1.0f, 1.0f );
     } );
+
+    // Default AI difficulty is Medium
+    setAIDifficulty( AIDifficulty::Medium );
+}
+
+void GameState::setAIDifficulty( AIDifficulty difficulty )
+{
+    m_AIDifficulty = difficulty;
+
+    // Configure AI parameters based on difficulty
+    switch ( difficulty )
+    {
+    case AIDifficulty::None:
+        m_AIReactionDelay = 0.0f;
+        m_AIErrorMargin   = 0.0f;
+        break;
+    case AIDifficulty::Easy:
+        m_AIReactionDelay = 0.2f;   // 200ms delay
+        m_AIErrorMargin   = 8.0f;  // Can be off by 8 pixels
+        break;
+    case AIDifficulty::Medium:
+        m_AIReactionDelay = 0.1f;   // 100ms delay
+        m_AIErrorMargin   = 6.0f;   // Can be off by 6 pixels
+        break;
+    case AIDifficulty::Hard:
+        m_AIReactionDelay = 0.05f;  // 50ms delay
+        m_AIErrorMargin   = 4.0f;   // Can be off by 4 pixels
+        break;
+    }
+}
+
+GameState::AIDifficulty GameState::getAIDifficulty() const noexcept
+{
+    return m_AIDifficulty;
 }
 
 void GameState::beginState()
@@ -194,7 +229,15 @@ void GameState::startServe( State state )
 void GameState::updateServe( float deltaTime )
 {
     updatePaddle( m_P1Paddle, "P1", deltaTime );
-    updatePaddle( m_P2Paddle, "P2", deltaTime );
+    // Use AI for player 2 if AI is enabled, otherwise use player input
+    if ( m_AIDifficulty != AIDifficulty::None )
+    {
+        updateAIPaddle( m_P2Paddle, deltaTime );
+    }
+    else
+    {
+        updatePaddle( m_P2Paddle, "P2", deltaTime );
+    }
 
     m_TotalTime += deltaTime;
     if ( m_TotalTime > 3.0f )  // After 3 seconds... play.
@@ -206,7 +249,16 @@ void GameState::updateServe( float deltaTime )
 void GameState::updatePlay( float deltaTime )
 {
     updatePaddle( m_P1Paddle, "P1", deltaTime );
-    updatePaddle( m_P2Paddle, "P2", deltaTime );
+
+    // Use AI for player 2 if AI is enabled, otherwise use player input
+    if ( m_AIDifficulty != AIDifficulty::None )
+    {
+        updateAIPaddle( m_P2Paddle, deltaTime );
+    }
+    else
+    {
+        updatePaddle( m_P2Paddle, "P2", deltaTime );
+    }
 
     m_Ball.update( deltaTime );
 
@@ -255,6 +307,115 @@ void GameState::updatePaddle( Paddle& paddle, std::string_view input, float delt
 
     paddle.setY( y );
 
+    float velY = deltaTime > 0.0f ? ( y - initialY ) / deltaTime : 0.0f;
+    paddle.setVelocity( glm::vec2 { 0, velY } );
+}
+
+void GameState::updateAIPaddle( Paddle& paddle, float deltaTime )
+{
+    float y        = paddle.getY();
+    float initialY = y;
+
+    // Get ball information
+    glm::vec2 ballPos = m_Ball.getPosition();
+    glm::vec2 ballVel = m_Ball.getVelocity();
+
+    // Target position for the AI paddle
+    float targetY = ballPos.y;
+
+    // Add some error margin to make AI more realistic
+    if ( m_AIErrorMargin > 0.0f )
+    {
+        // Use a deterministic offset based on ball position
+        float offset = std::sin( ballPos.x * 0.1f + ballPos.y * 0.1f ) * m_AIErrorMargin;
+        targetY += offset;
+    }
+
+    // Only track the ball if it's moving towards the AI paddle (right side)
+    if ( ballVel.x > 0.0f )
+    {
+        // Predict where the ball will be when it reaches the paddle
+        float paddleX = paddle.getPosition().x;
+        float ballX   = ballPos.x;
+        float timeToReach = ( paddleX - ballX ) / ballVel.x;
+
+        if ( timeToReach > 0.0f )
+        {
+            // Predict ball Y position
+            float predictedY = ballPos.y + ballVel.y * timeToReach;
+
+            // Account for wall bounces (simplified prediction)
+            while ( predictedY < 0.0f || predictedY > m_ScreenHeight )
+            {
+                if ( predictedY < 0.0f )
+                    predictedY = -predictedY;
+                else if ( predictedY > m_ScreenHeight )
+                    predictedY = 2.0f * m_ScreenHeight - predictedY;
+            }
+
+            targetY = predictedY;
+        }
+    }
+    else
+    {
+        // If ball is moving away, center the paddle
+        targetY = m_ScreenHeight / 2.0f;
+    }
+
+    // Calculate movement direction with reaction delay
+    float diff = targetY - y;
+    
+    // Apply reaction delay - AI won't move if the difference is very small
+    float reactionThreshold = m_AIReactionDelay * 100.0f;
+    if ( std::abs( diff ) < reactionThreshold )
+    {
+        diff = 0.0f;
+    }
+
+    // Move towards target position
+    float moveSpeed = 260.0f;  // Same speed as player
+    
+    // Scale movement based on difficulty (harder AI moves more precisely)
+    if ( m_AIDifficulty == AIDifficulty::Easy )
+    {
+        moveSpeed *= 0.7f;  // 70% speed
+    }
+    else if ( m_AIDifficulty == AIDifficulty::Medium )
+    {
+        moveSpeed *= 0.85f;  // 85% speed
+    }
+    // Hard uses full speed
+
+    if ( diff > 0.0f )
+    {
+        y += moveSpeed * deltaTime;
+        if ( y > targetY )
+            y = targetY;
+    }
+    else if ( diff < 0.0f )
+    {
+        y -= moveSpeed * deltaTime;
+        if ( y < targetY )
+            y = targetY;
+    }
+
+    paddle.setY( y );
+
+    // Clamp to screen bounds
+    AABB aabb = paddle.getAABB();
+
+    if ( aabb.top() < 0.0f )
+    {
+        y = aabb.height() / 2;
+    }
+    else if ( aabb.bottom() >= m_ScreenHeight )
+    {
+        y = m_ScreenHeight - 1 - aabb.height() / 2;
+    }
+
+    paddle.setY( y );
+
+    // Calculate velocity
     float velY = deltaTime > 0.0f ? ( y - initialY ) / deltaTime : 0.0f;
     paddle.setVelocity( glm::vec2 { 0, velY } );
 }
