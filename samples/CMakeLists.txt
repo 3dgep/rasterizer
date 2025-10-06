@@ -22,8 +22,9 @@ add_sample( 11-AddressModes )
 add_sample( 12-Audio )
 add_sample( 13-Input )
 add_sample( 14-Pong )
+add_sample( 15-PixelAdventure )
 
 # Set the startup project.
 set_directory_properties( PROPERTIES
-	VS_STARTUP_PROJECT 15-Pong
+	VS_STARTUP_PROJECT 15-PixelAdventure
 )

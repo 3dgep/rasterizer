@@ -1,20 +1,29 @@
-#include <iostream>
 #include <Timer.hpp>
 
 #include <graphics/Image.hpp>
 #include <graphics/Rasterizer.hpp>
 #include <graphics/Window.hpp>
 
-#include <imgui.h>
-
 using namespace sr;
+
+constexpr int SCREEN_WIDTH = 480;
+constexpr int SCREEN_HEIGHT = 256;
 
 int main()
 {
-    Window     window( "ImGui Demo", 1920, 1080 );
+    Window     window( "Pixel Adventure", SCREEN_WIDTH, SCREEN_HEIGHT );
+    Image      image { SCREEN_WIDTH, SCREEN_HEIGHT };
+    Rasterizer rasterizer;
+    Timer      timer;
+    Text fpsText { Font::DefaultFont, "FPS: 0" };
+
+    // Setup the rasterizer's render target state.
+    rasterizer.state.colorTarget = &image;
 
     while ( window )
     {
+        timer.tick();
+
         SDL_Event event;
         while ( window.pollEvent( event ) )
         {
@@ -41,11 +50,18 @@ int main()
             }
         }
 
-        window.clear( Color::CornflowerBlue );
+        image.clear( Color::Black );
 
-        ImGui::ShowDemoWindow();
+        if ( timer.totalSeconds() > 1.0 )
+        {
+            fpsText = std::format( "FPS: {:.0f}", timer.FPS() );
+            timer.reset();
+        }
 
-        window.present();
+        rasterizer.drawText( fpsText, 10, 10 );
+
+        window.clear( Color { 33, 31, 48 } );
+        window.present( image );
     }
 
     return 0;
