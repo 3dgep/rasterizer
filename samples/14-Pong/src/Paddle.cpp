@@ -1,5 +1,11 @@
 #include <Paddle.hpp>
 
+#include <glm/geometric.hpp>
+#include <glm/trigonometric.hpp>
+
+#include <algorithm>
+#include <cmath>
+
 using namespace sr::graphics;
 
 Paddle::Paddle()
@@ -83,6 +89,7 @@ bool Paddle::checkCollision( Ball& ball )
         if ( xOverlap < yOverlap )
         {
             // The "minimum translation vector" (MTV) is in the x-axis.
+            // This means the ball hit the front or back face of the paddle.
             if ( ballAABB.min.x < paddleAABB.min.x )
             {
                 // Ball is to the left of the paddle.
@@ -93,21 +100,53 @@ bool Paddle::checkCollision( Ball& ball )
                 p.x += xOverlap;
             }
 
-            v.x *= -1.0f;  // Reverse the ball's velocity.
+            // Calculate where on the paddle the ball hit
+            // hitOffset ranges from -1 (top) to +1 (bottom), with 0 being the center
+            float paddleCenter = paddleAABB.center().y;
+            float ballCenter   = p.y;
+            float hitOffset    = ( ballCenter - paddleCenter ) / ( paddleAABB.height() / 2.0f );
+            hitOffset          = std::clamp( hitOffset, -1.0f, 1.0f );
+
+            // Reverse the ball's X velocity
+            v.x *= -1.0f;
+
+            // Adjust the ball's Y velocity based on where it hit the paddle
+            // This creates a bounce angle: hitting the top makes it go up, bottom makes it go down
+            float           currentSpeed   = glm::length( v );
+            constexpr float maxBounceAngle = glm::radians( 60.0f );  // Maximum bounce angle from horizontal
+            float           bounceAngle    = hitOffset * maxBounceAngle;
+
+            // Calculate new velocity components
+            // Preserve the speed but change the direction
+            v.x = std::copysign( currentSpeed * std::cos( bounceAngle ), v.x );
+            v.y = currentSpeed * std::sin( bounceAngle );
+
+            // Add some influence from the paddle's velocity for more dynamic gameplay
+            v.y += m_Velocity.y * 0.2f;
         }
         else
         {
+            // The "minimum translation vector" (MTV) is in the y-axis.
+            // This means the ball hit the top or bottom of the paddle.
+
+            // Resolve the overlap
             if ( ballAABB.min.y < paddleAABB.min.y )
             {
-                // Ball is above the paddle.
+                // Ball is above the paddle (hit the top).
                 p.y -= yOverlap;
+                // Make the ball bounce upward
+                v.y = -std::abs( v.y );
             }
             else
             {
+                // Ball is below the paddle (hit the bottom).
                 p.y += yOverlap;
+                // Make the ball bounce downward
+                v.y = std::abs( v.y );
             }
 
-            v.y *= -1.0f;
+            // Add some influence from the paddle's velocity
+            v.y += m_Velocity.y * 0.2f;
         }
 
         ball.setPosition( p );
