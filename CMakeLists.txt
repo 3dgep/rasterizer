@@ -2,6 +2,7 @@ cmake_minimum_required( VERSION 3.12...3.31 )
 
 option( BUILD_SHARED_LIBS "Build using shared libraries" OFF )
 option( SR_BUILD_SAMPLES "Build samples." ON )
+option( SR_BUILD_TESTS "Build tests." ON )
 
 set( SR_VERSION_MAJOR 0 )
 set( SR_VERSION_MINOR 0 )
@@ -19,6 +20,11 @@ if(MSVC)
     add_compile_options(/MP)
 endif(MSVC)
 
+# Enable testing if tests are enabled
+if(SR_BUILD_TESTS)
+    enable_testing()
+endif(SR_BUILD_TESTS)
+
 add_subdirectory( externals EXCLUDE_FROM_ALL )
 add_subdirectory( graphics )
 add_subdirectory( math )
@@ -26,3 +32,7 @@ add_subdirectory( math )
 if(SR_BUILD_SAMPLES)
     add_subdirectory(samples)
 endif(SR_BUILD_SAMPLES)
+
+if(SR_BUILD_TESTS)
+    add_subdirectory(tests)
+endif(SR_BUILD_TESTS)
