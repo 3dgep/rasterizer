@@ -1,5 +1,13 @@
 cmake_minimum_required(VERSION 3.12...3.31)
 
+macro( set_targets_folder TARGETS FOLDER )
+	foreach( target ${TARGETS} )
+		if( TARGET ${target} )
+			set_target_properties( ${target} PROPERTIES FOLDER ${FOLDER})
+		endif()
+	endforeach()
+endmacro()
+
 # Fetch Google Test
 include(FetchContent)
 FetchContent_Declare(
@@ -31,6 +39,9 @@ target_link_libraries(ColorTests
 
 # Set C++ standard
 target_compile_features(ColorTests PRIVATE cxx_std_23)
+
+set_targets_folder( ColorTests tests )
+set_targets_folder( "gmock;gmock_main;gtest;gtest_main" externals/gtest )
 
 # Discover and register tests with CTest
 include(GoogleTest)
