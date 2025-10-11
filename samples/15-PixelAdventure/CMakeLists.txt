@@ -3,11 +3,13 @@ cmake_minimum_required( VERSION 3.12...4.1.2 )
 set( TARGET_NAME 15-PixelAdventure )
 
 set( INC_FILES
+    inc/Background.hpp
     inc/Game.hpp
     inc/Level.hpp
 )
 
 set( SRC_FILES
+    src/Background.cpp
     src/main.cpp
     src/Game.cpp
 )
