@@ -1,6 +1,7 @@
 set( SDL_TEST_LIBRARY OFF CACHE BOOL "Build the SDL3_test library" )
 set( SDL_DISABLE_UNINSTALL  ON CACHE BOOL "Disable uninstallation of SDL3" )
 set( INPUT_USE_SDL3 ON CACHE BOOL "Use SDL3 for input handling" )
+set( AUDIO_BUILD_EXAMPLES OFF CACHE BOOL "Build samples for the Audio library" ) 
 
 add_subdirectory( Audio )
 add_subdirectory( SDL )
