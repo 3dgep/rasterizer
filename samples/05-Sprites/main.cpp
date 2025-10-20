@@ -11,9 +11,9 @@ int main()
 {
     Window      window( "Sprites", 1280, 720 );
     Image       image { 1280, 720 };
-    Sprite      sprite { std::make_shared<Image>( "assets/textures/Asteroid.png" ), BlendMode::AlphaBlend };
+    Sprite      sprite { std::make_shared<Image>( "assets/textures/Smiley.png" ), BlendMode::AlphaBlend };
     Transform2D transform;
-    transform.setScale( { 4.0f, 2.0f } );
+    transform.setScale( { 0.5f, 0.5f } );
     transform.setAnchor( { static_cast<float>( sprite.getWidth() ) * 0.5f, static_cast<float>( sprite.getHeight() ) * 0.5f } );  // Center the anchor point on the sprite.
     transform.setPosition( { static_cast<float>( image.getWidth() ) * 0.5f, static_cast<float>( image.getHeight() ) * 0.5f } );  // Center the sprite on the screen.
 
