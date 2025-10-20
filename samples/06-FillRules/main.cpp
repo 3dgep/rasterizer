@@ -160,7 +160,7 @@ int main()
             {
                 rasterizer.drawLine( verts[2], verts[0] );
             }
-            rasterizer.state.color = Color::Green.withAlpha( 0.5f );
+            rasterizer.state.color = Color::Lime.withAlpha( 0.5f );
             if ( isTopLeft( verts[0], verts[2] ) )
             {
                 rasterizer.drawLine( verts[0], verts[2] );

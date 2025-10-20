@@ -104,7 +104,7 @@ void drawTriangle( Rasterizer& rasterizer, const glm::ivec2& v0, const glm::ivec
             }
             if ( orient2D( v1, v2, { x, y } ) > 0 )
             {
-                image->plot<false>( x, y, Color::Green, blendMode );
+                image->plot<false>( x, y, Color::Lime, blendMode );
             }
             if ( orient2D( v2, v0, { x, y } ) > 0 )
             {
@@ -114,7 +114,7 @@ void drawTriangle( Rasterizer& rasterizer, const glm::ivec2& v0, const glm::ivec
     }
 
     drawThickLine( rasterizer, v0, v1, Color::Red );
-    drawThickLine( rasterizer, v1, v2, Color::Green );
+    drawThickLine( rasterizer, v1, v2, Color::Lime );
     drawThickLine( rasterizer, v2, v0, Color::Blue );
 
     drawVertex( rasterizer, v0, Color::Magenta );
@@ -149,7 +149,7 @@ void drawQuad( Rasterizer& rasterizer, const glm::ivec2& v0, const glm::ivec2& v
             }
             if ( o12 > 0 )
             {
-                image->plot<false>( x, y, Color::Green, blendMode );
+                image->plot<false>( x, y, Color::Lime, blendMode );
             }
             if ( o20 > 0 )
             {
@@ -161,7 +161,7 @@ void drawQuad( Rasterizer& rasterizer, const glm::ivec2& v0, const glm::ivec2& v
             }
             if ( o30 > 0 )
             {
-                image->plot<false>( x, y, Color::Green, blendMode );
+                image->plot<false>( x, y, Color::Lime, blendMode );
             }
             if ( o02 > 0 )
             {
@@ -171,11 +171,11 @@ void drawQuad( Rasterizer& rasterizer, const glm::ivec2& v0, const glm::ivec2& v
     }
 
     drawThickLine( rasterizer, v0, v1, Color::Red );
-    drawThickLine( rasterizer, v1, v2, Color::Green );
+    drawThickLine( rasterizer, v1, v2, Color::Lime );
     drawThickLine( rasterizer, v2, v0, Color::Blue );
 
     drawThickLine( rasterizer, v2, v3, Color::Red );
-    drawThickLine( rasterizer, v3, v0, Color::Green );
+    drawThickLine( rasterizer, v3, v0, Color::Lime );
 
     drawVertex( rasterizer, v0, Color::Magenta );
     drawVertex( rasterizer, v1, Color::Yellow );

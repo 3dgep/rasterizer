@@ -133,7 +133,7 @@ int main()
 
     Vertex2D initialVerts[] = {
         { { 3 * image.getWidth() / 4, image.getHeight() / 4 }, { 1.0f, 0.0f }, Color::Red },
-        { { 3 * image.getWidth() / 4, 3 * image.getHeight() / 4 }, { 1.0f, 1.0f }, Color::Green },
+        { { 3 * image.getWidth() / 4, 3 * image.getHeight() / 4 }, { 1.0f, 1.0f }, Color::Lime },
         { { image.getWidth() / 4, 3 * image.getHeight() / 4 }, { 0.0f, 1.0f }, Color::Blue }
     };
 

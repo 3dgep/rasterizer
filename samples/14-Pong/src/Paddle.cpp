@@ -65,7 +65,7 @@ void Paddle::draw( sr::Rasterizer& rasterizer )
     rasterizer.state.fillMode = FillMode::WireFrame;
     rasterizer.drawAABB( getAABB() );
 
-    rasterizer.state.color = Color::Green;
+    rasterizer.state.color = Color::Lime;
     rasterizer.drawLine( m_Position, m_Position + m_Velocity );
 #endif
 }
