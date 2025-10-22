@@ -1,24 +1,21 @@
 #include <Game.hpp>
 
-#include <graphics/Text.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/Input.hpp>
 
-#include <input/Input.hpp>
+#include <fmt/core.h>
+#include <string>
 
-#include <format>
-#include <iostream>
+using namespace Graphics;
+using namespace Math;
 
-using namespace sr::graphics;
-using namespace input;
-using Keyboard::Key;
-
-Game::Game( int screenWidth, int screenHeight )
-: m_Window( "Pixel Adventure", screenWidth, screenHeight, true )
-, m_Image( screenWidth, screenHeight )
-, m_FPSText( Font::DefaultFont )
+Game::Game( uint32_t screenWidth, uint32_t screenHeight )
+: image { screenWidth, screenHeight }
+, arial20 { "assets/fonts/arial.ttf", 20 }
+, arial24 { "assets/fonts/arial.ttf", 24 }
 {
-
     // Input that controls the characters horizontal movement.
-    Input::addAxisCallback( "Horizontal", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::mapAxis( "Horizontal", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         float leftX = 0.0f;
 
         for ( auto& gamePadState: gamePadStates )
@@ -39,7 +36,7 @@ Game::Game( int screenWidth, int screenHeight )
     } );
 
     // Input that controls jumping.
-    Input::addButtonDownCallback( "Jump", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::mapButtonDown( "Jump", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         bool a = false;
 
         for ( auto& gamePadState: gamePadStates )
@@ -47,15 +44,15 @@ Game::Game( int screenWidth, int screenHeight )
             a = a || gamePadState.a == ButtonState::Pressed;
         }
 
-        const bool space = keyboardState.isKeyPressed( Key::Space );
-        const bool up    = keyboardState.isKeyPressed( Key::Up );
-        const bool w     = keyboardState.isKeyPressed( Key::W );
+        const bool space = keyboardState.isKeyPressed( KeyCode::Space );
+        const bool up    = keyboardState.isKeyPressed( KeyCode::Up );
+        const bool w     = keyboardState.isKeyPressed( KeyCode::W );
 
         return a || space || up || w;
     } );
 
     // Input to go to the next map.
-    Input::addButtonDownCallback( "Next", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::mapButtonDown( "Next", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         bool start = false;
 
         for ( auto& gamePadState: gamePadStates )
@@ -67,7 +64,7 @@ Game::Game( int screenWidth, int screenHeight )
     } );
 
     // Input to go to the previous map.
-    Input::addButtonDownCallback( "Previous", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::mapButtonDown( "Previous", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         bool back = false;
 
         for ( auto& gamePadState: gamePadStates )
@@ -79,7 +76,7 @@ Game::Game( int screenWidth, int screenHeight )
     } );
 
     // Input to go to reload the current map.
-    Input::addButtonDownCallback( "Reload", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::mapButtonDown( "Reload", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         bool b = false;
 
         for ( auto& gamePadState: gamePadStates )
@@ -87,70 +84,80 @@ Game::Game( int screenWidth, int screenHeight )
             b = b || gamePadState.b == ButtonState::Pressed;
         }
 
-        const bool enter = keyboardState.isKeyPressed( Key::Enter );
+        const bool enter = keyboardState.isKeyPressed( KeyCode::Enter );
 
         return b || enter;
     } );
 
-    m_Rasterizer.state.colorTarget = &m_Image;
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Blue.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Brown.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Gray.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Green.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Pink.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Purple.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Yellow.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
+    // The loadLevel function will switch to the next level.
+    // Setting the current background to the last background ensures
+    // the first background is used when the first level is loaded.
+    currentBackground = backgrounds.end() - 1;
 
-    m_Backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Blue.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
-    m_Backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Brown.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
-    m_Backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Gray.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
-    m_Backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Green.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
-    m_Backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Pink.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
-    m_Backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Purple.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
-    m_Backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Yellow.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
+    project.loadFromFile( "assets/Pixel Adventure/Pixel Adventure.ldtk" );
 
-    m_CurrentBackground = m_Backgrounds.end() - 1;
+    loadLevel( 0, 0 );
 
-    loadLevel( 0 );
-}
+    transition = Transition( "assets/Pixel Adventure/Other/Transition.png" );
 
-void Game::loadLevel( size_t levelId )
-{
-    m_CurrentLevelId = levelId % 4; // levels.size();
-
-    if ( ++m_CurrentBackground == m_Backgrounds.end() )
+    // Buttons
     {
-        m_CurrentBackground = m_Backgrounds.begin();
+        // Previous button.
+        SpriteSheet sheet { "assets/Pixel Adventure/Menu/Buttons/Previous.png", {}, {}, 0, 0, BlendMode::AlphaBlend };
+        previousButton = Button { sheet };
+        previousButton.setCallback( [this] {
+            onPreviousClicked();
+        } );
+        // Initially, we are on the first level, so hide the previous button.
+        previousButton.enable( false );
+    }
+    {
+        // Next button.
+        SpriteSheet sheet { "assets/Pixel Adventure/Menu/Buttons/Next.png", {}, {}, 0, 0, BlendMode::AlphaBlend };
+        nextButton = Button { sheet };
+        nextButton.setCallback( [this] {
+            onNextClicked();
+        } );
+    }
+    {
+        // Restart button.
+        SpriteSheet sheet { "assets/Pixel Adventure/Menu/Buttons/Restart.png", {}, {}, 0, 0, BlendMode::AlphaBlend };
+        restartButton = Button { sheet };
+        restartButton.setCallback( [this] {
+            onRestartClicked();
+        } );
     }
 }
 
-bool Game::update()
+void Game::Update()
 {
-    SDL_Event event;
-    while ( m_Window.pollEvent( event ) )
+    static double      totalTime = 0.0;
+    static uint64_t    frames    = 0;
+    static std::string fps       = "FPS: 0";
+
+    timer.tick();
+    ++frames;
+    totalTime += timer.elapsedSeconds();
+    if ( totalTime > 1.0 )
     {
-        switch ( event.type )
-        {
-        case SDL_EVENT_KEY_DOWN:
-            switch ( event.key.key )
-            {
-            case SDLK_ESCAPE:
-                m_Window.destroy();
-                return false;
-            case SDLK_V:
-                m_Window.toggleVSync();
-                break;
-            case SDLK_RETURN:
-                if ( ( event.key.mod & SDL_KMOD_ALT ) != 0 )
-                {
-                case SDLK_F11:
-                    m_Window.toggleFullscreen();
-                }
-                break;
-            }
-            break;
-        }
+        fps       = fmt::format( "FPS: {:.3f}", static_cast<double>( frames ) / totalTime );
+        frames    = 0;
+        totalTime = 0.0;
     }
 
-    m_Timer.tick();
+    // Update and draw the background.
+    //image.clear( Color::Black );
+    currentBackground->update( timer );
+    currentBackground->draw( image );
 
-    m_CurrentBackground->update( m_Timer );
-    m_CurrentBackground->draw( m_Rasterizer );
-
-    auto elapsedTime = static_cast<float>( m_Timer.elapsedSeconds() );
+    auto elapsedTime = static_cast<float>( timer.elapsedSeconds() );
     do
     {
         // Update the input state.
@@ -159,53 +166,233 @@ bool Game::update()
         // Check if next/previous input buttons have been pressed.
         if ( Input::getButtonDown( "Next" ) )
         {
-            onNext();
+            onNextClicked();
         }
         if ( Input::getButtonDown( "Previous" ) )
         {
-            onPrevious();
+            onPreviousClicked();
         }
         if ( Input::getButtonDown( "Reload" ) )
         {
-            onRestart();
+            onRestartClicked();
         }
 
-        // m_CurrentLevel.update( std::min( elapsedTime, m_PhysicsTick ) );
-        elapsedTime -= m_PhysicsTick;
+        currentLevel.update( std::min( elapsedTime, physicsTick ) );
+        elapsedTime -= physicsTick;
     } while ( elapsedTime > 0.0f );
 
-    // Draw an FPS counter on the screen.
-    if ( m_Timer.totalSeconds() > 1.0 )
+    // Check to see if the player died
+    if (currentLevel.getPlayer().isDead())
     {
-        m_FPSText = std::format( "FPS: {:.0f}", m_Timer.FPS() );
-        m_Timer.reset();
+        // Reload the level.
+        onRestartClicked();
     }
 
-    m_Rasterizer.drawText( m_FPSText, 10, 10 );
+    currentLevel.draw( image );
 
-    m_Window.clear( Color { 0x301F21 } );
-    m_Window.present( m_Image );
+    // Draw the buttons
+    restartButton.draw( image );
+    nextButton.draw( image );
+    previousButton.draw( image );
 
-    return true;
+    // Update the transition effect.
+    switch ( transitionState )
+    {
+    case TransitionState::None:
+        transitionTime = 0.0f;
+        break;
+    case TransitionState::In:
+        transitionTime += static_cast<float>( timer.elapsedSeconds() );
+        if ( transitionTime > transitionDuration )
+        {
+            loadLevel( nextLevelId, ++currentCharacterId );
+            transitionState = TransitionState::Out;
+        }
+        break;
+    case TransitionState::Out:
+        transitionTime -= static_cast<float>( timer.elapsedSeconds() );
+        if ( transitionTime < 0.0f )
+            transitionState = TransitionState::None;
+        break;
+    }
+
+    if ( transitionState != TransitionState::None )
+    {
+        transition.setRatio( transitionTime / transitionDuration );
+        transition.draw( image );
+    }
+
+    // Draw an FPS counter in the corner of the screen.
+    image.drawText( arial20, fps, 6, 20, Color::Black );
+    image.drawText( arial20, fps, 4, 18, Color::White );
+
+#if _DEBUG
+    // Draw some text at the mouse position.
+    image.drawText( arial20, fmt::format( "({}, {})", mousePos.x, mousePos.y ), mousePos.x, mousePos.y, Color::White );
+#endif
+
+//    timer.limitFPS( 30 );
 }
 
-void Game::onPrevious()
+void Game::processEvent( const Graphics::Event& _event )
 {
-    std::cout << "Previous level!" << std::endl;
+    // Copy the event so we can modify it.
+    Event event = _event;
 
-    loadLevel( --m_CurrentLevelId );
+    switch ( event.type )
+    {
+    case Event::None:
+        break;
+    case Event::Close:
+        break;
+    case Event::KeyPressed:
+        break;
+    case Event::KeyReleased:
+        break;
+    case Event::MouseMoved:
+        onMouseMoved( event.mouseMove );
+        break;
+    case Event::MouseButtonPressed:
+        break;
+    case Event::MouseButtonReleased:
+        break;
+    case Event::MouseWheel:
+        break;
+    case Event::MouseHWheel:
+        break;
+    case Event::MouseEnter:
+        break;
+    case Event::MouseLeave:
+        break;
+    case Event::Resize:
+        onResized( event.resize );
+        break;
+    case Event::EndResize:
+        break;
+    }
+
+    previousButton.processEvents( event );
+    nextButton.processEvents( event );
+    restartButton.processEvents( event );
 }
 
-void Game::onNext()
+void Game::onMouseMoved( Graphics::MouseMovedEventArgs& args )
 {
-    std::cout << "Next level!" << std::endl;
+    // Compute the mouse position relative to the game screen (which can be scaled if the window is resized).
+    const glm::vec2 scale {
+        static_cast<float>( image.getWidth() ) / static_cast<float>( gameRect.width ),
+        static_cast<float>( image.getHeight() ) / static_cast<float>( gameRect.height )
+    };
+    const glm::vec2 offset { gameRect.topLeft() };
 
-    loadLevel( m_CurrentLevelId++ );
+    args.x = std::lround( ( static_cast<float>( args.x ) - offset.x ) * scale.x );
+    args.y = std::lround( ( static_cast<float>( args.y ) - offset.y ) * scale.y );
+
+    mousePos = { args.x, args.y };
 }
 
-void Game::onRestart()
+void Game::onResized( Graphics::ResizeEventArgs& args )
 {
-    std::cout << "Restart level!" << std::endl;
+    const float aspectRatio = static_cast<float>( image.getWidth() ) / static_cast<float>( image.getHeight() );
+    const float scaleWidth  = static_cast<float>( args.width ) / static_cast<float>( image.getWidth() );
+    const float scaleHeight = static_cast<float>( args.height ) / static_cast<float>( image.getHeight() );
 
-    loadLevel( m_CurrentLevelId );
+    int width;
+    int height;
+
+    if ( scaleWidth < scaleHeight )
+    {
+        // Size according to the width.
+        width  = args.width;
+        height = static_cast<int>( static_cast<float>( width ) / aspectRatio );
+    }
+    else
+    {
+        // Size according to the height.
+        height = args.height;
+        width  = static_cast<int>( static_cast<float>( height ) * aspectRatio );
+    }
+
+    gameRect = {
+        ( args.width - width ) / 2,
+        ( args.height - height ) / 2,
+        width, height
+    };
+
+    // Position the buttons in the top-right corner of the game screen.
+    constexpr float spacing = 3.0f;
+    float           y       = spacing;
+    float           x       = static_cast<float>( image.getWidth() ) - spacing;
+
+    x -= restartButton.getWidth() + spacing;
+    restartButton.setTransform( Transform2D { { x, y } } );
+
+    x -= nextButton.getWidth() + spacing;
+    nextButton.setTransform( Transform2D { { x, y } } );
+
+    x -= previousButton.getWidth() + spacing;
+    previousButton.setTransform( Transform2D { { x, y } } );
+}
+
+void Game::onPreviousClicked()
+{
+    std::cout << "Previous Clicked!" << std::endl;
+
+    if ( transitionState != TransitionState::None )
+        return;
+
+    if ( currentLevelId > 0 )
+    {
+
+        transitionState = TransitionState::In;
+        transitionTime  = 0.0f;
+
+        nextLevelId = currentLevelId - 1;
+    }
+}
+
+void Game::onNextClicked()
+{
+    std::cout << "Next Clicked!" << std::endl;
+
+    if ( transitionState != TransitionState::None )
+        return;
+
+    transitionState = TransitionState::In;
+    transitionTime  = 0.0f;
+
+    nextLevelId = currentLevelId + 1;
+}
+
+void Game::onRestartClicked()
+{
+    std::cout << "Restart Clicked!" << std::endl;
+
+    if ( transitionState != TransitionState::None )
+        return;
+
+    transitionState = TransitionState::In;
+    transitionTime  = 0.0f;
+}
+
+void Game::loadLevel( size_t levelId, size_t characterId )
+{
+    auto& world  = project.getWorld();
+    auto& levels = world.allLevels();
+
+    currentLevelId = levelId % levels.size();
+
+    currentLevel = Level { project, world, levels[currentLevelId] };
+
+    currentLevel.setCharacter( characterId );
+
+    previousButton.enable( currentLevelId != 0 );
+
+    // Also change the background
+    if ( ++currentBackground == backgrounds.end() )
+    {
+        currentBackground = backgrounds.begin();
+    }
+
+    transitionState = TransitionState::Out;
 }

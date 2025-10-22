@@ -1,18 +1,25 @@
 #pragma once
 
-#include <Timer.hpp>
-#include <graphics/Image.hpp>
-#include <graphics/Rasterizer.hpp>
-#include <graphics/Window.hpp>
-
 #include "Background.hpp"
+#include "Button.hpp"
+#include "Level.hpp"
+#include "Transition.hpp"
 
-#include <vector>
+#include <Graphics/Events.hpp>
+#include <Graphics/Font.hpp>
+#include <Graphics/Image.hpp>
+#include <Graphics/Timer.hpp>
 
-class Game
+#include <Math/Rect.hpp>
+
+#include <LDtkLoader/Project.hpp>
+
+#include <cstdint>
+
+class Game final
 {
 public:
-    Game( int screenWidth, int screenHeight );
+    Game( uint32_t screenWidth, uint32_t screenHeight );
     ~Game() = default;
 
     Game( const Game& )            = delete;
@@ -20,32 +27,74 @@ public:
     Game& operator=( const Game& ) = delete;
     Game& operator=( Game&& )      = delete;
 
-    void loadLevel( size_t levelId );
+    void Update();
 
-    /// <summary>
-    /// Update and draw the game.
-    /// </summary>
-    /// <returns>`true` to continue updating the game, `false` to terminate the application.</returns>
-    bool update();
+    const Graphics::Image& getImage() const noexcept
+    {
+        return image;
+    }
+
+    void processEvent( const Graphics::Event& event );
+
+    void onMouseMoved( Graphics::MouseMovedEventArgs& args );
+    void onResized( Graphics::ResizeEventArgs& args );
 
     // Button handlers.
-    void onPrevious();
-    void onNext();
-    void onRestart();
+    void onPreviousClicked();
+    void onNextClicked();
+    void onRestartClicked();
 
-private:
-    // Maximum time for a physics tick.
-    const float m_PhysicsTick = 1.0f / 60.0f;
+    void loadLevel( size_t levelId, size_t characterId );
 
-    Timer          m_Timer;
-    sr::Window     m_Window;
-    sr::Image      m_Image;
-    sr::Rasterizer m_Rasterizer;
-    sr::Text       m_FPSText;
+protected:
+    enum class TransitionState
+    {
+        None,
+        In,
+        Out,
+    };
 
-    size_t m_CurrentLevelId = 0u;
+    ldtk::Project project;
+
+    Graphics::Image image;
+    Graphics::Timer timer;
+
+    // Maximum tick time for physics.
+    const float physicsTick = 1.0f / 60.0f;
+
+    // The game rectangle in the Window's coordinate frame.
+    // Used for translating mouse coordinates.
+    Math::RectI gameRect;
+
+    // Translated mouse position.
+    glm::ivec2 mousePos;
+
+    // Fonts.
+    Graphics::Font arial20;
+    Graphics::Font arial24;
 
     // Backgrounds
-    std::vector<Background>           m_Backgrounds;
-    std::vector<Background>::iterator m_CurrentBackground;
+    using BackgroundList = std::vector<Background>;
+    BackgroundList           backgrounds;
+    BackgroundList::iterator currentBackground;
+
+    // Level transition effect.
+    Transition      transition;
+    const float     transitionDuration = 0.3f;
+    float           transitionTime     = transitionDuration;
+    TransitionState transitionState    = TransitionState::None;
+
+    // Buttons
+    Button previousButton;
+    Button nextButton;
+    Button restartButton;
+
+    // Levels
+    Level  currentLevel;
+    size_t currentLevelId = 0u;
+    // Which level to play next.
+    size_t nextLevelId = 0u;
+
+    // Player character.
+    size_t currentCharacterId = 0u;
 };
