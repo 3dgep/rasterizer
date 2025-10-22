@@ -13,8 +13,7 @@
 static std::random_device rd;
 static std::minstd_rand   rng( rd() );
 
-using namespace Math;
-using namespace Graphics;
+using namespace sr;
 
 Box loadBox( const std::filesystem::path& basePath, int hitPoints )
 {
@@ -26,9 +25,9 @@ Box loadBox( const std::filesystem::path& basePath, int hitPoints )
     const auto breakSprite = ResourceManager::loadSpriteSheet( basePath / "Break.png", 28, 24, 0, 0, BlendMode::AlphaBlend );
 
     // Now add the sprite animations to the box.
-    box.addAnimation( "Idle", SpriteAnim { idle, 20 } );
-    box.addAnimation( "Hit", SpriteAnim { hit, 20 } );
-    box.addAnimation( "Break", SpriteAnim { breakSprite, 20 } );
+    box.addAnimation( "Idle", SpriteAnimation { idle, 20 } );
+    box.addAnimation( "Hit", SpriteAnimation { hit, 20 } );
+    box.addAnimation( "Break", SpriteAnimation { breakSprite, 20 } );
 
     return box;
 }
@@ -43,7 +42,7 @@ Level::Level( const ldtk::Project& project, const ldtk::World& world, const ldtk
     // Load the fruit collected animation.
     {
         auto spriteSheet = ResourceManager::loadSpriteSheet( projectPath / "Items/Fruits/Collected.png", 32, 32, 0, 0, BlendMode::AlphaBlend );
-        pickupCollected  = SpriteAnim { spriteSheet, 20 };
+        pickupCollected  = SpriteAnimation { spriteSheet, 20 };
     }
 
     // Load the fruit sprites.
@@ -77,8 +76,7 @@ Level::Level( const ldtk::Project& project, const ldtk::World& world, const ldtk
         // Add a few pixels padding if it is a spike trap.
         int padding = isTrap ? 2 : 0;
 
-        Collider collider
-        {
+        Collider collider {
             .type     = ColliderType::Default,
             .aabb     = AABB { { p.x + padding, p.y + padding, 0.0 }, { p.x + s.x - 1 - padding, p.y + s.y - 1 - padding, 0.0f } },
             .isOneWay = oneWay.value_or( false ),
@@ -130,14 +128,14 @@ Level::Level( const ldtk::Project& project, const ldtk::World& world, const ldtk
 
         for ( auto& tile: intGrid.allTiles() )
         {
-            const auto& gridPos             = tile.getGridPosition();
-            tileMap( gridPos.y, gridPos.x ) = tile.tileId;
+            const auto& gridPos           = tile.getGridPosition();
+            tileMap[gridPos.x, gridPos.y] = tile.tileId;
         }
 
         for ( auto& tile: tilesLayer.allTiles() )
         {
-            const auto& gridPos             = tile.getGridPosition();
-            tileMap( gridPos.y, gridPos.x ) = tile.tileId;
+            const auto& gridPos           = tile.getGridPosition();
+            tileMap[gridPos.x, gridPos.y] = tile.tileId;
         }
     }
 
@@ -153,8 +151,8 @@ Level::Level( const ldtk::Project& project, const ldtk::World& world, const ldtk
 
         for ( auto& tile: spikeLayer.allTiles() )
         {
-            const auto& gridPos              = tile.getGridPosition();
-            spikeMap( gridPos.y, gridPos.x ) = tile.tileId;
+            const auto& gridPos            = tile.getGridPosition();
+            spikeMap[gridPos.x, gridPos.y] = tile.tileId;
         }
     }
 
@@ -670,32 +668,35 @@ void Level::setCharacter( size_t characterId )
     player.setCharacter( characterId );
 }
 
-void Level::draw( Graphics::Image& image ) const
+void Level::draw( Rasterizer& rasterizer ) const
 {
-    tileMap.draw( image );
-    spikeMap.draw( image );
+    rasterizer.drawTileMap( tileMap );
+    rasterizer.drawTileMap( spikeMap );
 
     for ( auto& pickup: allPickups )
     {
-        pickup.draw( image );
+        pickup.draw( rasterizer );
     }
 
     for ( auto& effect: effects )
     {
-        effect.draw( image );
+        effect.draw( rasterizer );
     }
 
     for ( auto& box: boxes )
     {
-        box->draw( image );
+        box->draw( rasterizer );
     }
 
-    player.draw( image );
+    player.draw( rasterizer );
 
 #if _DEBUG
     for ( const auto& collider: colliders )
     {
-        image.drawAABB( collider.aabb, collider.isOneWay ? Color::Yellow : Color::Red, BlendMode::Disable, FillMode::WireFrame );
+        auto r = rasterizer;
+        r.state.color = collider.isOneWay ? Color::Yellow : Color::Red;
+        r.state.fillMode = FillMode::WireFrame;
+        r.drawAABB( collider.aabb );
     }
 #endif
 }

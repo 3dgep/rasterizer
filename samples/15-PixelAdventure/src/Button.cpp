@@ -1,7 +1,6 @@
 #include "Button.hpp"
 
-using namespace Graphics;
-using namespace Math;
+using namespace sr;
 
 Transform2D operator+( Transform2D t, const glm::vec2& v )
 {
@@ -15,8 +14,8 @@ Transform2D operator-( Transform2D t, const glm::vec2& v )
     return t;
 }
 
-Button::Button( const Graphics::SpriteSheet& sheet, const Math::Transform2D& transform, const std::function<void()>& onClick )
-: spriteSheet { sheet }
+Button::Button( SpriteSheet sheet, const Transform2D& transform, const std::function<void()>& onClick )
+: spriteSheet { std::move(sheet) }
 , transform { transform }
 , onClick { onClick }
 {
@@ -32,26 +31,26 @@ Button::Button( const Graphics::SpriteSheet& sheet, const Math::Transform2D& tra
     } );
 }
 
-void Button::processEvents( const Graphics::Event& event )
+void Button::processEvents( const SDL_Event& event )
 {
     if ( !enabled )
         return;
 
     switch ( event.type )
     {
-    case Event::MouseMoved:
-        if ( aabb.contains( { event.mouseMove.x, event.mouseMove.y, 0 } ) )
+    case SDL_EVENT_MOUSE_MOTION:
+        if ( aabb.contains( { event.motion.x, event.motion.y, 0 } ) )
             setState( State::Hover );
         else
             setState( State::Default );
         break;
 
-    case Event::MouseButtonPressed:
+    case SDL_EVENT_MOUSE_BUTTON_DOWN:
         if ( state == State::Hover )
             setState( State::Pressed );
         break;
 
-    case Event::MouseButtonReleased:
+    case SDL_EVENT_MOUSE_BUTTON_UP:
         if ( state == State::Pressed )
             if ( onClick )
                 onClick();
@@ -59,7 +58,7 @@ void Button::processEvents( const Graphics::Event& event )
     }
 }
 
-void Button::draw( Graphics::Image& image )
+void Button::draw( Rasterizer& rasterizer )
 {
     if ( !enabled )
         return;
@@ -80,11 +79,12 @@ void Button::draw( Graphics::Image& image )
 
     // Button animation.
     animTimer.tick();
+
     const float animTime = static_cast<float>( animTimer.totalSeconds() );
     const float yOffset  = animCurve( animTime );
 
     if ( spriteToDraw )
-        image.drawSprite( *spriteToDraw, transform - glm::vec2 { 0, state == State::Pressed ? -yOffset : yOffset } );
+        rasterizer.drawSprite( *spriteToDraw, transform - glm::vec2 { 0, state == State::Pressed ? -yOffset : yOffset } );
 
     // image.drawAABB( aabb, Color::Red, {}, FillMode::WireFrame );
 }

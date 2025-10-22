@@ -2,7 +2,7 @@
 
 #include <Graphics/ResourceManager.hpp>
 
-using namespace Graphics;
+using namespace sr;
 
 Transition::Transition( const std::filesystem::path& fileName )
 : transition { ResourceManager::loadImage( fileName )}
@@ -58,10 +58,10 @@ void Transition::setRatio( float ratio )
     }
 }
 
-void Transition::draw( Graphics::Image& image ) const
+void Transition::draw( Rasterizer& rasterizer ) const
 {
     for ( auto& transform: transforms )
     {
-        image.drawSprite( sprite, transform );
+        rasterizer.drawSprite( sprite, transform );
     }
 }

@@ -1,6 +1,8 @@
 #include <Effect.hpp>
 
-Effect::Effect( const Graphics::SpriteAnim& spriteAnim, const Math::Transform2D& transform )
+using namespace sr;
+
+Effect::Effect( const SpriteAnimation& spriteAnim, const Transform2D& transform )
 : spriteAnim{&spriteAnim}
 , transform{transform}
 {}
@@ -10,10 +12,10 @@ void Effect::update( float deltaTime )
     time += deltaTime;
 }
 
-void Effect::draw( Graphics::Image& image ) const
+void Effect::draw( Rasterizer& rasterizer ) const
 {
     if ( spriteAnim )
-        image.drawSprite( spriteAnim->at( time ), transform );
+        rasterizer.drawSprite( spriteAnim->at( time ), transform );
 }
 
 bool Effect::isDone() const noexcept

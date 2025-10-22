@@ -2,13 +2,15 @@
 
 #include "Curve.hpp"
 
-#include <Graphics/Events.hpp>
-#include <Graphics/Image.hpp>
-#include <Graphics/SpriteSheet.hpp>
-#include <Graphics/Timer.hpp>
+#include <Timer.hpp>
 
-#include <Math/AABB.hpp>
-#include <Math/Transform2D.hpp>
+#include <graphics/Rasterizer.hpp>
+#include <graphics/SpriteSheet.hpp>
+
+#include <math/AABB.hpp>
+#include <math/Transform2D.hpp>
+
+#include <SDL3/SDL_events.h>
 
 #include <functional>
 
@@ -33,16 +35,16 @@ public:
     /// <param name="sheet">A sprite sheet that contains the sprites for the button states.</param>
     /// <param name="transform">The transform to place the button on the screen.</param>
     /// <param name="onClick">The callback function to invoke when the button is clicked.</param>
-    Button( const Graphics::SpriteSheet& sheet, const Math::Transform2D& transform = Math::Transform2D {}, const std::function<void()>& onClick = {} );
+    Button( sr::graphics::SpriteSheet sheet, const sr::math::Transform2D& transform = sr::math::Transform2D {}, const std::function<void()>& onClick = {} );
 
-    void setTransform( const Math::Transform2D& transform ) noexcept
+    void setTransform( const sr::math::Transform2D& transform ) noexcept
     {
         this->transform = transform;
-        aabb            = Math::AABB::fromRect( spriteSheet[0].getRect() );
+        aabb            = sr::math::AABB::fromRect( spriteSheet[0].getRect() );
         aabb *= transform;
     }
 
-    const Math::Transform2D& getTransform() const noexcept
+    const sr::math::Transform2D& getTransform() const noexcept
     {
         return transform;
     }
@@ -89,25 +91,25 @@ public:
     /// Forward any window events to the button. This allows the button to handle mouse over/mouse clicked events.
     /// </summary>
     /// <param name="event">The event to process.</param>
-    void processEvents( const Graphics::Event& event );
+    void processEvents( const SDL_Event& event );
 
     /// <summary>
-    /// Draw this sprite to the image.
+    /// Draw this button using the provided rasterizer.
     /// </summary>
-    /// <param name="image">The image to draw this button to.</param>
-    void draw( Graphics::Image& image );
+    /// <param name="rasterizer">The rasterizer to use to draw this button.</param>
+    void draw( sr::graphics::Rasterizer& rasterizer );
 
 private:
     void setState( State newState );
     void endState( State oldState );
     void startState( State newState );
 
-    Graphics::SpriteSheet       spriteSheet;
-    Math::Transform2D     transform;
-    Math::AABB            aabb;
-    Graphics::Timer             animTimer;
-    Curve<float>          animCurve;
-    std::function<void()> onClick;
-    State                 state   = State::Default;
-    bool                  enabled = true;
+    sr::graphics::SpriteSheet spriteSheet;
+    sr::math::Transform2D     transform;
+    sr::math::AABB            aabb;
+    Timer                     animTimer;
+    Curve<float>              animCurve;
+    std::function<void()>     onClick;
+    State                     state   = State::Default;
+    bool                      enabled = true;
 };

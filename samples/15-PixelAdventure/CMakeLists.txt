@@ -18,6 +18,7 @@ set( INC_FILES
 set( SRC_FILES
     src/Background.cpp
     src/Box.cpp
+    src/Button.cpp
     src/Character.cpp
     src/Effect.cpp
     src/Game.cpp
@@ -35,5 +36,5 @@ add_executable( ${TARGET_NAME} ${ALL_FILES} )
 target_include_directories( ${TARGET_NAME} PRIVATE inc )
 
 target_link_libraries( ${TARGET_NAME} 
-    PRIVATE sr::graphics sr::math input::SDL3 00-Common LDtkLoader::LDtkLoader
+    PRIVATE sr::graphics sr::math input::SDL3 00-Common Audio::Audio LDtkLoader::LDtkLoader
 )

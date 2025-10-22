@@ -127,6 +127,11 @@ public:
         drawCircle( circle.center.x, circle.center.y, circle.radius );
     }
 
+    void drawCircle( const Sphere& sphere )
+    {
+        drawCircle( sphere.center.x, sphere.center.y, sphere.radius );
+    }
+
     /// <summary>
     /// Draw a triangle using the current rasterizer state.<br>
     /// Required state:
@@ -171,7 +176,7 @@ public:
         drawSprite( sprite, transform.getMatrix() );
     }
 
-    void drawTileMap( const TileMap& tileMap, int x, int y );
+    void drawTileMap( const TileMap& tileMap, int x = 0, int y = 0 );
 
     void drawTileMap( const TileMap& tileMap, const glm::mat3& transform );
 

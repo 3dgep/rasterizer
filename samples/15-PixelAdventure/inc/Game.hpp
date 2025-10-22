@@ -5,18 +5,20 @@
 #include "Level.hpp"
 #include "Transition.hpp"
 
-#include <Graphics/Events.hpp>
-#include <Graphics/Font.hpp>
-#include <Graphics/Image.hpp>
-#include <Graphics/Timer.hpp>
+#include <Timer.hpp>
 
-#include <Math/Rect.hpp>
+#include <graphics/Font.hpp>
+#include <graphics/Image.hpp>
+
+#include <math/Rect.hpp>
 
 #include <LDtkLoader/Project.hpp>
 
+#include <SDL3/SDL_events.h>
+
 #include <cstdint>
 
-class Game final
+class Game
 {
 public:
     Game( uint32_t screenWidth, uint32_t screenHeight );
@@ -27,17 +29,17 @@ public:
     Game& operator=( const Game& ) = delete;
     Game& operator=( Game&& )      = delete;
 
-    void Update();
+    void update();
 
-    const Graphics::Image& getImage() const noexcept
+    const sr::graphics::Image& getImage() const noexcept
     {
         return image;
     }
 
-    void processEvent( const Graphics::Event& event );
+    void processEvent( const SDL_Event& event );
 
-    void onMouseMoved( Graphics::MouseMovedEventArgs& args );
-    void onResized( Graphics::ResizeEventArgs& args );
+    void onMouseMoved( SDL_MouseMotionEvent& args );
+    void onResized( SDL_WindowEvent& args );
 
     // Button handlers.
     void onPreviousClicked();
@@ -46,7 +48,9 @@ public:
 
     void loadLevel( size_t levelId, size_t characterId );
 
-protected:
+private:
+    void drawFPS();
+
     enum class TransitionState
     {
         None,
@@ -56,22 +60,23 @@ protected:
 
     ldtk::Project project;
 
-    Graphics::Image image;
-    Graphics::Timer timer;
+    sr::graphics::Image      image;
+    sr::graphics::Rasterizer rasterizer;
+    Timer                    timer;
 
     // Maximum tick time for physics.
     const float physicsTick = 1.0f / 60.0f;
 
     // The game rectangle in the Window's coordinate frame.
     // Used for translating mouse coordinates.
-    Math::RectI gameRect;
+    sr::math::RectI gameRect;
 
     // Translated mouse position.
-    glm::ivec2 mousePos;
+    glm::vec2 mousePos;
 
     // Fonts.
-    Graphics::Font arial20;
-    Graphics::Font arial24;
+    sr::graphics::Font arial20;
+    sr::graphics::Font arial24;
 
     // Backgrounds
     using BackgroundList = std::vector<Background>;

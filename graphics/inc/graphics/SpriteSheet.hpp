@@ -23,23 +23,23 @@ public:
     /// Constructs a sprite sheet by loading an image from a file and dividing it into a grid of sprites.
     /// </summary>
     /// <param name="filePath">Path to the image file containing the sprites.</param>
-    /// <param name="columns">Number of sprite columns in the sheet.</param>
-    /// <param name="rows">Number of sprite rows in the sheet.</param>
-    /// <param name="padding">Space in pixels between adjacent sprites.</param>
-    /// <param name="margin">Space in pixels around the edge of the image.</param>
-    /// <param name="blendMode">Blend mode to apply when rendering sprites from this sheet.</param>
-    explicit SpriteSheet( const std::filesystem::path& filePath, uint32_t columns = 1, uint32_t rows = 1, uint32_t padding = 0, uint32_t margin = 0, const BlendMode& blendMode = BlendMode {} );
+    /// <param name="spriteWidth">The width (in pixels) of a sprite in the sprite sheet (Default: Image width) .</param>
+    /// <param name="spriteHeight">The height (in pixels) of a sprite in the sprite sheet (Default: Image height).</param>
+    /// <param name="padding">Space in pixels between adjacent sprites (Default: 0).</param>
+    /// <param name="margin">Space in pixels around the edge of the image (Default: 0).</param>
+    /// <param name="blendMode">Blend mode to apply when rendering sprites from this sheet (Default: Blending disabled).</param>
+    explicit SpriteSheet( const std::filesystem::path& filePath, std::optional<int> spriteWidth = {}, std::optional<int> spriteHeight = {}, int padding = 0, int margin = 0, const BlendMode& blendMode = BlendMode {} );
 
     /// <summary>
     /// Constructs a sprite sheet from an existing image and divides it into a grid of sprites.
     /// </summary>
     /// <param name="image">Shared pointer to the image containing the sprites.</param>
-    /// <param name="columns">Number of sprite columns in the sheet.</param>
-    /// <param name="rows">Number of sprite rows in the sheet.</param>
+    /// <param name="spriteWidth">The width (in pixels) of a sprite in the sprite sheet (Default: Image width) .</param>
+    /// <param name="spriteHeight">The height (in pixels) of a sprite in the sprite sheet (Default: Image height).</param>
     /// <param name="padding">Space in pixels between adjacent sprites.</param>
     /// <param name="margin">Space in pixels around the edge of the image.</param>
     /// <param name="blendMode">Blend mode to apply when rendering sprites from this sheet.</param>
-    explicit SpriteSheet( const std::shared_ptr<Image>& image, uint32_t columns = 1, uint32_t rows = 1, uint32_t padding = 0, uint32_t margin = 0, const BlendMode& blendMode = BlendMode {} );
+    explicit SpriteSheet( const std::shared_ptr<Image>& image, std::optional<int> spriteWidth = {}, std::optional<int> spriteHeight = {}, int padding = 0, int margin = 0, const BlendMode& blendMode = BlendMode {} );
 
     /// <summary>
     /// Constructs a sprite sheet from an image file using explicit rectangle definitions for each sprite.
@@ -97,8 +97,8 @@ public:
 
 
 private:
-    uint32_t m_Columns = 0;  // The number of sprites in the x-axis of the image.
-    uint32_t m_Rows    = 0;  // The number of sprites in the y-axis of the image.
+    int m_Columns = 0;  // The number of sprites in the x-axis of the image.
+    int m_Rows    = 0;  // The number of sprites in the y-axis of the image.
 
     std::vector<Sprite> m_Sprites;
 };

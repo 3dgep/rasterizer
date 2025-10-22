@@ -3,8 +3,8 @@
 #include "Character.hpp"
 
 #include <Audio/Sound.hpp>
-#include <Graphics/Image.hpp>
-#include <Math/Transform2D.hpp>
+#include <graphics/Rasterizer.hpp>
+#include <math/Transform2D.hpp>
 
 #include <vector>
 
@@ -24,7 +24,7 @@ public:
         Dead,
     };
 
-    explicit Player( const Math::Transform2D& transform = Math::Transform2D {} );
+    explicit Player( const sr::math::Transform2D& transform = sr::math::Transform2D {} );
 
     /// <summary>
     /// Reset the character (and choose a different character).
@@ -40,8 +40,8 @@ public:
     /// <summary>
     /// Draw the player to the image.
     /// </summary>
-    /// <param name="image">The image to draw the player to.</param>
-    void draw( Graphics::Image& image ) const noexcept;
+    /// <param name="rasterizer">The rasterizer to use to draw the player.</param>
+    void draw( sr::graphics::Rasterizer& rasterizer ) const noexcept;
 
     /// <summary>
     /// Set the state of the player.
@@ -87,37 +87,37 @@ public:
         return velocity;
     }
 
-    void setTransform( const Math::Transform2D& _transform )
+    void setTransform( const sr::math::Transform2D& _transform )
     {
         transform = _transform;
     }
 
-    const Math::Transform2D& getTransform() const noexcept
+    const sr::math::Transform2D& getTransform() const noexcept
     {
         return transform;
     }
 
-    Math::AABB getAABB() const noexcept
+    sr::math::AABB getAABB() const noexcept
     {
         return transform * aabb;
     }
 
-    Math::AABB getTopAABB() const noexcept
+    sr::math::AABB getTopAABB() const noexcept
     {
         return transform * topAABB;
     }
 
-    Math::AABB getBottomAABB() const noexcept
+    sr::math::AABB getBottomAABB() const noexcept
     {
         return transform * bottomAABB;
     }
 
-    Math::AABB getLeftAABB() const noexcept
+    sr::math::AABB getLeftAABB() const noexcept
     {
         return transform * leftAABB;
     }
 
-    Math::AABB getRightAABB() const noexcept
+    sr::math::AABB getRightAABB() const noexcept
     {
         return transform * rightAABB;
     }
@@ -149,14 +149,14 @@ private:
     std::shared_ptr<Character> currentCharacter;
 
     // The player's transform.
-    Math::Transform2D transform;
+    sr::math::Transform2D transform;
 
     // The player's AABB.
-    Math::AABB aabb;
-    Math::AABB topAABB;
-    Math::AABB bottomAABB;
-    Math::AABB leftAABB;
-    Math::AABB rightAABB;
+    sr::math::AABB aabb;
+    sr::math::AABB topAABB;
+    sr::math::AABB bottomAABB;
+    sr::math::AABB leftAABB;
+    sr::math::AABB rightAABB;
 
     // Sound effects.
     Audio::Sound jumpSound;

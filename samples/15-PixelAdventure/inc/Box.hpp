@@ -2,7 +2,7 @@
 
 #include "Character.hpp"
 
-#include <Math/AABB.hpp>
+#include <math/AABB.hpp>
 
 class Box : public Character
 {
@@ -25,7 +25,7 @@ public:
 
     void setPosition( const glm::vec2& position );
 
-    const Math::AABB& getAABB() const noexcept
+    const sr::math::AABB& getAABB() const noexcept
     {
         return aabb;
     }
@@ -54,7 +54,7 @@ public:
     /// Draw this box to the image.
     /// </summary>
     /// <param name="image"></param>
-    void draw( Graphics::Image& image ) const;
+    void draw( sr::graphics::Rasterizer& image ) const;
 
     /// <summary>
     /// Set the state of the box.
@@ -79,8 +79,8 @@ private:
     void updateHit( float deltaTime );
     void updateBreak( float deltaTime );
 
-    Math::AABB        aabb;
-    Math::Transform2D transform;
+    sr::math::AABB        aabb;
+    sr::math::Transform2D transform;
 
     State state = State::Idle;
 

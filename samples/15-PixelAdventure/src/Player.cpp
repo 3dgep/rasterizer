@@ -1,12 +1,16 @@
 #include <Player.hpp>
 
-#include <Graphics/Font.hpp>
-#include <Graphics/Input.hpp>
-#include <Graphics/ResourceManager.hpp>
-#include <Graphics/SpriteAnim.hpp>
+#include <graphics/Font.hpp>
+#include <graphics/ResourceManager.hpp>
+#include <graphics/SpriteAnimation.hpp>
+
+#include <input/Input.hpp>
 
 #include <iostream>
 #include <numbers>
+
+using namespace sr;
+using namespace input;
 
 // How fast the player accelerates.
 const float Player::accel = 5e3f;
@@ -40,8 +44,6 @@ std::map<Player::State, std::string> stateToString = {
     { Player::State::RightWallJump, "Right Wall Jump" }
 };
 
-using namespace Graphics;
-
 std::shared_ptr<Character> createCharacter( const std::filesystem::path& basePath )
 {
     auto character = std::make_shared<Character>();
@@ -56,18 +58,18 @@ std::shared_ptr<Character> createCharacter( const std::filesystem::path& basePat
     const auto wallJump   = ResourceManager::loadSpriteSheet( basePath / "Wall Jump (32x32).png", 32, 32, 0, 0, BlendMode::AlphaBlend );
 
     // Add the sprite animations for the character.
-    character->addAnimation( "Double Jump", SpriteAnim { doubleJump, 20 } );
-    character->addAnimation( "Fall", SpriteAnim { fall, 20 } );
-    character->addAnimation( "Hit", SpriteAnim { hit, 20 } );
-    character->addAnimation( "Idle", SpriteAnim { idle, 20 } );
-    character->addAnimation( "Jump", SpriteAnim { jump, 20 } );
-    character->addAnimation( "Run", SpriteAnim { run, 20 } );
-    character->addAnimation( "Wall Jump", SpriteAnim { wallJump, 20 } );
+    character->addAnimation( "Double Jump", SpriteAnimation { doubleJump, 20 } );
+    character->addAnimation( "Fall", SpriteAnimation { fall, 20 } );
+    character->addAnimation( "Hit", SpriteAnimation { hit, 20 } );
+    character->addAnimation( "Idle", SpriteAnimation { idle, 20 } );
+    character->addAnimation( "Jump", SpriteAnimation { jump, 20 } );
+    character->addAnimation( "Run", SpriteAnimation { run, 20 } );
+    character->addAnimation( "Wall Jump", SpriteAnimation { wallJump, 20 } );
 
     return character;
 }
 
-Player::Player( const Math::Transform2D& _transform )
+Player::Player( const Transform2D& _transform )
 : transform { _transform }
 , aabb { { 7, 5, 0 }, { 25, 32, 0 } }  // Player is 32x32 pixels, but the AABB should be slightly smaller.
 , topAABB { { 7, 3, 0 }, { 25, 5, 0 } }
@@ -152,20 +154,25 @@ void Player::update( float deltaTime ) noexcept
     }
 }
 
-void Player::draw( Graphics::Image& image ) const noexcept
+void Player::draw( Rasterizer& rasterizer ) const noexcept
 {
     if ( currentCharacter )
     {
-        currentCharacter->draw( image, transform );
+        currentCharacter->draw( rasterizer, transform );
     }
 
 #if _DEBUG
     // Draw the current state of the player.
+    auto r   = rasterizer;
+    r.state.color = Color::White;
     auto pos = transform.getPosition() - glm::vec2 { 12, 50 };
-    image.drawText( Font::Default, stateToString[state], static_cast<int>( pos.x ), static_cast<int>( pos.y ), Color::White );
+    r.drawText( Font::DefaultFont, stateToString[state], static_cast<int>( pos.x ), static_cast<int>( pos.y ) );
 
     // Draw the AABB of the player
-    image.drawAABB( getAABB(), Color::Red, BlendMode::Disable, FillMode::WireFrame );
+    r.state.color = Color::Red;
+    r.state.blendMode = BlendMode::Disable;
+    r.state.fillMode  = FillMode::WireFrame;
+    r.drawAABB( getAABB() );
 #endif
 }
 

@@ -2,15 +2,15 @@
 
 #include "Player.hpp"
 
-#include <Graphics/Image.hpp>
-#include <Graphics/SpriteSheet.hpp>
-#include <Math/Sphere.hpp>
+#include <graphics/Image.hpp>
+#include <graphics/SpriteSheet.hpp>
+#include <math/Sphere.hpp>
 
 class Pickup final
 {
 public:
     Pickup() = default;
-    Pickup( std::shared_ptr<Graphics::SpriteSheet> sprites, const Math::Sphere& collision );
+    Pickup( std::shared_ptr<sr::graphics::SpriteSheet> sprites, const sr::math::Sphere& collision );
     ~Pickup() = default;
 
     /// <summary>
@@ -28,10 +28,10 @@ public:
     void update( float deltaTime );
 
     /// <summary>
-    /// Draw this pickup to the specified image.
+    /// Draw this pickup using the specified rasterizer.
     /// </summary>
-    /// <param name="image"></param>
-    void draw( Graphics::Image& image ) const;
+    /// <param name="rasterizer">The rasterizer to use to draw this pickup.</param>
+    void draw( sr::graphics::Rasterizer& rasterizer ) const;
 
     /// <summary>
     /// Set the gravity for the pickup.
@@ -47,12 +47,12 @@ public:
     /// Get the transform of the pickup.
     /// </summary>
     /// <returns></returns>
-    const Math::Transform2D& getTransform() const noexcept
+    const sr::math::Transform2D& getTransform() const noexcept
     {
         return transform;
     }
 
-    const Math::Sphere& getCollider() const noexcept
+    const sr::math::Sphere& getCollider() const noexcept
     {
         return sphere;
     }
@@ -80,13 +80,13 @@ public:
 
 private:
     // Collision sphere.
-    Math::Sphere sphere;
+    sr::math::Sphere sphere;
 
     // Transform for this pickup.
-    Math::Transform2D transform;
+    sr::math::Transform2D transform;
 
     // Shared sprite sheet for the pickup.
-    std::shared_ptr<Graphics::SpriteSheet> spriteSheet;
+    std::shared_ptr<sr::graphics::SpriteSheet> spriteSheet;
 
     // Frame-rate for sprite animation.
     uint32_t frameRate = 20u;

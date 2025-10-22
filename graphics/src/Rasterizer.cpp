@@ -70,7 +70,7 @@ struct Edge2D
 
 void Rasterizer::drawText( const Font& font, std::string_view text, int x, int y )
 {
-    drawText( Text { font, text }, x, y );
+    drawText( Text { font, text, state.color }, x, y );
 }
 
 void Rasterizer::drawText( const Text& text, int x, int y )
@@ -452,7 +452,7 @@ void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ive
     }
 }
 
-void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Vertex2Di& v2, const Vertex2Di& v3, const Image& srcImage, AddressMode addressMode, std::optional<BlendMode> _blendMode )
+void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Vertex2Di& v2, const Vertex2Di& v3, const Image& texture, AddressMode addressMode, std::optional<BlendMode> _blendMode )
 {
     Image* dstImage = state.colorTarget;
 
@@ -516,7 +516,7 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
                     const glm::vec3  bc         = edge.barycentric();
                     const glm::ivec2 texCoord   = glm::round( sr::math::interpolate( a.texCoord, b.texCoord, c.texCoord, bc ) );
                     const Color      color      = interpolate( a.color, b.color, c.color, bc );
-                    const Color      srcColor   = srcImage.sample( texCoord.x, texCoord.y, addressMode );
+                    const Color      srcColor   = texture.sample( texCoord.x, texCoord.y, addressMode );
                     const Color      finalColor = srcColor * color;
 
                     dstImage->plot<false>( p.x, p.y, finalColor, blendMode );

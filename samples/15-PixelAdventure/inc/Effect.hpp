@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Graphics/Image.hpp>
-#include <Graphics/SpriteAnim.hpp>
+#include <graphics/Rasterizer.hpp>
+#include <graphics/SpriteAnimation.hpp>
 
 #include <Math/Transform2D.hpp>
 
@@ -9,7 +9,7 @@ class Effect final
 {
 public:
     Effect() = default;
-    Effect( const Graphics::SpriteAnim& spriteAnim, const Math::Transform2D& transform );
+    Effect( const sr::graphics::SpriteAnimation& spriteAnim, const sr::math::Transform2D& transform );
 
     /// <summary>
     /// Update the effect's animation.
@@ -18,10 +18,10 @@ public:
     void update( float deltaTime );
 
     /// <summary>
-    /// Draw the effect to the image.
+    /// Draw the effect using the provided rasterizer.
     /// </summary>
-    /// <param name="image">The image to draw the effect to.</param>
-    void draw( Graphics::Image& image ) const;
+    /// <param name="rasterizer">The image to draw the effect to.</param>
+    void draw( sr::graphics::Rasterizer& rasterizer ) const;
 
     /// <summary>
     /// Check if the effect is done playing.
@@ -31,7 +31,7 @@ public:
     bool isDone() const noexcept;
 
 private:
-    const Graphics::SpriteAnim*  spriteAnim = nullptr;
-    Math::Transform2D      transform;
-    float                  time = 0.0f;
+    const sr::graphics::SpriteAnimation* spriteAnim = nullptr;
+    sr::math::Transform2D                transform;
+    float                                time = 0.0f;
 };

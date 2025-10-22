@@ -12,19 +12,6 @@
 using namespace sr;
 
 /// <summary>
-/// Helper function to compute the number of sprites in a specific dimension of the sprite sheet.
-/// </summary>
-/// <param name="imageSize">The size of the sprite sheet image.</param>
-/// <param name="spriteSize">The size of a single sprite.</param>
-/// <param name="padding">The padding between each sprite in the image.</param>
-/// <param name="margin">The spacing around the sprite atlas.</param>
-/// <returns></returns>
-constexpr uint32_t getNumSprites( uint32_t imageSize, uint32_t spriteSize, uint32_t padding, uint32_t margin )
-{
-    return ( imageSize + padding - 2 * margin ) / ( padding + spriteSize );
-}
-
-/// <summary>
 /// Load a spritesheet from an LDtk tileset.
 /// </summary>
 /// <param name="rootFolder">The root folder of the ldtk project.</param>
@@ -32,9 +19,7 @@ constexpr uint32_t getNumSprites( uint32_t imageSize, uint32_t spriteSize, uint3
 /// <returns>The spritesheet that contains the tiles of the tileset.</returns>
 std::shared_ptr<SpriteSheet> fromTileSet( const std::filesystem::path& rootFolder, const ldtk::Tileset& tileSet )
 {
-    uint32_t columns = getNumSprites( tileSet.texture_size.x, tileSet.tile_size, tileSet.padding, tileSet.spacing );
-    uint32_t rows    = getNumSprites( tileSet.texture_size.y, tileSet.tile_size, tileSet.padding, tileSet.spacing );
-    return std::make_shared<SpriteSheet>( rootFolder / tileSet.path, columns, rows, tileSet.padding, tileSet.spacing );
+    return std::make_shared<SpriteSheet>( rootFolder / tileSet.path, tileSet.tile_size, tileSet.tile_size, tileSet.padding, tileSet.spacing );
 }
 
 int main()

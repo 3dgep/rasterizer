@@ -6,10 +6,10 @@
 #include "Player.hpp"
 
 #include <Audio/Sound.hpp>
-#include <Math/AABB.hpp>
+#include <math/AABB.hpp>
 
-#include <Graphics/Image.hpp>
-#include <Graphics/TileMap.hpp>
+#include <graphics/Image.hpp>
+#include <graphics/TileMap.hpp>
 
 #include <LDtkLoader/Level.hpp>
 #include <LDtkLoader/World.hpp>
@@ -25,10 +25,10 @@ enum class ColliderType
 
 struct Collider
 {
-    ColliderType type = ColliderType::Default;
-    Math::AABB   aabb;
-    bool         isOneWay = false;
-    bool         isTrap   = false;
+    ColliderType   type = ColliderType::Default;
+    sr::math::AABB aabb;
+    bool           isOneWay = false;
+    bool           isTrap   = false;
 };
 
 class Level final
@@ -50,13 +50,13 @@ public:
         return player;
     }
 
-    void draw( Graphics::Image& image ) const;
+    void draw( sr::graphics::Rasterizer& image ) const;
 
 private:
     // Add a pickup with a name, initial position.
     void addPickup( std::string_view name, const glm::vec2& pos );
     // Check collision with a pickup and an AABB collider.
-    void checkPickupCollision( const Math::Sphere& pickupCollider, const Math::AABB& colliderAABB, glm::vec2& pos, glm::vec2& vel );
+    void checkPickupCollision( const sr::math::Sphere& pickupCollider, const sr::math::AABB& colliderAABB, glm::vec2& pos, glm::vec2& vel );
     void updateCollisions( float deltaTime );
     void updatePickups( float deltaTime );
     void updateEffects( float deltaTime );
@@ -71,14 +71,14 @@ private:
     std::vector<Collider> colliders;
 
     // Fruit sprites.
-    std::map<std::string, std::shared_ptr<Graphics::SpriteSheet>> fruitSprites;
+    std::map<std::string, std::shared_ptr<sr::graphics::SpriteSheet>> fruitSprites;
     // Box sprites.
     std::map<std::string, Box> boxPrefabs;
 
     // All pickups
     std::vector<Pickup> allPickups;
     // Sprite animation to play when a pickup is collected.
-    Graphics::SpriteAnim pickupCollected;
+    sr::graphics::SpriteAnimation pickupCollected;
     // Currently playing effects.
     std::vector<Effect> effects;
 
@@ -86,9 +86,9 @@ private:
     std::vector<std::shared_ptr<Box>> boxes;
 
     // Level tile map.
-    Graphics::TileMap tileMap;
+    sr::graphics::TileMap tileMap;
     // Separate tile map for spike traps.
-    Graphics::TileMap spikeMap;
+    sr::graphics::TileMap spikeMap;
 
     Player    player;
     glm::vec2 playerStart { 0 };

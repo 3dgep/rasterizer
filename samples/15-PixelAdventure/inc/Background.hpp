@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Graphics/Image.hpp>
-#include <Graphics/Timer.hpp>
+#include <Timer.hpp>
+
+#include <graphics/Rasterizer.hpp>
 
 #include <glm/vec2.hpp>
 
@@ -28,16 +29,16 @@ public:
     /// Update the scrolling background.
     /// </summary>
     /// <param name="timer">The timer used to update the texture offset.</param>
-    void update( const Graphics::Timer& timer );
+    void update( const Timer& timer );
 
     /// <summary>
-    /// Draw this background to the destination image.
+    /// Draw this background using the rasterizer.
     /// </summary>
-    /// <param name="dst">The destination image to draw the background to.</param>
-    void draw( Graphics::Image& dst ) const;
+    /// <param name="rasterizer">The rasterizer to draw with.</param>
+    void draw( sr::graphics::Rasterizer& rasterizer ) const;
 
 private:
-    std::shared_ptr<Graphics::Image> backgroundImage;
+    std::shared_ptr<sr::graphics::Image> backgroundImage;
 
     glm::vec2 scrollDirection { 0.0f };
     float     scrollSpeed { 0.0f };

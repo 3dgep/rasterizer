@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Graphics/Image.hpp>
-#include <Graphics/Sprite.hpp>
+#include <graphics/Image.hpp>
+#include <graphics/Rasterizer.hpp>
+#include <graphics/Sprite.hpp>
 
 #include <filesystem>
 
@@ -29,14 +30,14 @@ public:
     /// <summary>
     /// Draw the transition to the image.
     /// </summary>
-    /// <param name="image"></param>
-    void draw( Graphics::Image& image ) const;
+    /// <param name="rasterizer">The rasterizer to use to draw the transition effect.</param>
+    void draw( sr::graphics::Rasterizer& rasterizer ) const;
 
 private:
-    std::shared_ptr<Graphics::Image> transition;
-    Graphics::Sprite                 sprite;
+    std::shared_ptr<sr::graphics::Image> transition;
+    sr::graphics::Sprite                 sprite;
 
-    float                          time     = 0.0f;
-    const float                    maxScale = 3.2f;
-    std::vector<Math::Transform2D> transforms;
+    float                              time     = 0.0f;
+    const float                        maxScale = 3.2f;
+    std::vector<sr::math::Transform2D> transforms;
 };

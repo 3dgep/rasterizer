@@ -75,7 +75,7 @@ TTF_TextEngine* Text::TextEngine() {
     return context.textEngine;
 }
 
-Text::Text( Font font, std::string_view text )
+Text::Text( Font font, std::string_view text, const Color& color )
 : m_Font { std::move( font ) }
 {
     m_Text = TTF_CreateText( TextEngine(), m_Font.getTTF_Font(), text.data(), text.length() );
@@ -85,6 +85,8 @@ Text::Text( Font font, std::string_view text )
         std::cerr << "Failed to create Text: " << SDL_GetError();
         return;
     }
+
+    setColor( color );
 }
 
 Text::Text( Text&& other ) noexcept
