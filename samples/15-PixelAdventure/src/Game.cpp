@@ -16,6 +16,7 @@ Game::Game( uint32_t screenWidth, uint32_t screenHeight )
 {
 
     rasterizer.state.colorTarget = &image;
+    rasterizer.state.cullMode    = CullMode::None; // Disable culling.
 
     // Input that controls the characters horizontal movement.
     Input::addAxisCallback( "Horizontal", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {

@@ -504,6 +504,12 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
         break;
     }
 
+    if ( isFront1 != state.frontCounterClockwise && isFront2 != state.frontCounterClockwise )
+    {
+        drawQuad( v1, v0, v3, v2, texture, addressMode, _blendMode );
+        return;
+    }
+
     BlendMode blendMode = _blendMode.value_or( state.blendMode );
     AABB      dstAABB   = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
 
@@ -528,8 +534,8 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
 
     // Edge setup for the 2 triangles of the quad.
     Edge2D e[] {
-        ccw1 ? Edge2D { v0.position, v1.position, v2.position, p } : Edge2D { v0.position, v2.position, v1.position, p },
-        ccw2 ? Edge2D { v2.position, v3.position, v0.position, p } : Edge2D { v2.position, v0.position, v3.position, p }
+        Edge2D { v0.position, v1.position, v2.position, p },
+        Edge2D { v2.position, v3.position, v0.position, p }
     };
 
     const Vertex2Di verts[] = {

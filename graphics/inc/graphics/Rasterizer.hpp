@@ -31,7 +31,7 @@ public:
         Color     color                 = Color::White;     ///< Blend color.
         FillMode  fillMode              = FillMode::Solid;  ///< Primitive filling mode (solid or wireframe).
         CullMode  cullMode              = CullMode::Back;   ///< Determines which triangles are not drawn.
-        bool      frontCounterClockwise = false;            ///< If true, triangles are considered front-facing if their winding order is counter-clockwise.
+        bool      frontCounterClockwise = true;             ///< If true, triangles are considered front-facing if their winding order is counter-clockwise.
         BlendMode blendMode;                                ///< Determines how pixels are blended together on the render target.
         Image*    colorTarget = nullptr;                    ///< The image to draw to.
         Viewport  viewport;                                 ///< Viewport can be used for split-screen drawing.
