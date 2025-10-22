@@ -261,17 +261,11 @@ void Rasterizer::drawCircle( int cx, int cy, int r )
     }
 }
 
-void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
+void Rasterizer::drawTriangle( const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2 )
 {
     Image* image = state.colorTarget;
 
     if ( !image )
-        return;
-
-    auto aabb         = image->getAABB().clamped( AABB { state.viewport } );
-    auto triangleAABB = AABB::fromTriangle( p0, p1, p2 );
-
-    if ( !triangleAABB.intersect( aabb ) )
         return;
 
     switch ( state.fillMode )
@@ -285,14 +279,34 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
     break;
     case FillMode::Solid:
     {
-        int area = orient2D( p0, p1, p2 );
+        bool ccw     = orient2D( p0, p1, p2 ) > 0;
+        bool isFront = state.frontCounterClockwise ? ccw : !ccw;
 
-        if ( area < 0 )
+        switch ( state.cullMode )
         {
-            // Swap vertices if they are in clockwise order.
-            std::swap( p1, p2 );
-            area = -area;
+        case CullMode::Front:  // Cull front-facing triangles.
+            if ( isFront )
+                return;
+            break;
+        case CullMode::Back:  // Cull back-facing triangles.
+            if ( !isFront )
+                return;
+            break;
+        case CullMode::None:  // No culling.
+            break;
         }
+
+        if ( isFront != state.frontCounterClockwise )
+        {
+            drawTriangle( p0, p2, p1 );  // Swap 2 vertices to flip the winding order.
+            return;
+        }
+
+        auto aabb         = image->getAABB().clamped( AABB { state.viewport } );
+        auto triangleAABB = AABB::fromTriangle( p0, p1, p2 );
+
+        if ( !triangleAABB.intersect( aabb ) )
+            return;
 
         aabb.clamp( triangleAABB );
 
@@ -304,7 +318,7 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
         glm::ivec2 p { minX, minY };
 
         // Edge setup.
-        Edge2D e { p0, p1, p2, p };
+        Edge2D e = ccw ? Edge2D { p0, p1, p2, p } : Edge2D { p0, p2, p1, p };  // Flip winding order if vertices are the wrong way around.
 
         for ( p.y = minY; p.y <= maxY; p.y++ )
         {
@@ -330,13 +344,21 @@ void Rasterizer::drawTriangle( const Vertex2Di& v0, const Vertex2Di& v1, const V
     if ( !image )
         return;
 
-    int area = orient2D( v0.position, v1.position, v2.position );
+    bool ccw     = orient2D( v0.position, v1.position, v2.position ) > 0;
+    bool isFront = state.frontCounterClockwise ? ccw : !ccw;
 
-    if ( area < 0 )
+    switch ( state.cullMode )
     {
-        // Swap vertices if they are in clockwise order.
-        drawTriangle( v0, v2, v1, texture, addressMode, _blendMode );
-        return;
+    case CullMode::Front:  // Cull front-facing triangles.
+        if ( isFront )
+            return;
+        break;
+    case CullMode::Back:  // Cull back-facing triangles.
+        if ( !isFront )
+            return;
+        break;
+    case CullMode::None:  // No culling.
+        break;
     }
 
     const BlendMode blendMode    = _blendMode.value_or( state.blendMode );
@@ -356,7 +378,7 @@ void Rasterizer::drawTriangle( const Vertex2Di& v0, const Vertex2Di& v1, const V
     glm::ivec2 p { minX, minY };
 
     // Edge setup.
-    Edge2D e { v0.position, v1.position, v2.position, p };
+    Edge2D e = ccw ? Edge2D { v0.position, v1.position, v2.position, p } : Edge2D { v0.position, v2.position, v1.position, p };  // Flip winding order if vertices are the wrong way around.
 
     for ( p.y = minY; p.y <= maxY; p.y++ )
     {
@@ -391,7 +413,7 @@ void Rasterizer::drawTriangle( const Vertex2D& _v0, const Vertex2D& _v1, const V
     drawTriangle( v0, v1, v2, texture, addressMode, blendMode );
 }
 
-void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 )
+void Rasterizer::drawQuad( const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2, const glm::ivec2& p3 )
 {
     Image* image = state.colorTarget;
 
@@ -416,6 +438,8 @@ void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ive
         break;
     case FillMode::Solid:
     {
+        // TODO: Culling.
+
         int minX = static_cast<int>( dstAABB.min.x );
         int minY = static_cast<int>( dstAABB.min.y );
         int maxX = static_cast<int>( dstAABB.max.x );
@@ -459,6 +483,27 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
     if ( !dstImage )
         return;
 
+    // Check culling for both triangles of the quad.
+    bool ccw1 = orient2D( v0.position, v1.position, v2.position ) > 0;
+    bool ccw2 = orient2D( v2.position, v3.position, v0.position ) > 0;
+
+    bool isFront1 = state.frontCounterClockwise ? ccw1 : !ccw1;
+    bool isFront2 = state.frontCounterClockwise ? ccw2 : !ccw2;
+
+    switch ( state.cullMode )
+    {
+    case CullMode::Front:
+        if ( isFront1 && isFront2 )
+            return;
+        break;
+    case CullMode::Back:
+        if ( !( isFront1 && isFront2 ) )
+            return;
+        break;
+    case CullMode::None:
+        break;
+    }
+
     BlendMode blendMode = _blendMode.value_or( state.blendMode );
     AABB      dstAABB   = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
 
@@ -483,8 +528,8 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
 
     // Edge setup for the 2 triangles of the quad.
     Edge2D e[] {
-        { v0.position, v1.position, v2.position, p },
-        { v2.position, v3.position, v0.position, p }
+        ccw1 ? Edge2D { v0.position, v1.position, v2.position, p } : Edge2D { v0.position, v2.position, v1.position, p },
+        ccw2 ? Edge2D { v2.position, v3.position, v0.position, p } : Edge2D { v2.position, v0.position, v3.position, p }
     };
 
     const Vertex2Di verts[] = {

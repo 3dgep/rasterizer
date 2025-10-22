@@ -31,10 +31,10 @@ void Background::draw( Rasterizer& rasterizer ) const
 
     // Quad vertices.
     const Vertex2D v[] = {
-        Vertex2D { { 0, 0 }, { textureOffset.x, textureOffset.y } },                                                         // Top-left
-        Vertex2D { { dst->getWidth(), 0 }, { scaleWidth + textureOffset.x, textureOffset.y } },                               // Top-right
+        Vertex2D { { 0, 0 }, { textureOffset.x, textureOffset.y } },                                                           // Top-left
+        Vertex2D { { dst->getWidth(), 0 }, { scaleWidth + textureOffset.x, textureOffset.y } },                                // Top-right
         Vertex2D { { dst->getWidth(), dst->getHeight() }, { scaleWidth + textureOffset.x, scaledHeight + textureOffset.y } },  // Bottom-right
-        Vertex2D { { 0, dst->getHeight() }, { textureOffset.x, scaledHeight + textureOffset.y } }                             // Bottom-left
+        Vertex2D { { 0, dst->getHeight() }, { textureOffset.x, scaledHeight + textureOffset.y } }                              // Bottom-left
     };
 
     rasterizer.drawQuad( v[0], v[1], v[2], v[3], *backgroundImage, AddressMode::Wrap );

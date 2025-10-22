@@ -28,12 +28,13 @@ public:
     /// </summary>
     struct State
     {
-        Color     color    = Color::White;
-        FillMode  fillMode = FillMode::Solid;
-        CullMode  cullMode = CullMode::Back;
-        BlendMode blendMode;
-        Image*    colorTarget = nullptr;
-        Viewport  viewport;
+        Color     color                 = Color::White;     ///< Blend color.
+        FillMode  fillMode              = FillMode::Solid;  ///< Primitive filling mode (solid or wireframe).
+        CullMode  cullMode              = CullMode::Back;   ///< Determines which triangles are not drawn.
+        bool      frontCounterClockwise = false;            ///< If true, triangles are considered front-facing if their winding order is counter-clockwise.
+        BlendMode blendMode;                                ///< Determines how pixels are blended together on the render target.
+        Image*    colorTarget = nullptr;                    ///< The image to draw to.
+        Viewport  viewport;                                 ///< Viewport can be used for split-screen drawing.
     } state;
 
     /// <summary>
@@ -145,13 +146,13 @@ public:
     /// <param name="p0">The first triangle coordinate (in screen coordinates).</param>
     /// <param name="p1">The second triangle coordinate (in screen coordinates).</param>
     /// <param name="p2">The third triangle coordinate (in screen coordinates).</param>
-    void drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 );
+    void drawTriangle( const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2 );
 
     void drawTriangle( const Vertex2Di& v0, const Vertex2Di& v1, const Vertex2Di& v2, const Image& texture, AddressMode addressMode = AddressMode::Clamp, std::optional<BlendMode> blendMode = {} );
 
     void drawTriangle( const Vertex2D& v0, const Vertex2D& v1, const Vertex2D& v2, const Image& texture, AddressMode addressMode = AddressMode::Clamp, std::optional<BlendMode> blendMode = {} );
 
-    void drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 );
+    void drawQuad( const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2, const glm::ivec2& p3 );
 
     void drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Vertex2Di& v2, const Vertex2Di& v3, const Image& texture, AddressMode addressMode = AddressMode::Clamp, std::optional<BlendMode> blendMode = {} );
 
