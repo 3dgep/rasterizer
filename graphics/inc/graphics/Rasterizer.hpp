@@ -30,6 +30,7 @@ public:
     {
         Color     color    = Color::White;
         FillMode  fillMode = FillMode::Solid;
+        CullMode  cullMode = CullMode::Back;
         BlendMode blendMode;
         Image*    colorTarget = nullptr;
         Viewport  viewport;

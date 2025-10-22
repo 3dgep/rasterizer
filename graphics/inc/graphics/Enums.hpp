@@ -28,5 +28,19 @@ enum class FillMode
     Solid       ///< Polygons interiors are filled.
 };
 
+
+/// <summary>
+/// CullMode determines which triangles are rendered based on their orientation.
+/// * CullMode::None: No culling; all triangles are drawn.
+/// * CullMode::Front: Front-facing triangles are culled (not drawn).
+/// * CullMode::Back: Back-facing triangles are culled (not drawn).
+/// </summary>
+enum class CullMode
+{
+    None,   ///< Always draw triangles.
+    Front,  ///< Do not draw front-facing triangles.
+    Back    ///< Do not draw back-facing triangles.
+};
+
 }  // namespace graphics
 }  // namespace sr
