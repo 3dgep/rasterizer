@@ -116,7 +116,7 @@ Game::Game( uint32_t screenWidth, uint32_t screenHeight )
     // Buttons
     {
         // Previous button.
-        SpriteSheet sheet { "assets/Pixel Adventure/Menu/Buttons/Previous.png", {}, {}, 0, 0, BlendMode::AlphaBlend };
+        SpriteSheet sheet { "assets/Pixel Adventure/Menu/Buttons/Previous.png", {}, {}, 0, 0, BlendMode::AlphaDiscard };
         previousButton = Button { sheet };
         previousButton.setCallback( [this] {
             onPreviousClicked();
@@ -126,7 +126,7 @@ Game::Game( uint32_t screenWidth, uint32_t screenHeight )
     }
     {
         // Next button.
-        SpriteSheet sheet { "assets/Pixel Adventure/Menu/Buttons/Next.png", {}, {}, 0, 0, BlendMode::AlphaBlend };
+        SpriteSheet sheet { "assets/Pixel Adventure/Menu/Buttons/Next.png", {}, {}, 0, 0, BlendMode::AlphaDiscard };
         nextButton = Button { sheet };
         nextButton.setCallback( [this] {
             onNextClicked();
@@ -134,7 +134,7 @@ Game::Game( uint32_t screenWidth, uint32_t screenHeight )
     }
     {
         // Restart button.
-        SpriteSheet sheet { "assets/Pixel Adventure/Menu/Buttons/Restart.png", {}, {}, 0, 0, BlendMode::AlphaBlend };
+        SpriteSheet sheet { "assets/Pixel Adventure/Menu/Buttons/Restart.png", {}, {}, 0, 0, BlendMode::AlphaDiscard };
         restartButton = Button { sheet };
         restartButton.setCallback( [this] {
             onRestartClicked();
@@ -249,9 +249,18 @@ void Game::processEvent( const SDL_Event& _event )
     switch ( event.type )
     {
     case SDL_EVENT_KEY_DOWN:
-        if ( event.key.key == SDLK_P )
+        switch ( event.key.key )
         {
+        case SDLK_P:
             paused = !paused;
+            break;
+    case SDLK_S:
+            if ( event.key.mod & SDL_KMOD_CTRL )
+            {
+                image.save( "screenshot.png" );
+                std::cout << "Screenshot saved to: " << std::filesystem::current_path() / "screenshot.png" << std::endl;
+            }
+            break;
         }
         break;
     case SDL_EVENT_MOUSE_MOTION:

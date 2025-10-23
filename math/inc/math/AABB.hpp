@@ -98,7 +98,7 @@ struct AABB
     explicit AABB(const math::Viewport& viewport )
     {
         min = glm::vec3 { viewport.x, viewport.y, viewport.minDepth };
-        max = glm::vec3 { viewport.x + viewport.width, viewport.y + viewport.height, viewport.maxDepth };
+        max = glm::vec3 { viewport.x + viewport.width - 1, viewport.y + viewport.height - 1, viewport.maxDepth };
     }
 
     /// <summary>

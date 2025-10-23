@@ -492,8 +492,14 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
         return;
 
     // Check culling for both triangles of the quad.
-    bool ccw1 = orient2D( v0.position, v1.position, v2.position ) > 0;
-    bool ccw2 = orient2D( v2.position, v3.position, v0.position ) > 0;
+    int  area1 = orient2D( v0.position, v1.position, v2.position );
+    int  area2 = orient2D( v2.position, v3.position, v0.position );
+    // Check for degenerate cases.
+    if ( area1 == 0 && area2 == 0 )
+        return;
+
+    bool ccw1 = area1 > 0;
+    bool ccw2 = area2 > 0;
 
     bool isFront1 = state.frontCounterClockwise ? ccw1 : !ccw1;
     bool isFront2 = state.frontCounterClockwise ? ccw2 : !ccw2;
@@ -671,8 +677,8 @@ void Rasterizer::drawSprite( const Sprite& sprite, int x, int y )
     // Compute viewport clipping bounds.
     const int clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), x );
     const int clipTop    = std::max( static_cast<int>( dstAABB.min.y ), y );
-    const int clipRight  = std::min( static_cast<int>( dstAABB.max.x ), x + size.x );
-    const int clipBottom = std::min( static_cast<int>( dstAABB.max.y ), y + size.y );
+    const int clipRight  = std::min( static_cast<int>( dstAABB.max.x ), x + size.x - 1);
+    const int clipBottom = std::min( static_cast<int>( dstAABB.max.y ), y + size.y - 1);
 
     // Check if the sprite is completely off-screen.
     if ( clipLeft >= clipRight || clipTop >= clipBottom )
@@ -688,9 +694,9 @@ void Rasterizer::drawSprite( const Sprite& sprite, int x, int y )
     int sW = srcImage->getWidth();  // Source image width.
     int dW = dstImage->getWidth();  // Destination image width.
 
-    for ( int y = clipTop; y < clipBottom; ++y )
+    for ( int y = clipTop; y <= clipBottom; ++y )
     {
-        for ( int x = clipLeft; x < clipRight; ++x )
+        for ( int x = clipLeft; x <= clipRight; ++x )
         {
             // Compute clipped UV sprite texture coordinates.
             int u = uv.x + ( x - clipLeft );

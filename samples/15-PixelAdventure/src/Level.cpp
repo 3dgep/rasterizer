@@ -20,9 +20,9 @@ Box loadBox( const std::filesystem::path& basePath, int hitPoints )
     Box box { hitPoints };
 
     // First, load the sprite sheets for the box animations.
-    const auto idle        = ResourceManager::loadSpriteSheet( basePath / "Idle.png", 28, 24, 0, 0, BlendMode::AlphaBlend );
-    const auto hit         = ResourceManager::loadSpriteSheet( basePath / "Hit (28x24).png", 28, 24, 0, 0, BlendMode::AlphaBlend );
-    const auto breakSprite = ResourceManager::loadSpriteSheet( basePath / "Break.png", 28, 24, 0, 0, BlendMode::AlphaBlend );
+    const auto idle        = ResourceManager::loadSpriteSheet( basePath / "Idle.png", 28, 24, 0, 0, BlendMode::AlphaDiscard );
+    const auto hit         = ResourceManager::loadSpriteSheet( basePath / "Hit (28x24).png", 28, 24, 0, 0, BlendMode::AlphaDiscard );
+    const auto breakSprite = ResourceManager::loadSpriteSheet( basePath / "Break.png", 28, 24, 0, 0, BlendMode::AlphaDiscard );
 
     // Now add the sprite animations to the box.
     box.addAnimation( "Idle", SpriteAnimation { idle, 20 } );
@@ -41,7 +41,7 @@ Level::Level( const ldtk::Project& project, const ldtk::World& world, const ldtk
 
     // Load the fruit collected animation.
     {
-        auto spriteSheet = ResourceManager::loadSpriteSheet( projectPath / "Items/Fruits/Collected.png", 32, 32, 0, 0, BlendMode::AlphaBlend );
+        auto spriteSheet = ResourceManager::loadSpriteSheet( projectPath / "Items/Fruits/Collected.png", 32, 32, 0, 0, BlendMode::AlphaDiscard );
         pickupCollected  = SpriteAnimation { spriteSheet, 20 };
     }
 
@@ -51,7 +51,7 @@ Level::Level( const ldtk::Project& project, const ldtk::World& world, const ldtk
     {
         if ( tileset.hasTag( "Fruit" ) )
         {
-            auto sprites               = ResourceManager::loadSpriteSheet( projectPath / tileset.path, tileset.tile_size, tileset.tile_size, static_cast<uint32_t>( tileset.padding ), static_cast<uint32_t>( tileset.spacing ), BlendMode::AlphaBlend );
+            auto sprites               = ResourceManager::loadSpriteSheet( projectPath / tileset.path, tileset.tile_size, tileset.tile_size, static_cast<uint32_t>( tileset.padding ), static_cast<uint32_t>( tileset.spacing ), BlendMode::AlphaDiscard );
             fruitSprites[tileset.name] = std::move( sprites );
         }
     }
@@ -146,7 +146,7 @@ Level::Level( const ldtk::Project& project, const ldtk::World& world, const ldtk
         const auto& gridSize = spikeLayer.getGridSize();
         const auto& tileSet  = spikeLayer.getTileset();
 
-        auto spriteSheet = ResourceManager::loadSpriteSheet( projectPath / tileSet.path, tileSet.tile_size, tileSet.tile_size, tileSet.padding, tileSet.spacing, BlendMode::AlphaBlend );
+        auto spriteSheet = ResourceManager::loadSpriteSheet( projectPath / tileSet.path, tileSet.tile_size, tileSet.tile_size, tileSet.padding, tileSet.spacing, BlendMode::AlphaDiscard );
         spikeMap         = TileMap( spriteSheet, gridSize.x, gridSize.y );
 
         for ( auto& tile: spikeLayer.allTiles() )
@@ -696,7 +696,7 @@ void Level::draw( Rasterizer& rasterizer ) const
         auto r = rasterizer;
         r.state.color = collider.isOneWay ? Color::Yellow : Color::Red;
         r.state.fillMode = FillMode::WireFrame;
-        r.drawAABB( collider.aabb );
+        //r.drawAABB( collider.aabb );
     }
 #endif
 }

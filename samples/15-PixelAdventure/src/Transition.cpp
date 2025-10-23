@@ -6,7 +6,7 @@ using namespace sr;
 
 Transition::Transition( const std::filesystem::path& fileName )
 : transition { ResourceManager::loadImage( fileName )}
-, sprite { transition, BlendMode::AlphaBlend }
+, sprite { transition, BlendMode::AlphaDiscard }
 {
     if ( !transition )
         return;
@@ -28,7 +28,7 @@ Transition& Transition::operator=( const Transition& copy )
         return *this;
 
     transition = copy.transition;
-    sprite     = Sprite { transition, BlendMode::AlphaBlend };
+    sprite     = Sprite { transition, BlendMode::AlphaDiscard };
     time       = copy.time;
     transforms = copy.transforms;
 
@@ -41,7 +41,7 @@ Transition& Transition::operator=( Transition&& other ) noexcept
         return *this;
 
     transition = std::move( other.transition );
-    sprite     = Sprite { transition, BlendMode::AlphaBlend };
+    sprite     = Sprite { transition, BlendMode::AlphaDiscard };
     time       = other.time;
     transforms = std::move( other.transforms );
 
