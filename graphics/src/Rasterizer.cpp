@@ -1,5 +1,6 @@
 #include <graphics/Rasterizer.hpp>
 #include <graphics/Vertex.hpp>
+#include <math/Intrinsics.hpp>
 
 #include <SDL3_ttf/SDL_ttf.h>
 
@@ -34,6 +35,13 @@ struct Edge2D
         w0.x = orient2D( p1, p2, p ) + bias0;
         w0.y = orient2D( p2, p0, p ) + bias1;
         w0.z = orient2D( p0, p1, p ) + bias2;
+
+        // If using pixel centers, add half-pixel offset (0.5, 0.5)
+        // orient2D(a, b, p) = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)
+        // Adding 0.5 to p.x and p.y means we add: 0.5 * (b.x - a.x - b.y + a.y)
+        w0.x += ( dY[1] + dX[1] ) / 2;  // Half-pixel offset for edge 0 (p1->p2)
+        w0.y += ( dY[2] + dX[2] ) / 2;  // Half-pixel offset for edge 1 (p2->p0)
+        w0.z += ( dY[0] + dX[0] ) / 2;  // Half-pixel offset for edge 2 (p0->p1)
 
         w = w0;
     }
@@ -547,6 +555,14 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
         2, 3, 0
     };
 
+    // Compute valid texture coordinate bounds from vertices to prevent bleeding into tile margins
+    // Vertices have texture coords offset by -0.5 for pixel center sampling
+    const glm::vec2 minVertexTC = glm::min( glm::min( v0.texCoord, v1.texCoord ), glm::min( v2.texCoord, v3.texCoord ) );
+    const glm::vec2 maxVertexTC = glm::max( glm::max( v0.texCoord, v1.texCoord ), glm::max( v2.texCoord, v3.texCoord ) );
+    // Convert from vertex coords (offset by -0.5) to valid sampling range
+    const glm::vec2 minTexCoord = glm::floor( minVertexTC + 0.5f );
+    const glm::vec2 maxTexCoord = glm::ceil( maxVertexTC - 0.5f );
+
     for ( p.y = minY; p.y <= maxY; ++p.y )
     {
         for ( p.x = minX; p.x <= maxX; ++p.x )
@@ -564,11 +580,16 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
                     const Vertex2Di& b = verts[i1];
                     const Vertex2Di& c = verts[i2];
 
-                    const glm::vec3  bc         = edge.barycentric();
-                    const glm::ivec2 texCoord   = glm::round( sr::math::interpolate( a.texCoord, b.texCoord, c.texCoord, bc ) );
-                    const Color      color      = interpolate( a.color, b.color, c.color, bc );
-                    const Color      srcColor   = texture.sample( texCoord.x, texCoord.y, addressMode );
-                    const Color      finalColor = srcColor * color;
+                    const glm::vec3  bc             = edge.barycentric();
+                    const glm::vec2  interpTexCoord = sr::math::interpolate( a.texCoord, b.texCoord, c.texCoord, bc );
+
+                    // Use SIMD-optimized round and clamp
+                    glm::ivec2 texCoord;
+                    simd_round_clamp_vec2( &interpTexCoord.x, &minTexCoord.x, &maxTexCoord.x, &texCoord.x );
+
+                    const Color      color          = interpolate( a.color, b.color, c.color, bc );
+                    const Color      srcColor       = texture.sample( texCoord.x, texCoord.y, addressMode );
+                    const Color      finalColor     = srcColor * color;
 
                     dstImage->plot<false>( p.x, p.y, finalColor, blendMode );
                 }
@@ -707,11 +728,14 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
     const glm::ivec2 uv    = sprite.getUV();
     const glm::ivec2 size  = sprite.getSize();
 
+    // With pixel center sampling, adjust vertex texture coordinates
+    // Position 0.5 (first pixel center) maps to texture coordinate 0
+    // Position 31.5 (last pixel center) maps to texture coordinate 31
     Vertex2Di verts[4] = {
-        { { 0, 0 }, { uv.x, uv.y }, color },                                      // Top-left.
-        { { size.x, 0 }, { uv.x + size.y - 1, uv.y }, color },                    // Top-right.
-        { { size.x, size.y }, { uv.x + size.x - 1, uv.y + size.y - 1 }, color },  // Bottom-right.
-        { { 0, size.y }, { uv.x, uv.y + size.y - 1 }, color },                    // Bottom-left.
+        { { 0, 0 }, { uv.x - 0.5f, uv.y - 0.5f }, color },                                // Top-left.
+        { { size.x, 0 }, { uv.x + size.x - 0.5f, uv.y - 0.5f }, color },                  // Top-right.
+        { { size.x, size.y }, { uv.x + size.x - 0.5f, uv.y + size.y - 0.5f }, color },    // Bottom-right.
+        { { 0, size.y }, { uv.x - 0.5f, uv.y + size.y - 0.5f }, color },                  // Bottom-left.
     };
 
     // Transform vertices

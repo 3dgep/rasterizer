@@ -74,6 +74,55 @@ inline __m128i simd_max_u8( __m128i a, __m128i b )
     return _mm_max_epu8( a, b );
 }
 
+// Round 2D vector to nearest integer
+inline void simd_round_vec2( const float* value, float* result )
+{
+    // Load two floats (x, y) into lower part of XMM register
+    __m128 v = _mm_castpd_ps( _mm_load_sd( reinterpret_cast<const double*>( value ) ) );
+
+    // Round to nearest integer
+    __m128 rounded = _mm_round_ps( v, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+
+    // Store two floats
+    _mm_store_sd( reinterpret_cast<double*>( result ), _mm_castps_pd( rounded ) );
+}
+
+// Clamp 2D vector
+inline void simd_clamp_vec2( const float* value, const float* minVal, const float* maxVal, float* result )
+{
+    // Load two floats
+    __m128 v = _mm_castpd_ps( _mm_load_sd( reinterpret_cast<const double*>( value ) ) );
+    __m128 minV = _mm_castpd_ps( _mm_load_sd( reinterpret_cast<const double*>( minVal ) ) );
+    __m128 maxV = _mm_castpd_ps( _mm_load_sd( reinterpret_cast<const double*>( maxVal ) ) );
+
+    // Clamp: max(min, min(max, value))
+    __m128 clamped = _mm_min_ps( maxV, _mm_max_ps( minV, v ) );
+
+    // Store two floats
+    _mm_store_sd( reinterpret_cast<double*>( result ), _mm_castps_pd( clamped ) );
+}
+
+// Round and clamp 2D vector (optimized for texture coordinate clamping)
+inline void simd_round_clamp_vec2( const float* value, const float* minVal, const float* maxVal, int* result )
+{
+    // Load two floats (x, y) into lower part of XMM register
+    __m128 v = _mm_castpd_ps( _mm_load_sd( reinterpret_cast<const double*>( value ) ) );
+    __m128 minV = _mm_castpd_ps( _mm_load_sd( reinterpret_cast<const double*>( minVal ) ) );
+    __m128 maxV = _mm_castpd_ps( _mm_load_sd( reinterpret_cast<const double*>( maxVal ) ) );
+
+    // Round to nearest integer
+    __m128 rounded = _mm_round_ps( v, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+
+    // Clamp: max(min, min(max, rounded))
+    __m128 clamped = _mm_min_ps( maxV, _mm_max_ps( minV, rounded ) );
+
+    // Convert to integers
+    __m128i resultInt = _mm_cvtps_epi32( clamped );
+
+    // Store two integers
+    _mm_storel_epi64( reinterpret_cast<__m128i*>( result ), resultInt );
+}
+
 #elif defined( SR_SIMD_NEON )
 // NEON implementation
 inline uint8x16_t simd_add_saturated_u8( uint8x16_t a, uint8x16_t b )
@@ -114,6 +163,84 @@ inline uint8x16_t simd_max_u8( uint8x16_t a, uint8x16_t b )
 {
     return vmaxq_u8( a, b );
 }
+
+// Round 2D vector to nearest integer
+inline void simd_round_vec2( const float* value, float* result )
+{
+    // Load two floats
+    float32x2_t v = vld1_f32( value );
+
+    // Round to nearest integer
+    float32x2_t rounded = vrndn_f32( v );
+
+    // Store two floats
+    vst1_f32( result, rounded );
+}
+
+// Clamp 2D vector
+inline void simd_clamp_vec2( const float* value, const float* minVal, const float* maxVal, float* result )
+{
+    // Load two floats
+    float32x2_t v = vld1_f32( value );
+    float32x2_t minV = vld1_f32( minVal );
+    float32x2_t maxV = vld1_f32( maxVal );
+
+    // Clamp: max(min, min(max, value))
+    float32x2_t clamped = vmin_f32( maxV, vmax_f32( minV, v ) );
+
+    // Store two floats
+    vst1_f32( result, clamped );
+}
+
+// Round and clamp 2D vector (optimized for texture coordinate clamping)
+inline void simd_round_clamp_vec2( const float* value, const float* minVal, const float* maxVal, int* result )
+{
+    // Load two floats
+    float32x2_t v = vld1_f32( value );
+    float32x2_t minV = vld1_f32( minVal );
+    float32x2_t maxV = vld1_f32( maxVal );
+
+    // Round to nearest integer
+    float32x2_t rounded = vrndn_f32( v );
+
+    // Clamp: max(min, min(max, rounded))
+    float32x2_t clamped = vmin_f32( maxV, vmax_f32( minV, rounded ) );
+
+    // Convert to integers
+    int32x2_t resultInt = vcvtn_s32_f32( clamped );
+
+    // Store two integers
+    vst1_s32( result, resultInt );
+}
+
+#else
+// Scalar fallbacks for platforms without SIMD
+
+// Round 2D vector to nearest integer
+inline void simd_round_vec2( const float* value, float* result )
+{
+    result[0] = std::round( value[0] );
+    result[1] = std::round( value[1] );
+}
+
+// Clamp 2D vector
+inline void simd_clamp_vec2( const float* value, const float* minVal, const float* maxVal, float* result )
+{
+    result[0] = std::min( maxVal[0], std::max( minVal[0], value[0] ) );
+    result[1] = std::min( maxVal[1], std::max( minVal[1], value[1] ) );
+}
+
+// Round and clamp 2D vector (optimized for texture coordinate clamping)
+inline void simd_round_clamp_vec2( const float* value, const float* minVal, const float* maxVal, int* result )
+{
+    for ( int i = 0; i < 2; ++i )
+    {
+        float rounded = std::round( value[i] );
+        float clamped = std::min( maxVal[i], std::max( minVal[i], rounded ) );
+        result[i] = static_cast<int>( clamped );
+    }
+}
+
 #endif
 
 // Cross-platform count trailing zeros

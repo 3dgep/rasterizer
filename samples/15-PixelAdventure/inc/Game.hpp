@@ -63,6 +63,7 @@ private:
     sr::graphics::Image      image;
     sr::graphics::Rasterizer rasterizer;
     Timer                    timer;
+    bool                     paused = false;
 
     // Maximum tick time for physics.
     const float physicsTick = 1.0f / 60.0f;

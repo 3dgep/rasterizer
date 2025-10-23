@@ -16,7 +16,7 @@ Game::Game( uint32_t screenWidth, uint32_t screenHeight )
 {
 
     rasterizer.state.colorTarget = &image;
-    rasterizer.state.cullMode    = CullMode::None; // Disable culling.
+    rasterizer.state.cullMode    = CullMode::None;  // Disable culling.
 
     // Input that controls the characters horizontal movement.
     Input::addAxisCallback( "Horizontal", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
@@ -144,6 +144,9 @@ Game::Game( uint32_t screenWidth, uint32_t screenHeight )
 
 void Game::update()
 {
+    if ( paused )
+        return;
+
     timer.tick();
 
     // Update and draw the background.
@@ -245,6 +248,12 @@ void Game::processEvent( const SDL_Event& _event )
 
     switch ( event.type )
     {
+    case SDL_EVENT_KEY_DOWN:
+        if ( event.key.key == SDLK_P )
+        {
+            paused = !paused;
+        }
+        break;
     case SDL_EVENT_MOUSE_MOTION:
         onMouseMoved( event.motion );
         break;
