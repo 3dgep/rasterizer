@@ -1,7 +1,8 @@
 #include "Game.hpp"
+
 #include <Timer.hpp>
 
-#include <Graphics/Window.hpp>
+#include <graphics/Window.hpp>
 #include <input/Input.hpp>
 
 #include <format>

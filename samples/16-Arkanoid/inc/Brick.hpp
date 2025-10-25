@@ -6,8 +6,8 @@
 #include <graphics/SpriteAnimation.hpp>
 #include <graphics/SpriteSheet.hpp>
 
-#include <Math/AABB.hpp>
-#include <Math/Transform2D.hpp>
+#include <math/AABB.hpp>
+#include <math/Transform2D.hpp>
 
 #include <memory>
 

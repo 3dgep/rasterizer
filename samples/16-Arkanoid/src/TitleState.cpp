@@ -59,7 +59,7 @@ void TitleState::draw( Rasterizer& rasterizer )
     }
 
     rasterizer.drawSprite( taitoSprite, 64, 179 );
-    rasterizer.drawText( font, L"© 1986 TAITO CORP JAPAN", 16, 208 );
+    rasterizer.drawText( font, L"ï¿½ 1986 TAITO CORP JAPAN", 16, 208 );
     rasterizer.drawText( font, "ALL RIGHTS RESERVED", 33, 222 );
     rasterizer.drawText( font, std::format( "CREDIT{:3d}", coins ), 145, 255 );
 }
