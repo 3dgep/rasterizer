@@ -1,6 +1,6 @@
 #include <Transition.hpp>
 
-#include <Graphics/ResourceManager.hpp>
+#include <graphics/ResourceManager.hpp>
 
 using namespace sr;
 

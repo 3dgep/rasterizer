@@ -3,9 +3,9 @@
 
 #include <Level.hpp>
 
-#include <Graphics/BlendMode.hpp>
-#include <Graphics/Color.hpp>
-#include <Graphics/ResourceManager.hpp>
+#include <graphics/BlendMode.hpp>
+#include <graphics/Color.hpp>
+#include <graphics/ResourceManager.hpp>
 
 #include <numbers>
 #include <random>

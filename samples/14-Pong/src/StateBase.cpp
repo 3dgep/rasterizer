@@ -1,6 +1,8 @@
 #include <Scores.hpp>
 #include <StateBase.hpp>
 
+#include <format>
+
 using namespace sr::graphics;
 
 StateBase::StateBase( int screenWidth, int screenHeight )

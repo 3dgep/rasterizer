@@ -6,6 +6,8 @@
 
 #include <input/Input.hpp>
 
+#include <format>
+
 using namespace input;
 using namespace sr::graphics;
 
