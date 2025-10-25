@@ -41,8 +41,9 @@ add_sample( 12-Audio )
 add_sample( 13-Input )
 add_sample( 14-Pong )
 add_sample( 15-PixelAdventure )
+add_sample( 16-Arkanoid )
 
 # Set the startup project.
 set_directory_properties( PROPERTIES
-	VS_STARTUP_PROJECT 15-PixelAdventure
+	VS_STARTUP_PROJECT 16-Arkanoid
 )
