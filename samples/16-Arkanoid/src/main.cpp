@@ -32,13 +32,7 @@ int main( int argc, char* argv[] )
 
     Window window { "09 - Breakout", WINDOW_WIDTH, WINDOW_HEIGHT, true };
 
-    Timer       timer;
-    float       totalTime  = 0.0f;
-    uint64_t    frameCount = 0ull;
-    std::string fps        = "FPS: 0";
-
-    // Maximum tick time for physics.
-    constexpr float physicsTick = 1.0f / 200.0f;
+    Timer timer;
 
     while ( window )
     {
@@ -75,6 +69,9 @@ int main( int argc, char* argv[] )
         timer.tick();
         auto elapsedTime = static_cast<float>( timer.elapsedSeconds() );
 
+        // Maximum tick time for physics.
+        constexpr float physicsTick = 1.0f / 60.0f;
+
         do
         {
             Input::update();
@@ -82,9 +79,11 @@ int main( int argc, char* argv[] )
             elapsedTime -= physicsTick;
         } while ( elapsedTime > 0.0f );
 
+        game.draw();
+
         window.clear( Color::Black );
         window.present( game.getImage() );
 
-        //        timer.limitFPS( 30 );
+        //timer.limitFPS( 15 );
     }
 }

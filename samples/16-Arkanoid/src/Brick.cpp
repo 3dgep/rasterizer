@@ -31,9 +31,9 @@ void Brick::draw( Rasterizer& rasterizer ) const
         const int y = static_cast<int>( transform.getPosition().y );
         // Draw the drop shadow.
         {
-            auto s = rasterizer;
-            s.state.color = Color::Black.withAlpha( 0.3f );
-            rasterizer.drawSprite( spriteAnim, x + 8, y + 8 );
+            auto r = rasterizer;
+            r.state.color = Color::Black.withAlpha( 0.3f );
+            r.drawSprite( spriteAnim, x + 8, y + 8 );
         }
         // Now draw the brick sprite.
         rasterizer.drawSprite( spriteAnim, x, y );

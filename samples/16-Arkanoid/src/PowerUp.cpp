@@ -30,7 +30,7 @@ void PowerUp::draw( Rasterizer& rasterizer ) const
 
     auto r = rasterizer;
     r.state.color = Color::Black;
-    rasterizer.drawSprite( sprites, x + 2, y + 2);
+    r.drawSprite( sprites, x + 2, y + 2);
     r.state.color = Color::White;
     r.drawSprite( sprites, x, y );
 

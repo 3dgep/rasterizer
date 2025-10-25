@@ -69,6 +69,17 @@ void Game::update( float deltaTime )
     }
 
     state->update( deltaTime );
+
+    // If one of the states requested a state change, then
+    // switch to the next state at the end of the update function.
+    // Switching states while a state is executing will crash
+    // since the states are objects and deleting an object while it
+    // is still running is bad.
+    setState( nextState );
+}
+
+void Game::draw()
+{
     state->draw( rasterizer );
 
     // Draw the score board.
@@ -100,13 +111,6 @@ void Game::update( float deltaTime )
 #if _DEBUG
     drawFPS();
 #endif
-
-    // If one of the states requested a state change, then
-    // switch to the next state at the end of the update function.
-    // Switching states while a state is executing will crash
-    // since the states are objects and deleting an object while it
-    // is still running is bad.
-    setState( nextState );
 }
 
 Image& Game::getImage() noexcept
@@ -197,16 +201,14 @@ void Game::startState( GameState _state ) {}
 void Game::drawFPS() const
 {
     static Timer       timer;
-    static double      totalTime = 0.0;
-    static uint64_t    frames    = 0;
-    static std::string fps       = "FPS: 0";
+    static uint64_t    frames = 0;
+    static std::string fps    = "FPS: 0";
 
     timer.tick();
     ++frames;
-    totalTime += timer.elapsedSeconds();
-    if ( totalTime > 1.0 )
+    if ( timer.totalSeconds() > 1.0 )
     {
-        fps    = std::format( "FPS: {:.3f}", static_cast<double>( frames ) / totalTime );
+        fps    = std::format( "FPS: {:.3f}", static_cast<double>( frames ) / timer.totalSeconds() );
         frames = 0;
         timer.reset();
     }

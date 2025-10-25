@@ -32,6 +32,8 @@ public:
 
     void update( float deltaTime );
 
+    void draw();
+
     void processEvent( const SDL_Event& event );
 
     sr::graphics::Image& getImage() noexcept;
