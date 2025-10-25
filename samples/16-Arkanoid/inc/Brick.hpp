@@ -2,8 +2,9 @@
 
 #include "Physics.hpp"
 
-#include <Graphics/SpriteAnim.hpp>
-#include <Graphics/SpriteSheet.hpp>
+#include <graphics/Rasterizer.hpp>
+#include <graphics/SpriteAnimation.hpp>
+#include <graphics/SpriteSheet.hpp>
 
 #include <Math/AABB.hpp>
 #include <Math/Transform2D.hpp>
@@ -22,7 +23,7 @@ public:
     /// <param name="frames">The frames in the sprite sheet for this brick.</param>
     /// <param name="points">The number of points you get for breaking the brick.</param>
     /// <param name="hitPoints">The number of hits needed to break this brick.</param>
-    Brick( std::shared_ptr<Graphics::SpriteSheet> spriteSheet, std::span<const int> frames, int points = 50, int hitPoints = 1 );
+    Brick( std::shared_ptr<sr::graphics::SpriteSheet> spriteSheet, std::span<const int> frames, int points = 50, int hitPoints = 1 );
 
     /// <summary>
     /// Update the brick's animation.
@@ -34,7 +35,7 @@ public:
     /// Draw brick sprite to the image.
     /// </summary>
     /// <param name="image">The image to draw the brick to.</param>
-    void draw( Graphics::Image& image ) const;
+    void draw( sr::graphics::Rasterizer& image ) const;
 
     /// <summary>
     /// Hitting the brick will decrement the hit count of the brick.
@@ -77,31 +78,31 @@ public:
     /// <param name="c">The circle to check for collision with.</param>
     /// <param name="v">The velocity of the circle.</param>
     /// <returns>An optional HitInfo structure that contains the point of collision and the collision normal.</returns>
-    std::optional<Physics::HitInfo> checkCollision( const Math::Circle& c, const glm::vec2& v ) const;
+    std::optional<Physics::HitInfo> checkCollision( const sr::math::Circle& c, const glm::vec2& v ) const;
 
     /// <summary>
-    /// Check collision with this brick and an other AABB.
+    /// Check collision with this brick and another AABB.
     /// </summary>
     /// <param name="aabb">The AABB to check for collisions with.</param>
     /// <returns>`true` if they are colliding, `false` otherwise.</returns>
-    bool checkCollision( const Math::AABB& aabb ) const;
+    bool checkCollision( const sr::math::AABB& aabb ) const;
 
     /// <summary>
     /// Get the brick's AABB.
     /// </summary>
     /// <returns>The AABB of the brick.</returns>
-    Math::AABB getAABB() const noexcept;
+    sr::math::AABB getAABB() const noexcept;
 
 private:
     static inline float  FPS = 12.0f;
 
-    Graphics::SpriteAnim spriteAnim;
+    sr::graphics::SpriteAnimation spriteAnim;
 
     bool doAnimation = false;
     int points    = 50;
     int hitPoints = 1;
 
-    Math::AABB aabb;
-    Math::Transform2D transform;
+    sr::math::AABB aabb;
+    sr::math::Transform2D transform;
 };
 

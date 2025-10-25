@@ -1,9 +1,10 @@
 #pragma once
 
-#include <Graphics/Events.hpp>
-#include <Graphics/Font.hpp>
-#include <Graphics/Image.hpp>
-#include <Graphics/SpriteSheet.hpp>
+#include <graphics/Rasterizer.hpp>
+#include <graphics/SpriteSheet.hpp>
+#include <graphics/Text.hpp>
+
+#include <SDL3/SDL_events.h>
 
 #include <functional>
 
@@ -27,16 +28,16 @@ public:
     /// </summary>
     /// <param name="text">The button text.</param>
     /// <param name="font">The font to use to render the button text.</param>
-    /// <param name="color">(optional) The color of the button text. Default: White.</param>
-    /// <param name="rect">(optional) The rectangle that represents the button's position on screen. Default: 0</param>
-    /// <param name="onClick">(optional) The callback function to invoke when the button is clicked. Default: none</param>
-    Button( std::string_view text, std::shared_ptr<Graphics::Font> font, const Graphics::Color& color = Graphics::Color::White, const Math::RectF& rect = {}, std::function<void()> onClick = {} );
+    /// <param name="color">The color of the button text. Default: White.</param>
+    /// <param name="rect">The rectangle that represents the button's position on screen. Default: 0</param>
+    /// <param name="onClick">The callback function to invoke when the button is clicked. Default: none</param>
+    Button( std::string_view text, sr::graphics::Font font, const sr::graphics::Color& color = sr::graphics::Color::White, const sr::math::RectF& rect = sr::math::RectF {}, std::function<void()> onClick = {} );
 
-    void setSprite( State state, const Graphics::Sprite& sprite );
+    void setSprite( State state, const sr::graphics::Sprite& sprite );
 
-    void setRect( const Math::RectF& rect ) noexcept;
+    void setRect( const sr::math::RectF& rect ) noexcept;
 
-    Math::AABB getAABB() const noexcept
+    sr::math::AABB getAABB() const noexcept
     {
         return transform * aabb;
     }
@@ -46,17 +47,17 @@ public:
         onClick = std::move( _onClick );
     }
 
-    void setDefaultSprite( const Graphics::Sprite& sprite ) noexcept
+    void setDefaultSprite( const sr::graphics::Sprite& sprite ) noexcept
     {
         defaultSprite = sprite;
     }
 
-    void setHoverSprite( const Graphics::Sprite& sprite ) noexcept
+    void setHoverSprite( const sr::graphics::Sprite& sprite ) noexcept
     {
         hoverSprite = sprite;
     }
 
-    void setPressedSprite( const Graphics::Sprite& sprite ) noexcept
+    void setPressedSprite( const sr::graphics::Sprite& sprite ) noexcept
     {
         pressedSprite = sprite;
     }
@@ -83,13 +84,13 @@ public:
     /// Forward any window events to the button. This allows the button to handle mouse over/mouse clicked events.
     /// </summary>
     /// <param name="event">The event to process.</param>
-    void processEvents( const Graphics::Event& event );
+    void processEvents( const SDL_Event& event );
 
     /// <summary>
-    /// Draw this button to the image.
+    /// Draw this button.
     /// </summary>
-    /// <param name="image">The image to draw this button to.</param>
-    void draw( Graphics::Image& image );
+    /// <param name="rasterizer">The rasterizer to draw this button to.</param>
+    void draw( sr::graphics::Rasterizer& rasterizer );
 
 private:
     void setState( State newState );
@@ -98,16 +99,14 @@ private:
 
     std::function<void()> onClick;
 
-    std::string                     buttonText;
-    std::shared_ptr<Graphics::Font> buttonFont;
-    Graphics::Color                 textColor;
+    sr::graphics::Text buttonText;
 
-    Math::Transform2D transform;
-    Math::AABB        aabb;
+    sr::math::Transform2D transform;
+    sr::math::AABB        aabb;
 
-    Graphics::Sprite defaultSprite;
-    Graphics::Sprite hoverSprite;
-    Graphics::Sprite pressedSprite;
+    sr::graphics::Sprite defaultSprite;
+    sr::graphics::Sprite hoverSprite;
+    sr::graphics::Sprite pressedSprite;
 
     State state   = State::Default;
     bool  enabled = true;

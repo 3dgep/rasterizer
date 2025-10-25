@@ -131,6 +131,13 @@ Text& Text::setString( std::string_view string )
     return *this;
 }
 
+std::string_view Text::getText() const
+{
+    if ( m_Text )
+        return m_Text->text;
+    return {};
+}
+
 Text& Text::appendString( std::string_view string )
 {
     if ( !TTF_AppendTextString( m_Text, string.data(), string.length() ) )

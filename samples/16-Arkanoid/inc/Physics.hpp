@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Math/AABB.hpp>
-#include <Math/Circle.hpp>
+#include <math/AABB.hpp>
+#include <math/Circle.hpp>
 
 #include <glm/vec2.hpp>
 
@@ -26,7 +26,7 @@ struct HitInfo
 /// <param name="c1">The first circle to check.</param>
 /// <param name="c2">The second circle to check.</param>
 /// <returns>An optional `HitInfo` structure if the circles collided.</returns>
-std::optional<HitInfo> collidesWith( const Math::Circle& c1, const Math::Circle& c2 );
+std::optional<HitInfo> collidesWith( const sr::math::Circle& c1, const sr::math::Circle& c2 );
 
 /// <summary>
 /// Check for collision with a line and a moving circle.
@@ -34,7 +34,7 @@ std::optional<HitInfo> collidesWith( const Math::Circle& c1, const Math::Circle&
 /// <param name="line">The line to check for collision.</param>
 /// <param name="circle">The circle to check.</param>
 /// <returns>An optional `HitInfo` structure if the circle collided with the line.</returns>
-std::optional<HitInfo> collidesWith( const Math::Line& line, const Math::Circle& circle );
+std::optional<HitInfo> collidesWith( const sr::math::Line& line, const sr::math::Circle& circle );
 
 /// <summary>
 /// Test for collision with an AABB and a moving circle.
@@ -43,5 +43,5 @@ std::optional<HitInfo> collidesWith( const Math::Line& line, const Math::Circle&
 /// <param name="circle">The circle to check for.</param>
 /// <param name="velocity">The velocity of the circle.</param>
 /// <returns>An optional `HitInfo` structure if the circle collided with the AABB.</returns>
-std::optional<HitInfo> collidesWith( const Math::AABB& aabb, const Math::Circle& circle, const glm::vec2& velocity );
+std::optional<HitInfo> collidesWith( const sr::math::AABB& aabb, const sr::math::Circle& circle, const glm::vec2& velocity );
 }  // namespace Physics

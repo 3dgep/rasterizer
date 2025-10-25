@@ -3,6 +3,9 @@
 #include "Color.hpp"
 #include "Font.hpp"
 
+#include <iostream>
+#include <SDL3_ttf/SDL_ttf.h>
+
 struct TTF_Text;
 struct TTF_TextEngine;
 
@@ -22,7 +25,7 @@ public:
         BTT,      // Bottom to top.
     };
 
-    Text()              = default;
+    Text() = default;
     explicit Text( Font font, std::string_view text = {}, const Color& color = Color::White );
     Text( const Text& ) = delete;
     Text( Text&& ) noexcept;
@@ -51,6 +54,12 @@ public:
     /// <param name="string">The string to set the text to.</param>
     /// <returns>A reference to the Text object.</returns>
     Text& setString( std::string_view string );
+
+    /// <summary>
+    /// Returns a read-only view of the text.
+    /// </summary>
+    /// <returns>A std::string_view representing the text.</returns>
+    std::string_view getText() const;
 
     /// <summary>
     /// Append UTF-8 encoded text to the Text object.
@@ -149,3 +158,9 @@ private:
 };
 }  // namespace graphics
 }  // namespace sr
+
+inline std::ostream& operator<<(std::ostream& os, const sr::graphics::Text& text )
+{
+    os << text.getText();
+    return os;
+}

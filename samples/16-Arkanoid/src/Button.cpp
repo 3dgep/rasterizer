@@ -4,19 +4,16 @@
 
 #include <iostream>
 
-using namespace Graphics;
-using namespace Math;
+using namespace sr;
 
-Button::Button( std::string_view text, std::shared_ptr<Font> font, const Graphics::Color& color, const Math::RectF& rect, std::function<void()> onClick )
+Button::Button( std::string_view text, Font font, const Color& color, const RectF& rect, std::function<void()> onClick )
 : onClick { std::move( onClick ) }
-, buttonText { text }
-, buttonFont { std::move( font ) }
-, textColor { color }
+, buttonText { std::move( font ), text, color }
 {
     setRect( rect );
 }
 
-void Button::setSprite( State _state, const Graphics::Sprite& sprite )
+void Button::setSprite( State _state, const Sprite& sprite )
 {
     switch ( _state )
     {
@@ -29,20 +26,20 @@ void Button::setSprite( State _state, const Graphics::Sprite& sprite )
     case State::Pressed:
         pressedSprite = sprite;
         break;
-    default: ;
+    default:;
     }
 }
 
-void Button::setRect( const Math::RectF& rect ) noexcept
+void Button::setRect( const RectF& rect ) noexcept
 {
     aabb = AABB { { 0, 0, 0 }, { rect.width, rect.height, 0 } };
     const glm::vec2 anchor { rect.width / 2.0f, rect.height };
     transform.setPosition( rect.topLeft() + anchor );
-    //transform.setPosition( rect.topLeft() );
+    // transform.setPosition( rect.topLeft() );
     transform.setAnchor( anchor );
 }
 
-void Button::draw( Graphics::Image& image )
+void Button::draw( Rasterizer& rasterizer )
 {
     if ( !enabled )
         return;
@@ -65,40 +62,41 @@ void Button::draw( Graphics::Image& image )
         auto t = transform;
         auto s = sprite->getSize();
         t.setAnchor( { s.x / 2, s.y } );
-        image.drawSprite( *sprite, t );
-    }
-    // Draw the button text.
-    if ( buttonFont && !buttonText.empty() )
-    {
-        // Center the text on the button.
-        const auto size = buttonFont->getSize( buttonText );
-        const auto pos  = glm::vec2 { getAABB().center() } - glm::vec2 { size.x, -size.y } / 2.0f;
-        image.drawText( *buttonFont, buttonText, static_cast<int>( pos.x ), static_cast<int>( pos.y + ( state == State::Pressed ? 5.0f : 0.0f ) ), textColor );
+        rasterizer.drawSprite( *sprite, t );
     }
 
+    // Draw the button text.
+    // Center the text on the button.
+    const auto size = buttonText.getSize();
+    const auto pos  = glm::vec2 { getAABB().center() } - glm::vec2 { size.x, -size.y } / 2.0f;
+    rasterizer.drawText( buttonText, static_cast<int>( pos.x ), static_cast<int>( pos.y + ( state == State::Pressed ? 5.0f : 0.0f ) ) );
+
 #if _DEBUG
-    image.drawAABB( getAABB(), Color::Yellow, {}, FillMode::WireFrame );
+    auto r = rasterizer;
+    r.state.color = Color::Red;
+    r.state.fillMode = FillMode::WireFrame;
+    r.drawAABB( getAABB() );
 #endif
 }
 
-void Button::processEvents( const Graphics::Event& event )
+void Button::processEvents( const SDL_Event& event )
 {
     if ( !enabled )
         return;
 
     switch ( event.type )
     {
-    case Event::MouseMoved:
-        if ( getAABB().contains( { event.mouseMove.x, event.mouseMove.y, 0 } ) )
+    case SDL_EVENT_MOUSE_MOTION:
+        if ( getAABB().contains( { event.motion.x, event.motion.y, 0 } ) )
             setState( State::Hover );
         else
             setState( State::Default );
         break;
-    case Event::MouseButtonPressed:
+    case SDL_EVENT_MOUSE_BUTTON_DOWN:
         if ( state == State::Hover )
             setState( State::Pressed );
         break;
-    case Event::MouseButtonReleased:
+    case SDL_EVENT_MOUSE_BUTTON_UP:
         if ( state == State::Pressed )
             if ( onClick )
                 onClick();

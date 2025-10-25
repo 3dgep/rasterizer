@@ -1,8 +1,9 @@
 #pragma once
 
-#include <Graphics/SpriteAnim.hpp>
-#include <Graphics/SpriteSheet.hpp>
-#include <Math/AABB.hpp>
+#include <graphics/Rasterizer.hpp>
+#include <graphics/SpriteAnimation.hpp>
+#include <graphics/SpriteSheet.hpp>
+#include <math/AABB.hpp>
 
 class PowerUp
 {
@@ -27,7 +28,7 @@ public:
     /// <param name="spriteSheet">The spritesheet that contains the sprites for the power-ups.</param>
     /// <param name="frames">The frames from the spritesheet for this power-up.</param>
     /// <param name="type">The type of the power-up.</param>
-    PowerUp( std::shared_ptr<Graphics::SpriteSheet> spriteSheet, std::span<const int> frames, Type type );
+    PowerUp( std::shared_ptr<sr::graphics::SpriteSheet> spriteSheet, std::span<const int> frames, Type type );
 
     /// <summary>
     /// Update the power-up's animation.
@@ -38,8 +39,8 @@ public:
     /// <summary>
     /// Draw power-up sprite to the image.
     /// </summary>
-    /// <param name="image">The image to draw the brick to.</param>
-    void draw( Graphics::Image& image ) const;
+    /// <param name="rasterizer">The rasterizer to draw the brick.</param>
+    void draw( sr::graphics::Rasterizer& rasterizer ) const;
 
     /// <summary>
     /// Set the position of the power-up.
@@ -74,7 +75,7 @@ private:
     static inline float FPS   = 12.0f;   ///< FPS for sprite animation.
     static inline float SPEED = 50.0f;  ///< Speed of falling sprites (pixels/second).
 
-    Graphics::SpriteAnim sprites;
+    sr::graphics::SpriteAnim sprites;
     Math::AABB           aabb;
     Math::Transform2D    transform;
     Type                 type = None;

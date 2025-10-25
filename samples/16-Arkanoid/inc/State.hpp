@@ -1,14 +1,15 @@
 #pragma once
 
-#include <Graphics/Events.hpp>
-#include <Graphics/Image.hpp>
+#include <graphics/Rasterizer.hpp>
+
+#include <SDL3/SDL_events.h>
 
 class State
 {
 public:
     virtual void update( float deltaTime ) {}
-    virtual void draw( Graphics::Image& image ) {}
-    virtual void processEvent( const Graphics::Event& event ) {}
+    virtual void draw( sr::graphics::Rasterizer& image ) {}
+    virtual void processEvent( const SDL_Event& event ) {}
 
     virtual ~State() = default;
 

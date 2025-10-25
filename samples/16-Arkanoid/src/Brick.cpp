@@ -1,8 +1,10 @@
 #include <Brick.hpp>
 
+using namespace sr;
+
 Brick::Brick() = default;
 
-Brick::Brick( std::shared_ptr<Graphics::SpriteSheet> spriteSheet, std::span<const int> frames, int points, int hitPoints )
+Brick::Brick( std::shared_ptr<sr::graphics::SpriteSheet> spriteSheet, std::span<const int> frames, int points, int hitPoints )
 : spriteAnim { std::move( spriteSheet ), FPS, frames }
 , points { points }
 , hitPoints { hitPoints }
@@ -21,14 +23,20 @@ void Brick::update( float deltaTime )
     }
 }
 
-void Brick::draw( Graphics::Image& image ) const
+void Brick::draw( Rasterizer& rasterizer ) const
 {
     if (hitPoints > 0)
     {
         const int x = static_cast<int>( transform.getPosition().x );
         const int y = static_cast<int>( transform.getPosition().y );
-        image.drawSprite( spriteAnim, x + 8, y + 8, Graphics::Color::Black.withAlpha( 0.3f ) );
-        image.drawSprite( spriteAnim, x, y );
+        // Draw the drop shadow.
+        {
+            auto s = rasterizer;
+            s.state.color = Color::Black.withAlpha( 0.3f );
+            rasterizer.drawSprite( spriteAnim, x + 8, y + 8 );
+        }
+        // Now draw the brick sprite.
+        rasterizer.drawSprite( spriteAnim, x, y );
     }
 }
 
@@ -62,17 +70,17 @@ const glm::vec2& Brick::getPosition() const noexcept
     return transform.getPosition();
 }
 
-std::optional<Physics::HitInfo> Brick::checkCollision( const Math::Circle& c, const glm::vec2& v ) const
+std::optional<Physics::HitInfo> Brick::checkCollision( const Circle& c, const glm::vec2& v ) const
 {
     return Physics::collidesWith( getAABB(), c, v );
 }
 
-bool Brick::checkCollision( const Math::AABB& _aabb ) const
+bool Brick::checkCollision( const AABB& _aabb ) const
 {
     return getAABB().intersect( _aabb );
 }
 
-Math::AABB Brick::getAABB() const noexcept
+AABB Brick::getAABB() const noexcept
 {
     return transform * aabb;
 }

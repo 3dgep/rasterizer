@@ -5,11 +5,11 @@
 
 #include <array>
 
-using namespace Math;
+using namespace sr;
 
 namespace Physics
 {
-std::optional<HitInfo> collidesWith( const Math::Circle& c1, const Math::Circle& c2 )
+std::optional<HitInfo> collidesWith( const Circle& c1, const Circle& c2 )
 {
     const float dx = c2.center.x - c1.center.x;
     const float dy = c2.center.y - c1.center.y;
@@ -30,7 +30,7 @@ std::optional<HitInfo> collidesWith( const Math::Circle& c1, const Math::Circle&
     return {};
 }
 
-std::optional<HitInfo> collidesWith( const Math::Line& l, const Math::Circle& c )
+std::optional<HitInfo> collidesWith( const Line& l, const Circle& c )
 {
     // Get the closest point on the line to the circle's center.
     const auto p = l.closestPoint( glm::vec3 { c.center, 0 } );
