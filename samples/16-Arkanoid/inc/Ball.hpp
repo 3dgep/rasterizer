@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Graphics/Image.hpp>
-#include <Graphics/Sprite.hpp>
+#include <graphics/Rasterizer.hpp>
+#include <graphics/Sprite.hpp>
 
-#include <Math/Camera2D.hpp>
-#include <Math/Circle.hpp>
+#include <math/Camera2D.hpp>
+#include <math/Circle.hpp>
 
 #include <glm/vec2.hpp>
 
@@ -17,23 +17,23 @@ public:
 
     void update( float deltaTime );
 
-    void draw( Graphics::Image& image );
+    void draw( sr::graphics::Rasterizer& rasterizer );
 
-    void setPosition( const glm::vec2& pos );
+    void             setPosition( const glm::vec2& pos );
     const glm::vec2& getPosition() const;
 
-    void setVelocity( const glm::vec2& vel );
+    void             setVelocity( const glm::vec2& vel );
     const glm::vec2& getVelocity() const;
 
-    void setCircle( const Math::Circle& circle );
-    const Math::Circle& getCircle() const;
-    
-private:
-    Math::Transform2D transform;
-    Math::Circle      circle;
-    glm::vec2         velocity { 0 };
+    void                    setCircle( const sr::math::Circle& circle );
+    const sr::math::Circle& getCircle() const;
 
-    Graphics::Sprite sprite;
+private:
+    sr::math::Transform2D transform;
+    sr::math::Circle      circle;
+    glm::vec2             velocity { 0 };
+
+    sr::graphics::Sprite sprite;
 
     static inline float radius = 2.0f;
 };

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Graphics/Image.hpp>
-#include <Graphics/SpriteAnim.hpp>
-#include <Graphics/SpriteSheet.hpp>
+#include <graphics/Rasterizer.hpp>
+#include <graphics/SpriteAnimation.hpp>
+#include <graphics/SpriteSheet.hpp>
 
-#include <Math/AABB.hpp>
-#include <Math/Transform2D.hpp>
+#include <math/AABB.hpp>
+#include <math/Transform2D.hpp>
 
 #include <span>
 
@@ -21,10 +21,10 @@ public:
 
     Bullet() = default;
 
-    Bullet( std::shared_ptr<Graphics::SpriteSheet> spriteSheet, std::span<const int> frames );
+    Bullet( std::shared_ptr<sr::graphics::SpriteSheet> spriteSheet, std::span<const int> frames );
 
     void update( float deltaTime ) noexcept;
-    void draw( Graphics::Image& image ) const noexcept;
+    void draw( sr::graphics::Rasterizer& rasterizer ) const noexcept;
 
     /// <summary>
     /// Fire the bullet from a particular position.
@@ -40,7 +40,7 @@ public:
     void             setPosition( const glm::vec2& pos ) noexcept;
     const glm::vec2& getPosition() const noexcept;
 
-    Math::AABB getAABB() const noexcept;
+    sr::math::AABB getAABB() const noexcept;
 
     void  setState( State state ) noexcept;
     State getState() const noexcept;
@@ -52,8 +52,8 @@ private:
     void doFired( float deltaTime );
     void doHit( float deltaTime );
 
-    Graphics::SpriteAnim spriteAnim;
-    Math::AABB           aabb;
-    Math::Transform2D    transform;
-    State                state = State::None;
+    sr::graphics::SpriteAnimation spriteAnim;
+    sr::math::AABB                aabb;
+    sr::math::Transform2D         transform;
+    State                         state = State::None;
 };

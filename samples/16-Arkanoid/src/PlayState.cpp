@@ -1,21 +1,23 @@
-#include "Game.hpp"
-#include "PowerUp.hpp"
-
+#include <Game.hpp>
+#include <PowerUp.hpp>
 #include <ParseRects.hpp>
 #include <PlayState.hpp>
 
-#include <Graphics/Input.hpp>
+#include <Timer.hpp>
 
-#include <fmt/core.h>
+#include <input/Input.hpp>
+
+#include <format>
+
 #include <glm/gtc/random.hpp>  // For generating random vectors.
 
-using namespace Graphics;
-using namespace Math;
+using namespace sr;
+using namespace input;
 
 // Get the spritesheet for the powerups.
 std::shared_ptr<SpriteSheet> GetPowerUpSprites()
 {
-    static std::shared_ptr<SpriteSheet> sprites = std::make_shared<SpriteSheet>( "assets/Arkanoid/powerups.png", ParseRects( "assets/Arkanoid/powerups.xml" ), BlendMode::AlphaBlend );
+    static std::shared_ptr<SpriteSheet> sprites = std::make_shared<SpriteSheet>( "assets/Arkanoid/powerups.png", ParseRects( "assets/Arkanoid/powerups.xml" ), BlendMode::AlphaDiscard );
     return sprites;
 }
 
@@ -43,7 +45,7 @@ PlayState::PlayState( Game& game )
 , rng { std::random_device {}() }  // Seed the random number generator with a random device.
 {
     // Input that controls the horizontal movement of the paddle.
-    Input::mapAxis( "Horizontal", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::addAxisCallback( "Horizontal", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         float leftX = 0.0f;
 
         for ( auto& gamePadState: gamePadStates )
@@ -64,19 +66,31 @@ PlayState::PlayState( Game& game )
     } );
 
     // Input that controls shooting.
-    Input::mapButtonDown( "Fire", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::addButtonDownCallback( "Fire", []( std::span<const GamepadStateTracker> gamepadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         bool a = false;
+        bool rightTrigger = false;
 
-        for ( auto& gamePadState: gamePadStates )
+        for ( auto& gamepadState: gamepadStates )
         {
-            a = a || gamePadState.a == ButtonState::Pressed;
+            a = a || gamepadState.a == ButtonState::Held;
+            rightTrigger = gamepadState.rightTrigger == ButtonState::Held;
         }
 
-        const bool space = keyboardState.isKeyPressed( KeyCode::Space );
-        const bool up    = keyboardState.isKeyPressed( KeyCode::Up );
-        const bool w     = keyboardState.isKeyPressed( Graphics::KeyCode::W );
+        auto state = keyboardState.getLastState();
 
-        return a || space || up || w;
+        const bool space = state.Space;
+        const bool up    = state.Up;
+        const bool w     = state.W;
+
+        static Timer timer;
+        timer.tick();
+
+        // Don't shoot again unless 300 milliseconds have passed...
+        if ( timer.totalMilliseconds() < 300 )
+            return false;
+
+        timer.reset();
+        return a || rightTrigger || space || up || w;
     } );
 
     {
@@ -126,49 +140,59 @@ void PlayState::update( float deltaTime )
     }
 }
 
-void PlayState::drawText( Graphics::Image& image, std::string_view text, int x, int y )
+void PlayState::drawText( Rasterizer& rasterizer, std::string_view text, int x, int y )
 {
     const auto& font = game.getFont();
 
-    image.drawText( font, text, x + 1, y + 1, Color::Black );
-    image.drawText( font, text, x, y, Color::White );
+    auto r = rasterizer;
+    r.state.color = Color::Black;
+    r.drawText( font, text, x + 1, y + 1 );
+    r.state.color = Color::White;
+    r.drawText( font, text, x, y );
 }
 
-void PlayState::draw( Graphics::Image& image )
+void PlayState::draw( Rasterizer& rasterizer )
 {
-    // Clear the 16 pixels area above the game field.
-    image.drawRectangle( RectUI { 0u, 0u, image.getWidth(), 16u }, Color::Black );
+    {
+        Image* image = rasterizer.state.colorTarget;
+        assert( image != nullptr );
+
+        // Clear the 16 pixels area above the game field.
+        auto r        = rasterizer;
+        r.state.color = Color::Black;
+        r.drawRectangle( RectUI { 0u, 0u, static_cast<unsigned int>( image->getWidth() ), 16u } );
+    }
 
     // Draw the field.
-    field.draw( image );
+    field.draw( rasterizer );
 
     switch ( state )
     {
     case State::Ready:
-        drawText( image, fmt::format( "ROUND {:2}", levelId + 1 ), 81, 180 );
+        drawText( rasterizer, std::format( "ROUND {:2}", levelId + 1 ), 81, 180 );
         if ( time > 1.0f )
-            drawText( image, "READY", 93, 200 );
+            drawText( rasterizer, "READY", 93, 200 );
         break;
     case State::Start:
     case State::Playing:
         for ( auto& ball: balls )
-            ball.draw( image );
+            ball.draw( rasterizer );
         break;
     }
 
-    level.draw( image );
-    vaus.draw( image );
+    level.draw( rasterizer );
+    vaus.draw( rasterizer );
 
     // draw bullets
     for ( auto& bullet: bullets )
     {
-        bullet.draw( image );
+        bullet.draw( rasterizer );
     }
 
     // Draw power-ups
     for ( auto& powerUp: powerUps )
     {
-        powerUp.draw( image );
+        powerUp.draw( rasterizer );
     }
 }
 
@@ -416,7 +440,7 @@ void PlayState::checkCollisions( Bullet& bullet )
     // Level bounds.
     constexpr float top = 24.0f;
 
-    Math::AABB aabb = bullet.getAABB();
+    AABB aabb = bullet.getAABB();
 
     // Check for collision with the bricks.
     if ( level.checkCollision( bullet, *this ) )

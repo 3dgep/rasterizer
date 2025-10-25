@@ -2,13 +2,21 @@
 
 #include <SDL3_ttf/SDL_ttf.h>
 
+#include <codecvt>
 #include <iostream>
+#include <locale>
 #include <utility>
 
 using namespace sr::graphics;
 
 namespace
 {
+std::string wstringToUTF8( std::wstring_view str )
+{
+    static std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+    return conv.to_bytes( str.data(), str.data() + str.size() );
+}
+
 TTF_Direction translateDirection( Text::Direction direction )
 {
     switch ( direction )
@@ -70,7 +78,8 @@ struct SDL_ttf_context
 
 }  // namespace
 
-TTF_TextEngine* Text::TextEngine() {
+TTF_TextEngine* Text::TextEngine()
+{
     static SDL_ttf_context context;
     return context.textEngine;
 }
@@ -80,7 +89,7 @@ Text::Text( Font font, std::string_view text, const Color& color )
 {
     m_Text = TTF_CreateText( TextEngine(), m_Font.getTTF_Font(), text.data(), text.length() );
 
-    if (!m_Text)
+    if ( !m_Text )
     {
         std::cerr << "Failed to create Text: " << SDL_GetError();
         return;
@@ -88,6 +97,10 @@ Text::Text( Font font, std::string_view text, const Color& color )
 
     setColor( color );
 }
+
+Text::Text( Font font, std::wstring_view text, const Color& color )
+: Text { std::move( font ), wstringToUTF8( text ), color }
+{}
 
 Text::Text( Text&& other ) noexcept
 {

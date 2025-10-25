@@ -27,6 +27,7 @@ public:
 
     Text() = default;
     explicit Text( Font font, std::string_view text = {}, const Color& color = Color::White );
+    explicit Text( Font font, std::wstring_view text = {}, const Color& color = Color::White );
     Text( const Text& ) = delete;
     Text( Text&& ) noexcept;
     ~Text();

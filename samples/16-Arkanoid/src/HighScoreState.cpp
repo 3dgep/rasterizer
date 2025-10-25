@@ -1,16 +1,17 @@
 #include <HighScoreState.hpp>
 
-#include <Graphics/Input.hpp>
+#include <input/Input.hpp>
 
-#include <fmt/core.h>
+#include <format>
 #include <numbers>
 
-using namespace Graphics;
+using namespace sr;
+using namespace input;
 
 constexpr float PI = std::numbers::pi_v<float>;
 
 static const std::string chars    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ.! ";  // I don't know what the possible characters are...
-static const std::string palace[] = {
+static const std::string place[] = {
     "1ST",
     "2ND",
     "3RD",
@@ -22,8 +23,10 @@ HighScoreState::HighScoreState( Game& _game, int score, int round )
 : game { _game }
 , highScore { score, round, "   " }
 {
+    using Keyboard::Key;
+
     // Map controls for entering the initials for a high score.
-    Input::mapButtonDown( "Up", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::addButtonDownCallback( "Up", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         bool up = false;
 
         for ( auto& gamePadState: gamePadStates )
@@ -31,13 +34,13 @@ HighScoreState::HighScoreState( Game& _game, int score, int round )
             up = up || gamePadState.dPadUp == ButtonState::Pressed;
         }
 
-        up           = up || keyboardState.isKeyPressed( KeyCode::Up );
-        const bool w = keyboardState.isKeyPressed( KeyCode::W );
+        up           = up || keyboardState.isKeyPressed( Key::Up );
+        const bool w = keyboardState.isKeyPressed( Key::W );
 
         return up || w;
     } );
 
-    Input::mapButtonDown( "Down", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::addButtonDownCallback( "Down", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         bool down = false;
 
         for ( auto& gamePadState: gamePadStates )
@@ -45,13 +48,13 @@ HighScoreState::HighScoreState( Game& _game, int score, int round )
             down = down || gamePadState.dPadDown == ButtonState::Pressed;
         }
 
-        down         = down || keyboardState.isKeyPressed( KeyCode::Down );
-        const bool s = keyboardState.isKeyPressed( KeyCode::S );
+        down         = down || keyboardState.isKeyPressed( Key::Down );
+        const bool s = keyboardState.isKeyPressed( Key::S );
 
         return down || s;
     } );
 
-    Input::mapButtonDown( "Left", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::addButtonDownCallback( "Left", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         bool left = false;
 
         for ( auto& gamePadState: gamePadStates )
@@ -59,13 +62,13 @@ HighScoreState::HighScoreState( Game& _game, int score, int round )
             left = left || gamePadState.dPadLeft == ButtonState::Pressed;
         }
 
-        left         = left || keyboardState.isKeyPressed( KeyCode::Left );
-        const bool a = keyboardState.isKeyPressed( KeyCode::A );
+        left         = left || keyboardState.isKeyPressed( Key::Left );
+        const bool a = keyboardState.isKeyPressed( Key::A );
 
         return left || a;
     } );
 
-    Input::mapButtonDown( "Right", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::addButtonDownCallback( "Right", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         bool right = false;
 
         for ( auto& gamePadState: gamePadStates )
@@ -73,13 +76,13 @@ HighScoreState::HighScoreState( Game& _game, int score, int round )
             right = right || gamePadState.dPadRight == ButtonState::Pressed;
         }
 
-        right        = right || keyboardState.isKeyPressed( KeyCode::Right );
-        const bool d = keyboardState.isKeyPressed( KeyCode::D );
+        right        = right || keyboardState.isKeyPressed( Key::Right );
+        const bool d = keyboardState.isKeyPressed( Key::D );
 
         return right || d;
     } );
 
-    Input::mapButtonDown( "Back", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::addButtonDownCallback( "Back", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         bool b = false;
 
         for ( auto& gamePadState: gamePadStates )
@@ -87,12 +90,12 @@ HighScoreState::HighScoreState( Game& _game, int score, int round )
             b = b || gamePadState.b == ButtonState::Pressed;
         }
 
-        const bool backspace = keyboardState.isKeyPressed( KeyCode::Back );
+        const bool backspace = keyboardState.isKeyPressed( Key::Back );
 
         return b || backspace;
     } );
 
-    Input::mapButtonDown( "Enter", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::addButtonDownCallback( "Enter", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         bool a = false;
 
         for ( auto& gamePadState: gamePadStates )
@@ -100,7 +103,7 @@ HighScoreState::HighScoreState( Game& _game, int score, int round )
             a = a || gamePadState.a == ButtonState::Pressed;
         }
 
-        const bool enter = keyboardState.isKeyPressed( KeyCode::Enter );
+        const bool enter = keyboardState.isKeyPressed( Key::Enter );
 
         return a || enter;
     } );
@@ -146,32 +149,34 @@ void HighScoreState::update( float deltaTime )
     highScore.name[initial] = chars[character[initial]];
 }
 
-void HighScoreState::draw( Graphics::Image& image )
+void HighScoreState::draw( Rasterizer& rasterizer )
 {
     const auto& font = game.getFont();
 
-    image.clear( Color::Black );
+    auto r = rasterizer;
+    r.clear( Color::Black );
 
-    image.drawText( font, "ENTER YOUR INITIALS !", 31, 79, Color::Red );
-    image.drawText( font, "SCORE ROUND   NAME", 40, 104, Color::Yellow );
-    image.drawText( font, fmt::format( "{:8d}", highScore.score), 20, 120, Color::White );
-    image.drawText( font, fmt::format( "{:>3}", highScore.round ), 95, 120, Color::Yellow );
+    r.state.color = Color::Red;
+    r.drawText( font, "ENTER YOUR INITIALS !", 31, 79 );
+    r.state.color = Color::Yellow;
+    r.drawText( font, "SCORE ROUND   NAME", 40, 104 );
+    r.state.color = Color::White;
+    r.drawText( font, std::format( "{:8d}", highScore.score ), 20, 120 );
+    r.state.color = Color::Yellow;
+    r.drawText( font, std::format( "{:>3}", highScore.round ), 95, 120 );
 
     for ( int i = 0; i < 3; ++i )
     {
 
-        auto color = Color::Yellow;
+        r.state.color = Color::Yellow;
         if (i == initial)
         {
-            color = std::sin( timer * PI * 12.0f ) > 0.0f ? Color::Red : Color::White;
+            r.state.color = std::sin( timer * PI * 12.0f ) > 0.0f ? Color::Red : Color::White;
         }
-
-        image.drawText( font, fmt::format( "{}", highScore.name[i] ), 144 + i * 7, 120, color );
+        r.drawText( font, std::format( "{}", highScore.name[i] ), 144 + i * 7, 120 );
     }
-
-
 }
 
-void HighScoreState::processEvent( const Graphics::Event& event )
+void HighScoreState::processEvent( const SDL_Event& event )
 {
 }

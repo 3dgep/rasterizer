@@ -1,12 +1,14 @@
 #include <Game.hpp>
 #include <TitleState.hpp>
 
-#include <Graphics/Input.hpp>
-#include <Graphics/ResourceManager.hpp>
+#include <graphics/ResourceManager.hpp>
 
-#include <fmt/core.h>
+#include <input/Input.hpp>
 
-using namespace Graphics;
+#include <format>
+
+using namespace sr;
+using namespace input;
 
 TitleState::TitleState( Game& game )
 : game { game }
@@ -16,7 +18,7 @@ TitleState::TitleState( Game& game )
     auto shipImage  = ResourceManager::loadImage( "assets/Arkanoid/ship.png" );
     auto taitoImage = ResourceManager::loadImage( "assets/Arkanoid/taito.png" );
 
-    arkanoidSprite = Sprite( shipImage, { 0, 0, 193, 42 }, BlendMode::AlphaBlend );
+    arkanoidSprite = Sprite( shipImage, RectI { 0, 0, 193, 42 }, BlendMode::AlphaDiscard );
     taitoSprite    = Sprite( taitoImage );
 }
 
@@ -34,74 +36,52 @@ void TitleState::update( float deltaTime )
     }
 }
 
-void TitleState::draw( Graphics::Image& image )
+void TitleState::draw( Rasterizer& rasterizer )
 {
-    image.clear( Color::Black );
+    rasterizer.clear( Color::Black );
 
-    image.drawSprite( arkanoidSprite, 16, 51 );
+    rasterizer.drawSprite( arkanoidSprite, 16, 51 );
 
     int         coins = game.getCoins();
     const auto& font  = game.getFont();
 
     if ( coins > 0 )
     {
-        image.drawText( font, "PUSH", 97, 120, Color::White );
+        rasterizer.drawText( font, "PUSH", 97, 120 );
         if ( coins < 2 )
         {
-            image.drawText( font, "ONLY 1 PLAYER BUTTON", 33, 144, Color::White );
+            rasterizer.drawText( font, "ONLY 1 PLAYER BUTTON", 33, 144 );
         }
         else
         {
-            image.drawText( font, "1 OR 2 PLAYER BUTTON", 34, 144, Color::White );
+            rasterizer.drawText( font, "1 OR 2 PLAYER BUTTON", 34, 144 );
         }
     }
 
-    image.drawSprite( taitoSprite, 64, 179 );
-    image.drawText( font, L"© 1986 TAITO CORP JAPAN", 16, 208, Color::White );
-    image.drawText( font, "ALL RIGHTS RESERVED", 33, 222, Color::White );
-    image.drawText( font, fmt::format( "CREDIT{:3d}", coins ), 145, 255, Color::White );
+    rasterizer.drawSprite( taitoSprite, 64, 179 );
+    rasterizer.drawText( font, L"© 1986 TAITO CORP JAPAN", 16, 208 );
+    rasterizer.drawText( font, "ALL RIGHTS RESERVED", 33, 222 );
+    rasterizer.drawText( font, std::format( "CREDIT{:3d}", coins ), 145, 255 );
 }
 
-void TitleState::processEvent( const Graphics::Event& _event )
+void TitleState::processEvent( const SDL_Event& _event )
 {
 
     // Copy the event so we can modify it.
-    Event event = _event;
+    SDL_Event event = _event;
 
     switch ( event.type )
     {
-    case Event::None:
+    case SDL_EVENT_MOUSE_MOTION:
+        onMouseMoved( event.motion );
         break;
-    case Event::Close:
-        break;
-    case Event::KeyPressed:
-        break;
-    case Event::KeyReleased:
-        break;
-    case Event::MouseMoved:
-        onMouseMoved( event.mouseMove );
-        break;
-    case Event::MouseButtonPressed:
-        break;
-    case Event::MouseButtonReleased:
-        break;
-    case Event::MouseWheel:
-        break;
-    case Event::MouseHWheel:
-        break;
-    case Event::MouseEnter:
-        break;
-    case Event::MouseLeave:
-        break;
-    case Event::Resize:
-        onResized( event.resize );
-        break;
-    case Event::EndResize:
+    case SDL_EVENT_WINDOW_RESIZED:
+        onResized( event.window );
         break;
     }
 }
 
-void TitleState::onMouseMoved( Graphics::MouseMovedEventArgs& args )
+void TitleState::onMouseMoved( SDL_MouseMotionEvent& args )
 {
     // Compute the mouse position relative to the menu screen (which can be scaled if the window is resized).
     const glm::vec2 scale {
@@ -110,17 +90,20 @@ void TitleState::onMouseMoved( Graphics::MouseMovedEventArgs& args )
     };
     const glm::vec2 offset { gameRect.topLeft() };
 
-    args.x = std::lround( ( static_cast<float>( args.x ) - offset.x ) * scale.x );
-    args.y = std::lround( ( static_cast<float>( args.y ) - offset.y ) * scale.y );
+    args.x = ( args.x - offset.x ) * scale.x;
+    args.y = ( args.y - offset.y ) * scale.y;
 
     mousePos = { args.x, args.y };
 }
 
-void TitleState::onResized( const Graphics::ResizeEventArgs& args )
+void TitleState::onResized( const SDL_WindowEvent& args )
 {
+    if ( args.type != SDL_EVENT_WINDOW_RESIZED )
+        return;
+
     const float aspectRatio = static_cast<float>( screenWidth ) / static_cast<float>( screenHeight );
-    const float scaleWidth  = static_cast<float>( args.width ) / static_cast<float>( screenWidth );
-    const float scaleHeight = static_cast<float>( args.height ) / static_cast<float>( screenHeight );
+    const float scaleWidth  = static_cast<float>( args.data1 ) / static_cast<float>( screenWidth );
+    const float scaleHeight = static_cast<float>( args.data2 ) / static_cast<float>( screenHeight );
 
     int width;
     int height;
@@ -128,19 +111,19 @@ void TitleState::onResized( const Graphics::ResizeEventArgs& args )
     if ( scaleWidth < scaleHeight )
     {
         // Size according to the width.
-        width  = args.width;
+        width  = args.data1;
         height = static_cast<int>( static_cast<float>( width ) / aspectRatio );
     }
     else
     {
         // Size according to the height.
-        height = args.height;
+        height = args.data2;
         width  = static_cast<int>( static_cast<float>( height ) * aspectRatio );
     }
 
-    gameRect = {
-        ( args.width - width ) / 2,
-        ( args.height - height ) / 2,
+    gameRect = RectI {
+        ( args.data1 - width ) / 2,
+        ( args.data2 - height ) / 2,
         width, height
     };
 }

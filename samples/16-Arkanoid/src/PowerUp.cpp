@@ -1,7 +1,8 @@
-#include <Graphics/Color.hpp>
 #include <PowerUp.hpp>
 
-PowerUp::PowerUp( std::shared_ptr<Graphics::SpriteSheet> spriteSheet, std::span<const int> frames, Type type )
+using namespace sr;
+
+PowerUp::PowerUp( std::shared_ptr<SpriteSheet> spriteSheet, std::span<const int> frames, Type type )
 : sprites { std::move( spriteSheet ), FPS, frames }
 , aabb { { 0, 0, 0 }, { 16, 8, 0 } }
 , type { type }
@@ -19,7 +20,7 @@ void PowerUp::update( float deltaTime )
     transform.setPosition( pos );
 }
 
-void PowerUp::draw( Graphics::Image& image ) const
+void PowerUp::draw( Rasterizer& rasterizer ) const
 {
     if ( type == None )
         return;
@@ -27,11 +28,16 @@ void PowerUp::draw( Graphics::Image& image ) const
     const int x = static_cast<int>( transform.getPosition().x );
     const int y = static_cast<int>( transform.getPosition().y );
 
-    image.drawSprite( sprites, x + 2, y + 2, Graphics::Color::Black );
-    image.drawSprite( sprites, x, y );
+    auto r = rasterizer;
+    r.state.color = Color::Black;
+    rasterizer.drawSprite( sprites, x + 2, y + 2);
+    r.state.color = Color::White;
+    r.drawSprite( sprites, x, y );
 
 #if _DEBUG
-    image.drawAABB( getAABB(), Graphics::Color::Yellow, {}, Graphics::FillMode::WireFrame );
+    r.state.color = Color::Yellow;
+    r.state.fillMode = FillMode::WireFrame;
+    r.drawAABB( getAABB() );
 #endif
 }
 
@@ -45,12 +51,12 @@ const glm::vec2& PowerUp::getPosition() const noexcept
     return transform.getPosition();
 }
 
-Math::AABB PowerUp::getAABB() const noexcept
+AABB PowerUp::getAABB() const noexcept
 {
     return transform * aabb;
 }
 
-bool PowerUp::checkCollision( const Math::AABB& _aabb ) const
+bool PowerUp::checkCollision( const AABB& _aabb ) const
 {
     return getAABB().intersect( _aabb );
 }

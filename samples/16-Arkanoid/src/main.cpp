@@ -1,13 +1,14 @@
 #include "Game.hpp"
+#include <Timer.hpp>
 
-#include <Graphics/Input.hpp>
-#include <Graphics/Timer.hpp>
 #include <Graphics/Window.hpp>
+#include <input/Input.hpp>
 
-#include <fmt/core.h>
+#include <format>
 #include <iostream>
 
-using namespace Graphics;
+using namespace sr;
+using namespace input;
 
 int main( int argc, char* argv[] )
 {
@@ -29,9 +30,7 @@ int main( int argc, char* argv[] )
 
     Game game { WINDOW_WIDTH, WINDOW_HEIGHT };
 
-    Window window { "09 - Breakout", WINDOW_WIDTH, WINDOW_HEIGHT };
-    window.show();
-    window.setFullscreen( true );
+    Window window { "09 - Breakout", WINDOW_WIDTH, WINDOW_HEIGHT, true };
 
     Timer       timer;
     float       totalTime  = 0.0f;
@@ -43,10 +42,38 @@ int main( int argc, char* argv[] )
 
     while ( window )
     {
+        SDL_Event e;
+        while ( window.pollEvent( e ) )
+        {
+            // Allow the game to process events.
+            game.processEvent( e );
+
+            switch ( e.type )
+            {
+            case SDL_EVENT_KEY_DOWN:
+                switch ( e.key.key )
+                {
+                case SDLK_V:
+                    window.setVSync( !window.isVSync() );
+                    std::cout << "Vsync: " << window.isVSync() << std::endl;
+                    break;
+                case SDLK_RETURN:
+                    if ( ( e.key.mod & SDL_KMOD_ALT ) != 0 )
+                    {
+                    case SDLK_F11:
+                        window.toggleFullscreen();
+                    }
+                    break;
+                case SDLK_ESCAPE:
+                    window.destroy();
+                    break;
+                }
+                break;
+            }
+        }
+
         timer.tick();
         auto elapsedTime = static_cast<float>( timer.elapsedSeconds() );
-        totalTime += elapsedTime;
-        ++frameCount;
 
         do
         {
@@ -58,50 +85,6 @@ int main( int argc, char* argv[] )
         window.clear( Color::Black );
         window.present( game.getImage() );
 
-        Event e;
-        while ( window.popEvent( e ) )
-        {
-            // Allow the game to process events.
-            game.processEvent( e );
-
-            switch ( e.type )
-            {
-            case Event::Close:
-                window.destroy();
-                break;
-            case Event::KeyPressed:
-                switch ( e.key.code )
-                {
-                case KeyCode::V:
-                    window.setVSync( !window.isVSync() );
-                    std::cout << "Vsync: " << window.isVSync() << std::endl;
-                    break;
-                case KeyCode::Enter:
-                    if ( e.key.alt )
-                    {
-                        [[fallthrough]];
-                    case KeyCode::F11:
-                        window.toggleFullscreen();
-                    }
-                    break;
-                case KeyCode::Escape:
-                    window.destroy();
-                    break;
-                }
-                break;
-            }
-        }
-
-        if ( totalTime > 1.0f )
-        {
-            fps = fmt::format( "FPS: {:.3f}", static_cast<float>( frameCount ) / totalTime );
-
-            std::cout << fps << std::endl;
-
-            frameCount = 0;
-            totalTime  = 0.0f;
-        }
-
-//        timer.limitFPS( 30 );
+        //        timer.limitFPS( 30 );
     }
 }

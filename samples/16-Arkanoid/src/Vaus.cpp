@@ -1,17 +1,17 @@
 #include <Ball.hpp>
 #include <Vaus.hpp>
-#include <iostream>
 
-#include <Graphics/Font.hpp>
-#include <Graphics/Input.hpp>
+#include <graphics/Font.hpp>
+
+#include <input/Input.hpp>
 
 #include <glm/glm.hpp>
 
 #include <map>
 #include <string>
 
-using namespace Graphics;
-using namespace Math;
+using namespace sr;
+using namespace input;
 
 static std::map<Vaus::State, std::string> stateToString = {
     { Vaus::State::Wait, "Wait" },
@@ -38,18 +38,18 @@ AABB operator*( const Camera2D& camera, const AABB& aabb )
 
 Vaus::Vaus() = default;
 
-Vaus::Vaus( const std::shared_ptr<Graphics::SpriteSheet>& spriteSheet )
+Vaus::Vaus( const std::shared_ptr<SpriteSheet>& spriteSheet )
 : aabb { { 0, 0, 0 }, { 32, 8, 0 } }
 , enlargeAABB { { 0, 0, 0 }, { 48, 8, 0 } }
 {
     // Setup the animations.
-    appearMode  = SpriteAnim { spriteSheet, FPS, { { 0, 1, 2, 3, 4 } } };
-    defaultMode = SpriteAnim { spriteSheet, FPS, { { 6, 7, 8, 9, 10, 11, 11 } } };
-    enlargeMode = SpriteAnim { spriteSheet, FPS, { { 12, 13, 14, 15, 16, 17, 17 } } };
-    toLaserMode = SpriteAnim { spriteSheet, FPS, { { 18, 19, 20, 21, 22, 23, 24, 25, 26 } } };
-    laserMode   = SpriteAnim { spriteSheet, FPS, { { 27, 28, 29, 30, 31, 32 } } };
-    explode1    = SpriteAnim { spriteSheet, FPS, { { 36, 37, 38 } } };
-    explode2    = SpriteAnim { spriteSheet, FPS, { { 39, 40, 41, 42 } } };
+    appearMode  = SpriteAnimation { spriteSheet, FPS, { { 0, 1, 2, 3, 4 } } };
+    defaultMode = SpriteAnimation { spriteSheet, FPS, { { 6, 7, 8, 9, 10, 11, 11 } } };
+    enlargeMode = SpriteAnimation { spriteSheet, FPS, { { 12, 13, 14, 15, 16, 17, 17 } } };
+    toLaserMode = SpriteAnimation { spriteSheet, FPS, { { 18, 19, 20, 21, 22, 23, 24, 25, 26 } } };
+    laserMode   = SpriteAnimation { spriteSheet, FPS, { { 27, 28, 29, 30, 31, 32 } } };
+    explode1    = SpriteAnimation { spriteSheet, FPS, { { 36, 37, 38 } } };
+    explode2    = SpriteAnimation { spriteSheet, FPS, { { 39, 40, 41, 42 } } };
 
     // Set the anchor point to the center of the paddle (depending on mode)
     transform.setAnchor( { 16, 4 } );
@@ -88,29 +88,31 @@ void Vaus::update( float deltaTime )
         break;
     }
 
+    using Keyboard::Key;
+
 #if _DEBUG
-    if ( Input::getKeyDown( KeyCode::D1 ) )
+    if ( Input::getKeyDown( Key::D1 ) )
     {
         setState( State::Appear );
     }
-    else if ( Input::getKeyDown( KeyCode::D2 ) )
+    else if ( Input::getKeyDown( Key::D2 ) )
     {
         setState( State::ToLaser );
     }
-    else if ( Input::getKeyDown( KeyCode::D3 ) )
+    else if ( Input::getKeyDown( Key::D3 ) )
     {
         setState( State::Enlarge );
     }
-    else if ( Input::getKeyDown( KeyCode::D4 ) )
+    else if ( Input::getKeyDown( Key::D4 ) )
     {
         setState( State::ExplodeStage1 );
     }
 #endif
 }
 
-void Vaus::draw( Graphics::Image& image )
+void Vaus::draw( Rasterizer& rasterizer )
 {
-    const SpriteAnim* sprite = nullptr;
+    const SpriteAnimation* sprite = nullptr;
 
     switch ( state )
     {
@@ -142,19 +144,31 @@ void Vaus::draw( Graphics::Image& image )
 
     if ( sprite )
     {
+        auto r = rasterizer;
+
+        r.state.color = Color::Black;
+
         const glm::vec2 pos = getPosition() - getAnchor();
         // Draw the shadow.
-        image.drawSprite( *sprite, pos.x + 4, pos.y + 4, Color::Black );
+        r.drawSprite( *sprite, pos.x + 4, pos.y + 4 );
+
+        r.state.color = Color::White;
         // Draw the regular sprite.
-        image.drawSprite( *sprite, pos.x, pos.y );
+        r.drawSprite( *sprite, pos.x, pos.y );
     }
 
 #if _DEBUG
-    image.drawAABB( getAABB(), Color::Yellow, {}, FillMode::WireFrame );
+    {
+        auto r = rasterizer;
+        r.state.color = Color::Red;
+        r.state.fillMode = FillMode::WireFrame;
+        r.drawAABB( getAABB() );
 
-    // Draw Vaus's current state.
-    auto pos = transform.getPosition() - glm::vec2 { 20, 20 };
-    image.drawText( Font::Default, stateToString[state], pos.x, pos.y, Color::White );
+        // Draw Vaus's current state.
+        Text stateText { Font::DefaultFont, stateToString[state] };
+        auto pos = transform.getPosition() - glm::vec2 { stateText.getWidth() / 2.0f, 20 };
+        r.drawText( stateText, pos.x, pos.y );
+    }
 #endif
 }
 
@@ -183,7 +197,7 @@ const glm::vec2& Vaus::getAnchor() const noexcept
     return transform.getAnchor();
 }
 
-Math::AABB Vaus::getAABB() const
+AABB Vaus::getAABB() const
 {
     // Get the AABB depending on the current state of Vaus.
     switch ( state )

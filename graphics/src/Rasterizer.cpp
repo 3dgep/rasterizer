@@ -81,6 +81,11 @@ void Rasterizer::drawText( const Font& font, std::string_view text, int x, int y
     drawText( Text { font, text, state.color }, x, y );
 }
 
+void Rasterizer::drawText( const Font& font, std::wstring_view text, int x, int y )
+{
+    drawText( Text { font, text, state.color }, x, y );
+}
+
 void Rasterizer::drawText( const Text& text, int x, int y )
 {
     Image* image = state.colorTarget;
@@ -156,6 +161,13 @@ void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 )
         }
         D += 2 * dx;
     }
+}
+
+void Rasterizer::clear( const Color& color )
+{
+    Image* image = state.colorTarget;
+    if ( image )
+        image->clear( color );
 }
 
 void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )

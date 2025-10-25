@@ -29,7 +29,7 @@ public:
     PlayState( Game& game );
 
     void update( float deltaTime ) override;
-    void draw( Graphics::Image& image ) override;
+    void draw( sr::graphics::Rasterizer& rasterizer ) override;
 
     void  setState( State newState );
     State getState() const noexcept;
@@ -60,7 +60,7 @@ private:
     // Returns true if the power-up should be destroyed.
     bool checkCollisions( const PowerUp& powerUp );
 
-    void drawText( Graphics::Image& image, std::string_view text, int x, int y );
+    void drawText( sr::graphics::Rasterizer& rasterizer, std::string_view text, int x, int y );
 
     Game& game;
 

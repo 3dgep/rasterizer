@@ -5,7 +5,7 @@
 #include "PlayState.hpp"
 #include "Stages.hpp"
 
-using namespace Graphics;
+using namespace sr;
 
 // Get the spritesheet for the bricks.
 std::shared_ptr<SpriteSheet> GetBrickSprites()
@@ -38,7 +38,7 @@ const Brick& GetBrick( Stages::B b )
 
 int Level::getNumStages()
 {
-    return static_cast<int>( std::size( Stages::stages ) );
+    return std::size( Stages::stages );
 }
 
 Level::Level( Game& game, int levelId )
@@ -82,11 +82,11 @@ void Level::update( float deltaTime )
     }
 }
 
-void Level::draw( Graphics::Image& image ) const
+void Level::draw( Rasterizer& rasterizer ) const
 {
     for ( const auto& brick: bricks )
     {
-        brick.draw( image );
+        brick.draw( rasterizer );
     }
 }
 
@@ -134,7 +134,7 @@ std::optional<Physics::HitInfo> Level::checkCollision( const Ball& ball, PlaySta
 
 bool Level::checkCollision( const Bullet& bullet, PlayState& playState )
 {
-    Math::AABB aabb = bullet.getAABB();
+    AABB aabb = bullet.getAABB();
     bool       collided = false;
 
     for ( auto& brick: bricks )

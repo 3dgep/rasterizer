@@ -1,9 +1,8 @@
 #include <Ball.hpp>
 
-#include <Graphics/ResourceManager.hpp>
+#include <graphics/ResourceManager.hpp>
 
-using namespace Graphics;
-using namespace Math;
+using namespace sr;
 
 inline Circle operator*( const Camera2D& camera, const Circle& c )
 {
@@ -11,8 +10,8 @@ inline Circle operator*( const Camera2D& camera, const Circle& c )
 }
 
 Ball::Ball()
-: circle { {0, 0}, radius }
-, sprite { ResourceManager::loadImage( "assets/Arkanoid/vaus.png" ), { 0, 40, 16, 8 }, BlendMode::AlphaBlend }
+: circle { { 0, 0 }, radius }
+, sprite { ResourceManager::loadImage( "assets/Arkanoid/vaus.png" ), RectI { 0, 40, 16, 8 }, BlendMode::AlphaDiscard }
 {
     transform.setAnchor( { radius, radius } );
 }
@@ -20,7 +19,7 @@ Ball::Ball()
 Ball::Ball( const glm::vec2& position )
 : transform { position }
 , circle { position, radius }
-, sprite { ResourceManager::loadImage( "assets/Arkanoid/vaus.png" ), { 0, 40, 16, 8 }, BlendMode::AlphaBlend }
+, sprite { ResourceManager::loadImage( "assets/Arkanoid/vaus.png" ), RectI { 0, 40, 16, 8 }, BlendMode::AlphaDiscard }
 {
     transform.setAnchor( { radius, radius } );
 }
@@ -35,15 +34,20 @@ void Ball::update( float deltaTime )
     transform.setPosition( position );
 }
 
-void Ball::draw( Graphics::Image& image )
+void Ball::draw( Rasterizer& rasterizer )
 {
-    const int x =  static_cast<int>( std::round( transform.getPosition().x - circle.radius ) );
+    const int x = static_cast<int>( std::round( transform.getPosition().x - circle.radius ) );
     const int y = static_cast<int>( std::round( transform.getPosition().y - circle.radius ) );
 
-    image.drawSprite( sprite, x, y );
+    rasterizer.drawSprite( sprite, x, y );
 
 #if _DEBUG
-    //image.drawCircle( circle, Color::Yellow, {}, FillMode::WireFrame );
+    {
+        auto r           = rasterizer;
+        r.state.color    = Color::Yellow;
+        r.state.fillMode = FillMode::WireFrame;
+        r.drawCircle( circle );
+    }
 #endif
 }
 
@@ -67,13 +71,13 @@ const glm::vec2& Ball::getVelocity() const
     return velocity;
 }
 
-void Ball::setCircle( const Math::Circle& _circle )
+void Ball::setCircle( const Circle& _circle )
 {
-    circle   = _circle;
+    circle = _circle;
     transform.setPosition( circle.center );
 }
 
-const Math::Circle& Ball::getCircle() const
+const Circle& Ball::getCircle() const
 {
     return circle;
 }

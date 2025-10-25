@@ -2,11 +2,11 @@
 
 #include "Physics.hpp"
 
-#include <Graphics/Image.hpp>
-#include <Graphics/SpriteAnim.hpp>
+#include <graphics/Rasterizer.hpp>
+#include <graphics/SpriteAnimation.hpp>
 
-#include <Math/AABB.hpp>
-#include <Math/Camera2D.hpp>
+#include <math/AABB.hpp>
+#include <math/Transform2D.hpp>
 
 #include <glm/vec2.hpp>
 
@@ -30,14 +30,14 @@ public:
 
     Vaus();
 
-    Vaus( const std::shared_ptr<Graphics::SpriteSheet>& spriteSheet );
+    Vaus( const std::shared_ptr<sr::graphics::SpriteSheet>& spriteSheet );
 
     void  setState( State newState );
     State getState() const noexcept;
 
     void update( float deltaTime );
 
-    void draw( Graphics::Image& image );
+    void draw( sr::graphics::Rasterizer& rasterizer );
 
     void             setPosition( const glm::vec2& pos );
     const glm::vec2& getPosition() const;
@@ -46,7 +46,7 @@ public:
     // The width of vaus is dependent on state.
     const glm::vec2& getAnchor() const noexcept;
 
-    Math::AABB getAABB() const;
+    sr::math::AABB getAABB() const;
 
     /// <summary>
     /// Check for collision with the paddle.
@@ -76,20 +76,20 @@ private:
 
     State state = State::Wait;
 
-    Math::AABB   aabb;
-    Math::AABB   enlargeAABB;
+    sr::math::AABB   aabb;
+    sr::math::AABB   enlargeAABB;
 
-    Math::Transform2D transform;
-    Math::Transform2D enlargeTransform;
-    Math::Transform2D explosionTransform;
+    sr::math::Transform2D transform;
+    sr::math::Transform2D enlargeTransform;
+    sr::math::Transform2D explosionTransform;
 
-    Graphics::SpriteAnim appearMode;
-    Graphics::SpriteAnim defaultMode;
-    Graphics::SpriteAnim enlargeMode;
-    Graphics::SpriteAnim toLaserMode;
-    Graphics::SpriteAnim laserMode;
-    Graphics::SpriteAnim explode1;
-    Graphics::SpriteAnim explode2;
+    sr::graphics::SpriteAnimation appearMode;
+    sr::graphics::SpriteAnimation defaultMode;
+    sr::graphics::SpriteAnimation enlargeMode;
+    sr::graphics::SpriteAnimation toLaserMode;
+    sr::graphics::SpriteAnimation laserMode;
+    sr::graphics::SpriteAnimation explode1;
+    sr::graphics::SpriteAnimation explode2;
 
     // Pixels per second.
     static inline const float speed = 300.0f;

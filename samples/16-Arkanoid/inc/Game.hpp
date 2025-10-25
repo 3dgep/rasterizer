@@ -3,8 +3,9 @@
 #include "HighScores.hpp"
 #include "State.hpp"
 
-#include <Graphics/Events.hpp>
-#include <Graphics/Font.hpp>
+#include <graphics/Font.hpp>
+
+#include <SDL3/SDL_events.h>
 
 #include <memory>
 
@@ -31,9 +32,9 @@ public:
 
     void update( float deltaTime );
 
-    void processEvent( const Graphics::Event& event );
+    void processEvent( const SDL_Event& event );
 
-    Graphics::Image& getImage() noexcept;
+    sr::graphics::Image& getImage() noexcept;
 
     /// <summary>
     /// Set the state to transition.
@@ -85,20 +86,22 @@ public:
     /// Get the one font used by the game.
     /// </summary>
     /// <returns></returns>
-    const Graphics::Font& getFont() const noexcept;
+    const sr::graphics::Font& getFont() const noexcept;
 
 private:
     void endState( GameState state );
     void startState( GameState state );
+    void drawFPS() const;
 
     GameState currentState = GameState::None;
     GameState nextState    = GameState::None;
 
     std::unique_ptr<State> state;
 
-    Graphics::Image image;
+    sr::graphics::Image image;
+    sr::graphics::Rasterizer rasterizer;
     // Fonts.
-    Graphics::Font arcadeN;
+    sr::graphics::Font arcadeN;
 
     int numPlayers = 1;
     int coins      = 0;

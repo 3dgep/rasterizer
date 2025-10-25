@@ -1,12 +1,10 @@
 #include "GameOverState.hpp"
 
-#include <Math/Rect.hpp>
-
-using namespace Graphics;
-using namespace Math;
+using namespace sr;
 
 GameOverState::GameOverState( Game& _game )
 : game { _game }
+, gameOverText{game.getFont(), "GAME OVER"}
 {}
 
 void GameOverState::update( float deltaTime )
@@ -17,10 +15,7 @@ void GameOverState::update( float deltaTime )
         game.setNextState( Game::GameState::MainMenu );
 }
 
-void GameOverState::draw( Graphics::Image& image )
+void GameOverState::draw( Rasterizer& rasterizer )
 {
-    const auto& font = game.getFont();
-
-    image.clear( Color::Black );
-    image.drawText( font, "GAME OVER", 77, 123, Graphics::Color::White );
+    rasterizer.drawText( gameOverText, 77, 123 );
 }

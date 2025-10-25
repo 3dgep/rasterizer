@@ -1,6 +1,8 @@
 #include <Bullet.hpp>
 
-Bullet::Bullet( std::shared_ptr<Graphics::SpriteSheet> spriteSheet, std::span<const int> frames )
+using namespace sr;
+
+Bullet::Bullet( std::shared_ptr<SpriteSheet> spriteSheet, std::span<const int> frames )
 : spriteAnim { std::move( spriteSheet ), FPS, frames }
 , aabb { { 0, 0, 0 }, { 16, 8, 0 } }
 {
@@ -20,12 +22,12 @@ void Bullet::update( float deltaTime ) noexcept
     }
 }
 
-void Bullet::draw( Graphics::Image& image ) const noexcept
+void Bullet::draw( Rasterizer& rasterizer ) const noexcept
 {
     if ( state == State::None )
         return;
 
-    image.drawSprite( spriteAnim, transform );
+    rasterizer.drawSprite( spriteAnim, transform );
 }
 
 void Bullet::fire( const glm::vec2& pos )
@@ -50,7 +52,7 @@ const glm::vec2& Bullet::getPosition() const noexcept
     return transform.getPosition();
 }
 
-Math::AABB Bullet::getAABB() const noexcept
+AABB Bullet::getAABB() const noexcept
 {
     return transform * aabb;
 }

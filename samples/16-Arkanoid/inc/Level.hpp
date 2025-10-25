@@ -5,7 +5,8 @@
 #include "Physics.hpp"
 
 #include "Ball.hpp"
-#include <Graphics/Image.hpp>
+
+#include <graphics/Rasterizer.hpp>
 
 #include <optional>
 #include <vector>
@@ -45,7 +46,7 @@ public:
     /// Draw the bricks for this level.
     /// </summary>
     /// <param name="image">The image to draw the bricks to.</param>
-    void draw( Graphics::Image& image ) const;
+    void draw( sr::graphics::Rasterizer& rasterizer ) const;
 
     /// <summary>
     /// Play the "hit" animation on all of the bricks in the scene.

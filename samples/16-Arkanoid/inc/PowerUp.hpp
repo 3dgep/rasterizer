@@ -3,6 +3,7 @@
 #include <graphics/Rasterizer.hpp>
 #include <graphics/SpriteAnimation.hpp>
 #include <graphics/SpriteSheet.hpp>
+
 #include <math/AABB.hpp>
 
 class PowerUp
@@ -53,14 +54,14 @@ public:
     /// Get the AABB of the power-up.
     /// </summary>
     /// <returns></returns>
-    Math::AABB getAABB() const noexcept;
+    sr::math::AABB getAABB() const noexcept;
 
     /// <summary>
     /// Check collision with this power-up and an other AABB.
     /// </summary>
     /// <param name="aabb">The AABB to check for collisions with.</param>
     /// <returns>`true` if they are colliding, `false` otherwise.</returns>
-    bool checkCollision( const Math::AABB& aabb ) const;
+    bool checkCollision( const sr::math::AABB& aabb ) const;
 
     /// <summary>
     /// Get the type of this power-up.
@@ -72,11 +73,11 @@ public:
     }
 
 private:
-    static inline float FPS   = 12.0f;   ///< FPS for sprite animation.
+    static inline float FPS   = 12.0f;  ///< FPS for sprite animation.
     static inline float SPEED = 50.0f;  ///< Speed of falling sprites (pixels/second).
 
-    sr::graphics::SpriteAnim sprites;
-    Math::AABB           aabb;
-    Math::Transform2D    transform;
-    Type                 type = None;
+    sr::graphics::SpriteAnimation sprites;
+    sr::math::AABB                aabb;
+    sr::math::Transform2D         transform;
+    Type                          type = None;
 };

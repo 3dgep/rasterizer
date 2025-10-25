@@ -1,23 +1,27 @@
+
 #include <Game.hpp>
 #include <GameOverState.hpp>
 #include <HighScoreState.hpp>
 #include <PlayState.hpp>
 #include <TitleState.hpp>
 
-#include <Graphics/Input.hpp>
-#include <Graphics/KeyCodes.hpp>
+#include <Timer.hpp>
 
-#include <fmt/core.h>
+#include <input/Input.hpp>
 
-using namespace Graphics;
-using namespace Math;
+#include <format>
+
+using namespace sr;
+using namespace input;
 
 Game::Game( uint32_t screenWidth, uint32_t screenHeight )
 : image { screenWidth, screenHeight }
 , arcadeN { "assets/fonts/ARCADE_N.ttf", 7 }
 {
+    rasterizer.state.colorTarget = &image;
+
     // Input that controls adding coins.
-    Input::mapButtonDown( "Coin", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::addButtonDownCallback( "Coin", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         bool back = false;
 
         for ( auto& gamePadState: gamePadStates )
@@ -25,22 +29,22 @@ Game::Game( uint32_t screenWidth, uint32_t screenHeight )
             back = back || gamePadState.back == ButtonState::Pressed;
         }
 
-        const bool enter = keyboardState.isKeyPressed( KeyCode::Enter );
+        const bool enter = keyboardState.isKeyPressed( Keyboard::Key::Enter );
 
         return back || enter;
     } );
 
     // Player 1 start.
-    Input::mapButtonDown( "Start 1", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::addButtonDownCallback( "Start 1", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         const bool start = gamePadStates[0].start == ButtonState::Pressed;
-        const bool _1    = keyboardState.isKeyPressed( KeyCode::D1 );
+        const bool _1    = keyboardState.isKeyPressed( Keyboard::Key::D1 );
 
         return start || _1;
     } );
     // Player 2 start.
-    Input::mapButtonDown( "Start 2", []( std::span<const GamePadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
+    Input::addButtonDownCallback( "Start 2", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
         const bool start = gamePadStates[1].start == ButtonState::Pressed;
-        const bool _2    = keyboardState.isKeyPressed( KeyCode::D2 );
+        const bool _2    = keyboardState.isKeyPressed( Keyboard::Key::D2 );
 
         return start || _2;
     } );
@@ -51,7 +55,7 @@ Game::Game( uint32_t screenWidth, uint32_t screenHeight )
     setState( GameState::Playing );
 }
 
-void Game::processEvent( const Graphics::Event& event )
+void Game::processEvent( const SDL_Event& event )
 {
     state->processEvent( event );
 }
@@ -65,31 +69,37 @@ void Game::update( float deltaTime )
     }
 
     state->update( deltaTime );
-    state->draw( image );
+    state->draw( rasterizer );
 
     // Draw the score board.
     {
+        auto r        = rasterizer;
+        r.state.color = Color::Red;
         // Player 1
-        image.drawText( arcadeN, "1UP", 26, 7, Color::Red );
+        r.drawText( arcadeN, "1UP", 26, 7 );
         // Draw P1 score right-aligned.
-        const auto score = fmt::format( "{:6d}", score1 );
-        image.drawText( arcadeN, score, 15, 15, Color::White );
-    }
-    {
+        r.state.color = Color::White;
+        r.drawText( arcadeN, std::format( "{:6d}", score1 ), 15, 15 );
+
         // High score
+        r.state.color = Color::Red;
         int highScore = getHighScore();
-        image.drawText( arcadeN, "HIGH SCORE", 73, 7, Color::Red );
-        const auto score = fmt::format( "{:6d}", highScore );
-        image.drawText( arcadeN, score, 87, 15, Color::White );
+        r.drawText( arcadeN, "HIGH SCORE", 73, 7 );
+        r.state.color = Color::White;
+        r.drawText( arcadeN, std::format( "{:6d}", highScore ), 87, 15 );
+        if ( numPlayers > 1 )
+        {
+            r.state.color = Color::Red;
+            // Player 2
+            r.drawText( arcadeN, "2UP", 177, 7 );
+            // Draw P2 score right-aligned.
+            r.drawText( arcadeN, std::format( "{:6d}", score2 ), 164, 15 );
+        }
     }
-    if ( numPlayers > 1 )
-    {
-        // Player 2
-        image.drawText( arcadeN, "2UP", 177, 7, Color::Red );
-        // Draw P2 score right-aligned.
-        const auto score = fmt::format( "{:6d}", score2 );
-        image.drawText( arcadeN, score, 164, 15, Color::White );
-    }
+
+#if _DEBUG
+    drawFPS();
+#endif
 
     // If one of the states requested a state change, then
     // switch to the next state at the end of the update function.
@@ -99,7 +109,7 @@ void Game::update( float deltaTime )
     setState( nextState );
 }
 
-Graphics::Image& Game::getImage() noexcept
+Image& Game::getImage() noexcept
 {
     return image;
 }
@@ -164,7 +174,7 @@ int Game::getHighScore() const noexcept
     return std::max( highScores.getHighScore(), std::max( score1, score2 ) );
 }
 
-const Graphics::Font& Game::getFont() const noexcept
+const Font& Game::getFont() const noexcept
 {
     return arcadeN;
 }
@@ -183,3 +193,27 @@ void Game::endState( GameState _state )
 }
 
 void Game::startState( GameState _state ) {}
+
+void Game::drawFPS() const
+{
+    static Timer       timer;
+    static double      totalTime = 0.0;
+    static uint64_t    frames    = 0;
+    static std::string fps       = "FPS: 0";
+
+    timer.tick();
+    ++frames;
+    totalTime += timer.elapsedSeconds();
+    if ( totalTime > 1.0 )
+    {
+        fps    = std::format( "FPS: {:.3f}", static_cast<double>( frames ) / totalTime );
+        frames = 0;
+        timer.reset();
+    }
+
+    auto r        = rasterizer;
+    r.state.color = Color::Black;
+    r.drawText( arcadeN, fps, 6, 6 );
+    r.state.color = Color::White;
+    r.drawText( arcadeN, fps, 4, 4 );
+}

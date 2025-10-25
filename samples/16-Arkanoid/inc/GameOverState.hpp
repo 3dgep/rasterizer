@@ -9,10 +9,11 @@ public:
     explicit GameOverState( Game& game );
 
     void         update( float deltaTime ) override;
-    void draw( Graphics::Image& image ) override;
+    void draw( sr::graphics::Rasterizer& rasterizer ) override;
 
 private:
     Game& game;
+    sr::graphics::Text gameOverText;
 
     float timer = 0.0f;
     // How long to transition to the game to the title state.

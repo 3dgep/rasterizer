@@ -37,6 +37,13 @@ public:
         Viewport  viewport;                                 ///< Viewport can be used for split-screen drawing.
     } state;
 
+
+    /// <summary>
+    /// Clear the color target.
+    /// </summary>
+    /// <param name="color">The color to clear the color target to. Default: Black.</param>
+    void clear( const Color& color = Color::Black );
+
     /// <summary>
     /// Draws a line from (x0, y0) to (x1, y1) using the current rasterizer state.<br>
     /// Required state:
@@ -169,6 +176,12 @@ public:
     /// <param name="aabb">The axis-aligned bounding box to draw.</param>
     void drawAABB( math::AABB aabb );
 
+    template<typename T>
+    void drawRectangle( const math::Rect<T>& rect )
+    {
+        drawAABB( math::AABB::fromRect( rect ) );
+    }
+
     void drawSprite( const Sprite& sprite, int x, int y );
 
     void drawSprite( const Sprite& sprite, const glm::mat3& transform );
@@ -203,6 +216,7 @@ public:
     /// <param name="x">The x-coordinate where the text will be drawn.</param>
     /// <param name="y">The y-coordinate where the text will be drawn.</param>
     void drawText( const Font& font, std::string_view text, int x, int y );
+    void drawText( const Font& font, std::wstring_view text, int x, int y );
 
 private:
     /// <summary>
