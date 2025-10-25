@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Math/AABB.hpp>
-#include <Math/Circle.hpp>
+#include <math/AABB.hpp>
+#include <math/Circle.hpp>
 
 #include <glm/vec2.hpp>
 

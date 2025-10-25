@@ -3,7 +3,7 @@
 #include <graphics/Rasterizer.hpp>
 #include <graphics/SpriteAnimation.hpp>
 
-#include <Math/Transform2D.hpp>
+#include <math/Transform2D.hpp>
 
 class Effect final
 {

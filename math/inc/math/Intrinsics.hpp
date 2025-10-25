@@ -2,6 +2,9 @@
 
 // Source: Claude Sonnet 4 (Aug 31, 2025) "I want to apply SIMD optimizations to this Color class. But I also want to maintain platform independence, so SIMD should only be used on the platforms that support it."
 
+#include <algorithm>  // For std::min, std::max
+#include <cmath>      // For std::round
+
 // Platform-specific includes for bit operations
 #ifdef _MSC_VER
     #include <intrin.h>
@@ -16,6 +19,11 @@
 #if defined( __SSSE3__ ) || ( defined( _MSC_VER ) && defined( __AVX__ ) )
     #define SR_SIMD_SSSE3 1
     #include <tmmintrin.h>
+#endif
+
+#if defined( __SSE4_1__ ) || ( defined( _MSC_VER ) && defined( __AVX__ ) )
+    #define SR_SIMD_SSE4_1 1
+    #include <smmintrin.h>
 #endif
 
 #if defined( __ARM_NEON ) || defined( __ARM_NEON__ )
@@ -77,6 +85,7 @@ inline __m128i simd_max_u8( __m128i a, __m128i b )
 // Round 2D vector to nearest integer
 inline void simd_round_vec2( const float* value, float* result )
 {
+#if defined( SR_SIMD_SSE4_1 )
     // Load two floats (x, y) into lower part of XMM register
     __m128 v = _mm_castpd_ps( _mm_load_sd( reinterpret_cast<const double*>( value ) ) );
 
@@ -85,6 +94,11 @@ inline void simd_round_vec2( const float* value, float* result )
 
     // Store two floats
     _mm_store_sd( reinterpret_cast<double*>( result ), _mm_castps_pd( rounded ) );
+#else
+    // Fallback to scalar implementation when SSE4.1 is not available
+    result[0] = std::round( value[0] );
+    result[1] = std::round( value[1] );
+#endif
 }
 
 // Clamp 2D vector
@@ -105,6 +119,7 @@ inline void simd_clamp_vec2( const float* value, const float* minVal, const floa
 // Round and clamp 2D vector (optimized for texture coordinate clamping)
 inline void simd_round_clamp_vec2( const float* value, const float* minVal, const float* maxVal, int* result )
 {
+#if defined( SR_SIMD_SSE4_1 )
     // Load two floats (x, y) into lower part of XMM register
     __m128 v = _mm_castpd_ps( _mm_load_sd( reinterpret_cast<const double*>( value ) ) );
     __m128 minV = _mm_castpd_ps( _mm_load_sd( reinterpret_cast<const double*>( minVal ) ) );
@@ -121,6 +136,15 @@ inline void simd_round_clamp_vec2( const float* value, const float* minVal, cons
 
     // Store two integers
     _mm_storel_epi64( reinterpret_cast<__m128i*>( result ), resultInt );
+#else
+    // Fallback to scalar implementation when SSE4.1 is not available
+    for ( int i = 0; i < 2; ++i )
+    {
+        float rounded = std::round( value[i] );
+        float clamped = std::min( maxVal[i], std::max( minVal[i], rounded ) );
+        result[i] = static_cast<int>( clamped );
+    }
+#endif
 }
 
 #elif defined( SR_SIMD_NEON )

@@ -6,6 +6,8 @@
 
 #include <imgui.h>
 
+#include <cstring> // for std::memcpy
+
 using namespace sr;
 
 constexpr int   VERTEX_RADIUS  = 10;
