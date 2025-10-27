@@ -7,11 +7,12 @@ set( INC_FILES
     inc/Brick.hpp
     inc/Button.hpp
     inc/Bullet.hpp
+    inc/Field.hpp
     inc/Game.hpp
     inc/GameOverState.hpp
     inc/HighScores.hpp
     inc/HighScoreState.hpp
-    inc/Field.hpp
+    inc/IntroState.hpp
     inc/Level.hpp
     inc/ParseRects.hpp
     inc/PowerUp.hpp
@@ -28,11 +29,12 @@ set( SRC_FILES
     src/Brick.cpp
     src/Button.cpp
     src/Bullet.cpp
+    src/Field.cpp
     src/Game.cpp
     src/GameOverState.cpp
     src/HighScores.cpp
     src/HighScoreState.cpp
-    src/Field.cpp
+    src/IntroState.cpp
     src/Level.cpp
     src/ParseRects.cpp
     src/PowerUp.cpp

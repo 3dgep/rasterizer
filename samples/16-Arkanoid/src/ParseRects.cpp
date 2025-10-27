@@ -5,7 +5,7 @@
 using namespace tinyxml2;
 using namespace sr;
 
-std::vector<RectI> ParseRects( const std::filesystem::path& xmlFile )
+std::vector<RectI> parseRects( const std::filesystem::path& xmlFile )
 {
     XMLDocument doc;
     doc.LoadFile( xmlFile.string().c_str() );

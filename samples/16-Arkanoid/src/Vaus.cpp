@@ -1,3 +1,5 @@
+#include "graphics/ResourceManager.hpp"
+
 #include <Ball.hpp>
 #include <Vaus.hpp>
 
@@ -159,13 +161,15 @@ void Vaus::draw( Rasterizer& rasterizer )
 
 #if _DEBUG
     {
-        auto r = rasterizer;
-        r.state.color = Color::Red;
+        static auto font = ResourceManager::loadFont( "assets/fonts/ARCADE_N.ttf", 8 );
+
+        auto r           = rasterizer;
+        r.state.color    = Color::Red;
         r.state.fillMode = FillMode::WireFrame;
         r.drawAABB( getAABB() );
 
         // Draw Vaus's current state.
-        Text stateText { Font::DefaultFont, stateToString[state] };
+        Text stateText { *font, stateToString[state] };
         auto pos = transform.getPosition() - glm::vec2 { stateText.getWidth() / 2.0f, 20 };
         r.drawText( stateText, pos.x, pos.y );
     }

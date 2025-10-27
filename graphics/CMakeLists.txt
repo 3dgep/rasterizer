@@ -17,6 +17,7 @@ set( INC_FILES
     inc/graphics/TileMap.hpp
     inc/graphics/Vertex.hpp
 	inc/graphics/Window.hpp
+    inc/hash.hpp
     inc/stb_easy_font.h
     inc/stb_image.h
     inc/stb_image_write.h

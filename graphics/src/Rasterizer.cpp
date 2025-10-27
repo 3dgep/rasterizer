@@ -671,6 +671,115 @@ void Rasterizer::drawAABB( math::AABB aabb )
     }
 }
 
+void Rasterizer::drawImage( const Image& srcImage, int x, int y )
+{
+    Image* dstImage = state.colorTarget;
+    if ( !dstImage )
+        return;
+
+    int srcW = srcImage.getWidth();
+    int srcH = srcImage.getHeight();
+    int dstW = dstImage->getWidth();
+    int dstH = dstImage->getHeight();
+
+    // Clamp destination rectangle to viewport and image bounds
+    AABB dstAABB = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+    int clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), x );
+    int clipTop    = std::max( static_cast<int>( dstAABB.min.y ), y );
+    int clipRight  = std::min( static_cast<int>( dstAABB.max.x ), x + srcW - 1 );
+    int clipBottom = std::min( static_cast<int>( dstAABB.max.y ), y + srcH - 1 );
+
+    if ( clipLeft > clipRight || clipTop > clipBottom )
+        return;
+
+    const Color* src = srcImage.data();
+    Color* dst = dstImage->data();
+    BlendMode blendMode = state.blendMode;
+    Color color = state.color;
+
+    for ( int dy = clipTop; dy <= clipBottom; ++dy )
+    {
+        for ( int dx = clipLeft; dx <= clipRight; ++dx )
+        {
+            int sx = dx - x;
+            int sy = dy - y;
+
+            Color sC = src[sy * srcW + sx] * color;
+            Color dC = dst[dy * dstW + dx];
+
+            dst[dy * dstW + dx] = blendMode.Blend( sC, dC );
+        }
+    }
+}
+
+void Rasterizer::drawImage( const Image& srcImage, std::optional<sr::math::RectI> srcRect, std::optional<sr::math::RectI> dstRect )
+{
+    Image* dstImage = state.colorTarget;
+    if ( !dstImage )
+        return;
+
+    // Get source rectangle
+    int srcX = 0, srcY = 0, srcW = srcImage.getWidth(), srcH = srcImage.getHeight();
+    if ( srcRect )
+    {
+        srcX = srcRect->left;
+        srcY = srcRect->top;
+        srcW = srcRect->width;
+        srcH = srcRect->height;
+    }
+
+    // Get destination rectangle
+    int dstX = 0, dstY = 0, dstW = srcW, dstH = srcH;
+    if ( dstRect )
+    {
+        dstX = dstRect->left;
+        dstY = dstRect->top;
+        dstW = dstRect->width;
+        dstH = dstRect->height;
+    }
+
+    // Clamp destination rectangle to viewport and image bounds
+    AABB dstAABB = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+    int clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), dstX );
+    int clipTop    = std::max( static_cast<int>( dstAABB.min.y ), dstY );
+    int clipRight  = std::min( static_cast<int>( dstAABB.max.x ), dstX + dstW - 1 );
+    int clipBottom = std::min( static_cast<int>( dstAABB.max.y ), dstY + dstH - 1 );
+
+    if ( clipLeft > clipRight || clipTop > clipBottom )
+        return;
+
+    // Calculate scaling factors if needed
+    float scaleX = static_cast<float>( srcW ) / dstW;
+    float scaleY = static_cast<float>( srcH ) / dstH;
+
+    const Color* src = srcImage.data();
+    Color* dst = dstImage->data();
+    int sW = srcImage.getWidth();
+    int dW = dstImage->getWidth();
+
+    BlendMode blendMode = state.blendMode;
+    Color color = state.color;
+
+    for ( int y = clipTop; y <= clipBottom; ++y )
+    {
+        for ( int x = clipLeft; x <= clipRight; ++x )
+        {
+            // Map destination pixel to source pixel
+            int u = srcX + static_cast<int>( ( x - dstX ) * scaleX );
+            int v = srcY + static_cast<int>( ( y - dstY ) * scaleY );
+
+            // Clamp source coordinates
+            u = std::clamp( u, 0, srcImage.getWidth() - 1 );
+            v = std::clamp( v, 0, srcImage.getHeight() - 1 );
+
+            Color sC = src[v * sW + u] * color;
+            Color dC = dst[y * dW + x];
+
+            dst[y * dW + x] = blendMode.Blend( sC, dC );
+        }
+    }
+}
+
 void Rasterizer::drawSprite( const Sprite& sprite, int x, int y )
 {
     const Image* srcImage = sprite.getImage().get();

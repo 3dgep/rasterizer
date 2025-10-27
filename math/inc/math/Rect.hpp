@@ -20,6 +20,22 @@ struct Rect
     , height { height }
     {}
 
+    template<typename U>
+    explicit Rect( U left = U( 0 ), U top = U( 0 ), U width = U( 0 ), U height = U( 0 ) )
+    : left { static_cast<T>( left ) }
+    , top { static_cast<T>( top ) }
+    , width { static_cast<T>( width ) }
+    , height { static_cast<T>( height ) }
+    {}
+
+    template<typename U>
+    Rect( const Rect<U>& other )
+    : left { static_cast<T>( other.left ) }
+    , top { static_cast<T>( other.top ) }
+    , width { static_cast<T>( other.width ) }
+    , height { static_cast<T>( other.height ) }
+    {}
+
     auto operator<=>( const Rect& ) const = default;
 
     T right() const noexcept

@@ -16,6 +16,7 @@ public:
     {
         None,
         MainMenu,
+        Intro,
         Playing,
         HighScore,
         Pause,

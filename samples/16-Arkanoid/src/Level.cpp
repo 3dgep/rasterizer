@@ -11,7 +11,7 @@ using namespace sr;
 std::shared_ptr<SpriteSheet> GetBrickSprites()
 {
     // Lazy initialize static brick sprites (avoid loading more than once).
-    static std::shared_ptr<SpriteSheet> sprites = std::make_shared<SpriteSheet>( "assets/Arkanoid/blocks.png", ParseRects( "assets/Arkanoid/blocks.xml" ), BlendMode::AlphaBlend );
+    static std::shared_ptr<SpriteSheet> sprites = std::make_shared<SpriteSheet>( "assets/Arkanoid/blocks.png", parseRects( "assets/Arkanoid/blocks.xml" ), BlendMode::AlphaBlend );
     return sprites;
 }
 

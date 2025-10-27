@@ -1,4 +1,6 @@
 
+#include "IntroState.hpp"
+
 #include <Game.hpp>
 #include <GameOverState.hpp>
 #include <HighScoreState.hpp>
@@ -16,9 +18,10 @@ using namespace input;
 
 Game::Game( uint32_t screenWidth, uint32_t screenHeight )
 : image { screenWidth, screenHeight }
-, arcadeN { "assets/fonts/ARCADE_N.ttf", 7 }
+, arcadeN { "assets/fonts/ARCADE_N.ttf", 8 }
 {
     rasterizer.state.colorTarget = &image;
+    arcadeN.setHinting( Font::Hinting::Mono ); // Better for small fonts.
 
     // Input that controls adding coins.
     Input::addButtonDownCallback( "Coin", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
@@ -52,7 +55,8 @@ Game::Game( uint32_t screenWidth, uint32_t screenHeight )
     // Load high scores.
     highScores.load( "assets/Arkanoid/high_scores.txt" );
 
-    setState( GameState::Playing );
+    //setState( GameState::MainMenu );
+    setState( GameState::Intro );
 }
 
 void Game::processEvent( const SDL_Event& event )
@@ -87,29 +91,29 @@ void Game::draw()
         auto r        = rasterizer;
         r.state.color = Color::Red;
         // Player 1
-        r.drawText( arcadeN, "1UP", 26, 7 );
+        r.drawText( arcadeN, "1UP", 26, 0 );
         // Draw P1 score right-aligned.
         r.state.color = Color::White;
-        r.drawText( arcadeN, std::format( "{:6d}", score1 ), 15, 15 );
+        r.drawText( arcadeN, std::format( "{:6d}", score1 ), 15, 8 );
 
         // High score
         r.state.color = Color::Red;
         int highScore = getHighScore();
-        r.drawText( arcadeN, "HIGH SCORE", 73, 7 );
+        r.drawText( arcadeN, "HIGH SCORE", 73, 0 );
         r.state.color = Color::White;
-        r.drawText( arcadeN, std::format( "{:6d}", highScore ), 87, 15 );
+        r.drawText( arcadeN, std::format( "{:6d}", highScore ), 87, 8 );
         if ( numPlayers > 1 )
         {
             r.state.color = Color::Red;
             // Player 2
             r.drawText( arcadeN, "2UP", 177, 7 );
             // Draw P2 score right-aligned.
-            r.drawText( arcadeN, std::format( "{:6d}", score2 ), 164, 15 );
+            r.drawText( arcadeN, std::format( "{:6d}", score2 ), 164, 8 );
         }
     }
 
 #if _DEBUG
-    drawFPS();
+    //drawFPS();
 #endif
 }
 
@@ -138,6 +142,9 @@ void Game::setState( GameState newState )
         {
         case GameState::MainMenu:
             state = std::make_unique<TitleState>( *this );
+            break;
+        case GameState::Intro:
+            state = std::make_unique<IntroState>( *this );
             break;
         case GameState::Playing:
             state = std::make_unique<PlayState>( *this );
@@ -201,15 +208,12 @@ void Game::startState( GameState _state ) {}
 void Game::drawFPS() const
 {
     static Timer       timer;
-    static uint64_t    frames = 0;
     static std::string fps    = "FPS: 0";
 
     timer.tick();
-    ++frames;
     if ( timer.totalSeconds() > 1.0 )
     {
-        fps    = std::format( "FPS: {:.3f}", static_cast<double>( frames ) / timer.totalSeconds() );
-        frames = 0;
+        fps    = std::format( "FPS: {:.3f}", timer.FPS() );
         timer.reset();
     }
 

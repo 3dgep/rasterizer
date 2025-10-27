@@ -17,7 +17,7 @@ using namespace input;
 // Get the spritesheet for the powerups.
 std::shared_ptr<SpriteSheet> GetPowerUpSprites()
 {
-    static std::shared_ptr<SpriteSheet> sprites = std::make_shared<SpriteSheet>( "assets/Arkanoid/powerups.png", ParseRects( "assets/Arkanoid/powerups.xml" ), BlendMode::AlphaDiscard );
+    static std::shared_ptr<SpriteSheet> sprites = std::make_shared<SpriteSheet>( "assets/Arkanoid/powerups.png", parseRects( "assets/Arkanoid/powerups.xml" ), BlendMode::AlphaDiscard );
     return sprites;
 }
 
@@ -95,7 +95,7 @@ PlayState::PlayState( Game& game )
 
     {
         // Load the vaus sprites.
-        const auto spriteSheet = std::make_shared<SpriteSheet>( "assets/Arkanoid/vaus.png", ParseRects( "assets/Arkanoid/vaus.xml" ), BlendMode::AlphaBlend );
+        const auto spriteSheet = std::make_shared<SpriteSheet>( "assets/Arkanoid/vaus.png", parseRects( "assets/Arkanoid/vaus.xml" ), BlendMode::AlphaBlend );
         // Set the paddle to the middle of the play area.
         vaus = Vaus { spriteSheet };
         // Initialize the bullets.
@@ -103,7 +103,7 @@ PlayState::PlayState( Game& game )
     }
     {
         // Load the field sprites.
-        const auto spriteSheet = std::make_shared<SpriteSheet>( "assets/Arkanoid/fields.png", ParseRects( "assets/Arkanoid/fields.xml" ), BlendMode::Disable );
+        const auto spriteSheet = std::make_shared<SpriteSheet>( "assets/Arkanoid/fields.png", parseRects( "assets/Arkanoid/fields.xml" ), BlendMode::Disable );
         field                  = Field { spriteSheet };
         field.setLives( numLives[currentPlayer] );
     }

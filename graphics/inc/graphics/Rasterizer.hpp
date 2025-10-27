@@ -37,7 +37,6 @@ public:
         Viewport  viewport;                                 ///< Viewport can be used for split-screen drawing.
     } state;
 
-
     /// <summary>
     /// Clear the color target.
     /// </summary>
@@ -182,6 +181,22 @@ public:
         drawAABB( math::AABB::fromRect( rect ) );
     }
 
+    /// <summary>
+    /// Draws an image at the specified coordinates.
+    /// </summary>
+    /// <param name="image">The image to be drawn.</param>
+    /// <param name="x">The x-coordinate where the image will be drawn.</param>
+    /// <param name="y">The y-coordinate where the image will be drawn.</param>
+    void drawImage( const Image& image, int x, int y );
+
+    /// <summary>
+    /// Draws an image onto a destination area, optionally specifying source and destination rectangles.
+    /// </summary>
+    /// <param name="image">The image to be drawn.</param>
+    /// <param name="srcRect">Optional. The source rectangle within the image to draw. If not specified, the entire image is used.</param>
+    /// <param name="dstRect">Optional. The destination rectangle on the target surface where the image will be drawn. If not specified, the image is drawn at its default position and size.</param>
+    void drawImage( const Image& image, std::optional<sr::math::RectI> srcRect = {}, std::optional<sr::math::RectI> dstRect = {} );
+
     void drawSprite( const Sprite& sprite, int x, int y );
 
     void drawSprite( const Sprite& sprite, const glm::mat3& transform );
@@ -237,5 +252,6 @@ private:
     /// <param name="y1">The y-coordinate of the ending point.</param>
     void drawLineHigh( int x0, int y0, int x1, int y1 );
 };
+
 }  // namespace graphics
 }  // namespace sr

@@ -1,0 +1,22 @@
+<TextureAtlas imagePath="ship.png">
+	<SubTexture name="0" x="1" y="54" width="191" height="83"/>
+	<SubTexture name="1" x="201" y="54" width="191" height="83"/>
+	<SubTexture name="2" x="1" y="154" width="191" height="83"/> 
+	<SubTexture name="3" x="201" y="154" width="191" height="83"/>
+	<SubTexture name="4" x="1" y="254" width="191" height="83"/> 
+	<SubTexture name="5" x="201" y="254" width="191" height="83"/>
+	<SubTexture name="6" x="1" y="354" width="191" height="83"/> 
+	<SubTexture name="7" x="201" y="354" width="191" height="83"/>
+	<SubTexture name="8" x="1" y="454" width="191" height="83"/> 
+	<SubTexture name="9" x="201" y="454" width="191" height="83"/>
+	<SubTexture name="10" x="1" y="554" width="191" height="83"/> 
+	<SubTexture name="11" x="201" y="554" width="191" height="83"/>
+	<SubTexture name="12" x="1" y="654" width="191" height="83"/> 
+	<SubTexture name="13" x="201" y="654" width="191" height="83"/>
+	<SubTexture name="14" x="1" y="754" width="191" height="83"/> 
+	<SubTexture name="15" x="201" y="754" width="191" height="83"/>
+	<SubTexture name="16" x="1" y="854" width="191" height="83"/> 
+	<SubTexture name="17" x="201" y="854" width="191" height="83"/>
+	<SubTexture name="18" x="1" y="854" width="191" height="83"/> 
+	<SubTexture name="19" x="201" y="854" width="191" height="83"/>
+</TextureAtlas>

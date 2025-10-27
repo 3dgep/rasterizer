@@ -7,15 +7,9 @@ Field::Field() = default;
 Field::Field( std::shared_ptr<SpriteSheet> _fieldSprites )
 : fieldSprites { std::move( _fieldSprites ) }
 {
-    {
-        constexpr int frames[] { 9, 10, 11, 12, 11, 10 };
-        exitAnim = SpriteAnimation { fieldSprites, FPS, frames };
-    }
-    {
-        constexpr int frames[] { 13, 14, 15, 16, 17, 18, 18, 17, 16, 15, 14 };
-        leftEnemyGate  = SpriteAnimation { fieldSprites, FPS, frames };
-        rightEnemyGate = SpriteAnimation { fieldSprites, FPS, frames };
-    }
+    exitAnim       = SpriteAnimation { fieldSprites, FPS, { { 9, 10, 11, 12, 11, 10 } } };
+    leftEnemyGate  = SpriteAnimation { fieldSprites, FPS, { { 13, 14, 15, 16, 17, 18, 18, 17, 16, 15, 14 } } };
+    rightEnemyGate = SpriteAnimation { fieldSprites, FPS, { { 13, 14, 15, 16, 17, 18, 18, 17, 16, 15, 14 } } };
 
     shipSprites[0] = fieldSprites->getSprite( 19 );
     shipSprites[1] = fieldSprites->getSprite( 20 );
@@ -36,9 +30,9 @@ void Field::setLives( int _lives )
 
 void Field::update( float deltaTime )
 {
-    exitAnim.update( deltaTime );
-    leftEnemyGate.update( deltaTime );
-    rightEnemyGate.update( deltaTime );
+    // exitAnim.update( deltaTime );
+    // leftEnemyGate.update( deltaTime );
+    // rightEnemyGate.update( deltaTime );
 }
 
 void Field::draw( Rasterizer& rasterizer )

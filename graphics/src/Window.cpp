@@ -116,8 +116,10 @@ void Window::create( std::string_view title, int width, int height, bool fullscr
     static SDL_Context   SDL_Context;    // Ensure a single static context before creating an SDL window.
     static ImGui_Context ImGui_Context;  // Ensure a single static context for ImGui.
 
+    m_Fullscreen = fullscreen;
+
     SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE;
-    flags |= fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
+    flags |= m_Fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
 
     if ( !SDL_CreateWindowAndRenderer( title.data(), width, height, flags, &m_Window, &m_Renderer ) )
     {

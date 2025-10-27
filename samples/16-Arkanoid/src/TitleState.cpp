@@ -12,8 +12,8 @@ using namespace input;
 
 TitleState::TitleState( Game& game )
 : game { game }
-, screenWidth( static_cast<int>( game.getImage().getWidth() ) )
-, screenHeight( static_cast<int>( game.getImage().getHeight() ) )
+, screenWidth( game.getImage().getWidth() )
+, screenHeight( game.getImage().getHeight() )
 {
     auto shipImage  = ResourceManager::loadImage( "assets/Arkanoid/ship.png" );
     auto taitoImage = ResourceManager::loadImage( "assets/Arkanoid/taito.png" );
@@ -27,12 +27,12 @@ void TitleState::update( float deltaTime )
     if ( game.getCoins() > 0 && Input::getButtonDown( "Start 1" ) )
     {
         game.setNumPlayers( 1 );
-        game.setNextState( Game::GameState::Playing );
+        game.setNextState( Game::GameState::Intro );
     }
     else if ( game.getCoins() > 1 && Input::getButtonDown( "Start 2" ) )
     {
         game.setNumPlayers( 2 );
-        game.setNextState( Game::GameState::Playing );
+        game.setNextState( Game::GameState::Intro );
     }
 }
 
@@ -59,7 +59,7 @@ void TitleState::draw( Rasterizer& rasterizer )
     }
 
     rasterizer.drawSprite( taitoSprite, 64, 179 );
-    rasterizer.drawText( font, L"� 1986 TAITO CORP JAPAN", 16, 208 );
+    rasterizer.drawText( font, "© 1986 TAITO CORP JAPAN", 16, 208 );
     rasterizer.drawText( font, "ALL RIGHTS RESERVED", 33, 222 );
     rasterizer.drawText( font, std::format( "CREDIT{:3d}", coins ), 145, 255 );
 }
