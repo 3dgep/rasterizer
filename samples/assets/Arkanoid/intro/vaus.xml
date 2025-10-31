@@ -1,0 +1,29 @@
+<TextureAtlas imagePath="vaus.png">
+	<SubTexture name="0" x="0" y="0" width="16" height="5"/>
+	<SubTexture name="1" x="16" y="0" width="16" height="5"/>
+	<SubTexture name="2" x="32" y="0" width="16" height="5"/>
+	<SubTexture name="3" x="48" y="0" width="15" height="8"/>
+	<SubTexture name="4" x="63" y="0" width="15" height="8"/>
+	<SubTexture name="5" x="78" y="0" width="15" height="8"/>
+	<SubTexture name="6" x ="93" y="0" width="12" height="9"/>
+	<SubTexture name="7" x ="105" y="0" width="13" height="9"/>
+	<SubTexture name="8" x ="119" y="0" width="11" height="9"/>
+	<SubTexture name="9" x ="130" y="0" width="10" height="9"/>
+	<SubTexture name="10" x ="140" y="0" width="12" height="10"/>
+	<SubTexture name="11" x ="153" y="0" width="9" height="8"/>
+	<SubTexture name="12" x ="162" y="0" width="11" height="7"/>
+	<SubTexture name="13" x ="173" y="0" width="13" height="6"/>
+	<SubTexture name="14" x ="186" y="0" width="12" height="6"/>
+	<SubTexture name="15" x ="198" y="0" width="13" height="4"/>
+	<SubTexture name="16" x ="211" y="0" width="13" height="6"/>
+	<SubTexture name="17" x ="224" y="0" width="9" height="7"/>
+	<SubTexture name="18" x ="233" y="0" width="7" height="7"/>
+	<SubTexture name="19" x ="240" y="0" width="6" height="5"/>
+	<SubTexture name="20" x ="246" y="0" width="5" height="3"/>
+	<SubTexture name="21" x ="251" y="0" width="4" height="2"/>
+	<SubTexture name="22" x ="255" y="0" width="1" height="1"/>
+	<SubTexture name="23" x ="256" y="0" width="7" height="1"/>
+	<SubTexture name="24" x ="263" y="0" width="15" height="3"/>
+	<SubTexture name="25" x ="278" y="0" width="23" height="5"/>
+	<SubTexture name="26" x ="301" y="0" width="31" height="7"/>
+</TextureAtlas>
