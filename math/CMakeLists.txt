@@ -3,7 +3,6 @@ cmake_minimum_required( VERSION 3.12...3.31 )
 # Optional SSE4.1 SIMD optimizations
 option(SR_ENABLE_SIMD_SSE4_1 "Enable SSE4.1 optimizations for math library" ON)
 
-
 set( INC_FILES
     inc/math/AABB.hpp
     inc/math/bitmask_operators.hpp

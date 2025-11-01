@@ -23,8 +23,8 @@ struct Edge2D
     float      area;  // Area of the triangle (used to compute the barycentric coordinates).
 
     Edge2D( const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2, const glm::ivec2& p )
-    : dX { p1.x - p0.x, p2.x - p1.x, p0.x - p2.x }
-    , dY { p0.y - p1.y, p1.y - p2.y, p2.y - p0.y }
+    : dX { p2.x - p1.x, p0.x - p2.x, p1.x - p0.x }
+    , dY { p1.y - p2.y, p2.y - p0.y, p0.y - p1.y }
     {
         area = static_cast<float>( orient2D( p0, p1, p2 ) );
 
@@ -39,10 +39,7 @@ struct Edge2D
         // If using pixel centers, add half-pixel offset (0.5, 0.5)
         // orient2D(a, b, p) = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)
         // Adding 0.5 to p.x and p.y means we add: 0.5 * (b.x - a.x - b.y + a.y)
-        w0.x += ( dY[1] + dX[1] ) / 2;  // Half-pixel offset for edge 0 (p1->p2)
-        w0.y += ( dY[2] + dX[2] ) / 2;  // Half-pixel offset for edge 1 (p2->p0)
-        w0.z += ( dY[0] + dX[0] ) / 2;  // Half-pixel offset for edge 2 (p0->p1)
-
+        w0 += ( dY + dX ) / 2;  // Half-pixel offset
         w = w0;
     }
 
@@ -53,17 +50,12 @@ struct Edge2D
 
     void stepX()
     {
-        w[0] += dY[1];
-        w[1] += dY[2];
-        w[2] += dY[0];
+        w += dY;
     }
 
     void stepY()
     {
-        w0[0] += dX[1];
-        w0[1] += dX[2];
-        w0[2] += dX[0];
-
+        w0 += dX;
         w = w0;
     }
 
@@ -99,7 +91,7 @@ void Rasterizer::drawText( const Text& text, int x, int y )
     }
 }
 
-// Source: Claud Sonnet 4 "Create a 2D Software Rasterizer in 2D in C++"
+// Source: Claud Sonnet 4 "Create a 2D Software Rasterizer in C++"
 void Rasterizer::drawLineLow( int x0, int y0, int x1, int y1 )
 {
     Image*    image     = state.colorTarget;
@@ -133,7 +125,6 @@ void Rasterizer::drawLineLow( int x0, int y0, int x1, int y1 )
 
 void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 )
 {
-
     Image*    image     = state.colorTarget;
     BlendMode blendMode = state.blendMode;
 
@@ -159,6 +150,7 @@ void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 )
             x += xi;
             D -= 2 * dy;
         }
+
         D += 2 * dx;
     }
 }

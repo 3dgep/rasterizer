@@ -42,6 +42,7 @@ add_sample( 13-Input )
 add_sample( 14-Pong )
 add_sample( 15-PixelAdventure )
 add_sample( 16-Arkanoid )
+add_sample( 17-Physics )
 
 # Set the startup project.
 set_directory_properties( PROPERTIES

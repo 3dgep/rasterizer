@@ -10,6 +10,11 @@
 #include <glm/common.hpp>
 #include <glm/vec3.hpp>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/norm.hpp>
+
+#include <optional>
+
 namespace sr
 {
 inline namespace math
@@ -95,7 +100,7 @@ struct AABB
     /// Construct an axis-aligned bounding box from a viewport.
     /// </summary>
     /// <param name="viewport">The viewport used to construct the AABB.</param>
-    explicit AABB(const math::Viewport& viewport )
+    explicit AABB( const math::Viewport& viewport )
     {
         min = glm::vec3 { viewport.x, viewport.y, viewport.minDepth };
         max = glm::vec3 { viewport.x + viewport.width - 1, viewport.y + viewport.height - 1, viewport.maxDepth };
@@ -326,9 +331,33 @@ struct AABB
         return all( greaterThanEqual( p, min ) ) && all( lessThanEqual( p, max ) );
     }
 
-    bool contains( const glm::ivec2& p) const noexcept
+    /// <summary>
+    /// Test whether a point is contained in this AABB.
+    /// </summary>
+    /// <param name="p">The point to test for containment.</param>
+    /// <returns>true if the point is contained inside this AABB, false otherwise.</returns>
+    bool contains( const glm::vec2& p ) const noexcept
     {
-        return contains( glm::vec3 { p, 0.0f } );
+        return all( greaterThanEqual( p, glm::vec2 { min } ) ) && all( lessThanEqual( p, glm::vec2 { max } ) );
+    }
+
+    bool contains( const glm::ivec2& p ) const noexcept
+    {
+        return contains( glm::vec2 { p } );
+    }
+
+    // Find the closest point on or in this AABB to p.
+    // If p is in the AABB, this returns p.
+    glm::vec2 closestPoint( const glm::vec2& p ) const noexcept
+    {
+        return glm::clamp( p, glm::vec2 { min }, glm::vec2 { max } );
+    }
+
+    // Find the closest point on or in this AABB to p.
+    // If p is in the AABB, this returns p.
+    glm::vec3 closestPoint( const glm::vec3& p ) const noexcept
+    {
+        return glm::clamp( p, min, max );
     }
 
     /// <summary>
@@ -376,6 +405,8 @@ struct AABB
     /// Compute the outcode of a point.
     /// Source: https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
     /// </summary>
+    /// <param name="x">The x-component to test.</param>
+    /// <param name="y">The y-component to test.</param>
     /// <returns>The OutCode of the point relative to this AABB.</returns>
     OutCode computeOutCode( float x, float y ) const noexcept
     {
@@ -587,11 +618,14 @@ struct AABB
     /// <returns>`true` if the sphere is colliding with this AABB, `false` otherwise.</returns>
     [[nodiscard]] bool intersect( const Sphere& sphere ) const noexcept
     {
-        // Expand the AABB by the radius of the sphere.
-        const AABB e { min - glm::vec3 { sphere.radius }, max + glm::vec3 { sphere.radius } };
+        // Find the closest point on the AABB to the center of the circle.
+        glm::vec3 c = closestPoint( sphere.center );
 
-        // Test if the center point of the sphere is in the expanded AABB.
-        return e.contains( sphere.center );
+        // Calculate the distance between the closest point and the center of the circle.
+        glm::vec3 d = sphere.center - c;
+
+        // If the distance is less than the radius, the circle is colliding with this AABB.
+        return glm::length2( d ) <= sphere.radius * sphere.radius;
     }
 
     /// <summary>
@@ -601,11 +635,129 @@ struct AABB
     /// <returns>`true` if the circle is colliding with this AABB, `false` otherwise.</returns>
     [[nodiscard]] bool intersect( const Circle& circle ) const noexcept
     {
-        // Expand the AABB by the radius of the circle.
-        const AABB e { min - glm::vec3 { circle.radius }, max + glm::vec3 { circle.radius } };
+        // Find the closest point on the AABB to the center of the circle.
+        glm::vec2 c = closestPoint( circle.center );
 
-        // Test if the center point of the circle is in the expanded AABB.
-        return e.contains( glm::vec3 { circle.center, 0 } );
+        // Calculate the distance between the closest point and the center of the circle.
+        glm::vec2 d = circle.center - c;
+
+        // If the distance is less than the radius, the circle is colliding with this AABB.
+        return glm::length2( d ) <= circle.radius * circle.radius;
+    }
+
+    /// <summary>
+    /// Compute the overlap between a circle and this AABB.
+    /// </summary>
+    /// <param name="circle">The circle to test for overlap.</param>
+    /// <returns>The minimum overlap between the circle and this AABB, or a null optional if no overlap occurs.</returns>
+    std::optional<glm::vec2> overlap( const Circle& circle ) const noexcept
+    {
+        glm::vec2 c               = closestPoint( circle.center ); // Returns circle.center if circle is inside the AABB.
+        glm::vec2 d               = circle.center - c;
+        float     squaredDistance = glm::length2( d );
+
+        if ( squaredDistance <= circle.radius * circle.radius )
+        {
+            glm::vec2 mtv;
+
+            // If the circle's center is inside the AABB or almost on the boundary
+            if ( squaredDistance < 1e-6f )  // std::numeric_limits<float>::epsilon() )
+            {
+                float minX = circle.center.x - min.x;
+                float maxX = max.x - circle.center.x;
+                float minY = circle.center.y - min.y;
+                float maxY = max.y - circle.center.y;
+
+                float xOverlap = std::min( minX, maxX );
+                float yOverlap = std::min( minY, maxY );
+
+                if ( xOverlap < yOverlap )
+                    mtv = { ( minX < maxX ? -circle.radius : circle.radius ), 0.0f };
+                else
+                    mtv = { 0.0f, ( minY < maxY ? -circle.radius : circle.radius ) };
+            }
+            else
+            {
+                float distance = std::sqrt( squaredDistance );
+                if ( distance > 0.0f )
+                {
+                    float penetration = circle.radius - distance;
+                    mtv               = ( d / distance ) * penetration;
+                }
+                else
+                {
+                    mtv = { circle.radius, 0.0f };  // Fallback, but should rarely happen
+                }
+            }
+
+            return mtv;
+        }
+
+        return {};
+    }
+
+    /// <summary>
+    /// Compute the overlap between a sphere and this AABB.
+    /// </summary>
+    /// <param name="sphere">The sphere to test for overlap.</param>
+    /// <returns>The minimum overlap between the sphere and this AABB, or a null optional if no overlap occurs.</returns>
+    std::optional<glm::vec3> overlap( const Sphere& sphere ) const noexcept
+    {
+        glm::vec3 c               = closestPoint( sphere.center ); // Returns sphere.center if sphere is inside this AABB.
+        glm::vec3 d               = sphere.center - c;
+        float     squaredDistance = glm::length2( d );  // Squared length between the closest point and the center of the sphere.
+
+        if ( squaredDistance <= sphere.radius * sphere.radius )
+        {
+            glm::vec3 mtv;  // Compute the minimum translation vector.
+
+            // If the sphere's center is inside the AABB or almost on the boundary
+            if ( squaredDistance < 1e-6f ) // std::numeric_limits<float>::epsilon() )
+            {
+                // Compute the min/max overlap in each axis.
+                float minX = sphere.center.x - min.x;
+                float maxX = max.x - sphere.center.x;
+                float minY = sphere.center.y - min.y;
+                float maxY = max.y - sphere.center.y;
+                float minZ = sphere.center.z - min.z;
+                float maxZ = max.z - sphere.center.z;
+
+                float xOverlap = std::min( minX, maxX );
+                float yOverlap = std::min( minY, maxY );
+                float zOverlap = std::min( minZ, maxZ );
+
+                if ( xOverlap < yOverlap && xOverlap < zOverlap )
+                {
+                    mtv = { minX < maxX ? -sphere.radius : sphere.radius, 0.0f, 0.0f };
+                }
+                else if ( yOverlap < zOverlap )
+                {
+                    mtv = { 0.0f, minY < maxY ? -sphere.radius : sphere.radius, 0.0f };
+                }
+                else
+                {
+                    mtv = { 0.0f, 0.0f, minZ < maxZ ? -sphere.radius : sphere.radius };
+                }
+            }
+            else
+            {
+                // The center of the sphere is outside the AABB.
+                float distance = std::sqrt( squaredDistance );
+                if ( distance > 0.0f )
+                {
+                    float penetration = sphere.radius - distance;  // Penetration depth.
+                    mtv               = ( d / distance ) * penetration;
+                }
+                else
+                {
+                    mtv = { sphere.radius, 0.0f, 0.0f };
+                }
+            }
+
+            return mtv;
+        }
+
+        return {};  // No intersection.
     }
 
     /// <summary>
@@ -715,7 +867,7 @@ struct AABB
     /// <returns>An AABB that covers the viewport.</returns>
     static AABB fromViewport( const Viewport& viewport )
     {
-        return AABB{ viewport };
+        return AABB { viewport };
     }
 
     /// <summary>
