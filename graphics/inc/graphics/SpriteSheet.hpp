@@ -16,6 +16,8 @@ class SpriteSheet
 public:
     /// <summary>
     /// Default constructor. Creates an empty sprite sheet.
+    /// Sprites can be added to the spritesheet using the addSprite function.
+    /// Note: When using this method, the rows & column counts will stay 0.
     /// </summary>
     SpriteSheet()  = default;
 
@@ -58,21 +60,38 @@ public:
     /// <param name="blendMode">Blend mode to apply when rendering sprites from this sheet.</param>
     SpriteSheet( const std::shared_ptr<Image>& image, std::span<const math::RectI> rects, const BlendMode& blendMode = BlendMode {} );
 
+    /// <summary>
+    /// Returns the number of rows.
+    /// </summary>
+    /// <returns>The number of rows in the spritesheet.</returns>
     int getRows() const noexcept
     {
         return m_Rows;
     }
 
+    /// <summary>
+    /// Returns the number of columns.
+    /// </summary>
+    /// <returns>The number of columns in the spritesheet.</returns>
     int getColumns() const noexcept
     {
         return m_Columns;
     }
 
+    /// <summary>
+    /// Returns the number of sprites currently stored.
+    /// </summary>
+    /// <returns>The number of sprites in the spritesheet.</returns>
     size_t getNumSprites() const noexcept
     {
         return m_Sprites.size();
     }
 
+    /// <summary>
+    /// Returns the width of the specified sprite.
+    /// </summary>
+    /// <param name="spriteId">The index of the sprite whose width is to be retrieved. Defaults to 0.</param>
+    /// <returns>The width of the sprite at the given index, or 0 if the index is out of range.</returns>
     int getSpriteWidth( size_t spriteId = 0 ) const noexcept
     {
         if ( spriteId < m_Sprites.size() )
@@ -81,6 +100,11 @@ public:
         return 0;
     }
 
+    /// <summary>
+    /// Returns the height of the specified sprite.
+    /// </summary>
+    /// <param name="spriteId">The index of the sprite whose height is to be retrieved. Defaults to 0.</param>
+    /// <returns>The height of the sprite at the given index, or 0 if the index is out of bounds.</returns>
     int getSpriteHeight( size_t spriteId = 0) const noexcept
     {
         if ( spriteId < m_Sprites.size() )
@@ -95,12 +119,27 @@ public:
     /// <param name="sprite">The Sprite object to be added.</param>
     void addSprite( const Sprite& sprite );
 
+    /// <summary>
+    /// Retrieves the sprite at the specified index.
+    /// </summary>
+    /// <param name="index">The index of the sprite to retrieve.</param>
+    /// <returns>A reference to the Sprite at the given index.</returns>
     const Sprite& getSprite( size_t index ) const noexcept;
 
+    /// <summary>
+    /// Provides read-only access to a Sprite at the specified index.
+    /// </summary>
+    /// <param name="index">The position of the Sprite to access.</param>
+    /// <returns>A reference to the Sprite at the given index.</returns>
     const Sprite& operator[](size_t index) const noexcept;
 
+    /// <summary>
+    /// Accesses the sprite at the specified row and column indices.
+    /// </summary>
+    /// <param name="i">The row index of the sprite.</param>
+    /// <param name="j">The column index of the sprite.</param>
+    /// <returns>A reference to the sprite at the given indices.</returns>
     const Sprite& operator[]( size_t i, size_t j ) const noexcept;
-
 
 private:
     int m_Columns = 0;  // The number of sprites in the x-axis of the image.
