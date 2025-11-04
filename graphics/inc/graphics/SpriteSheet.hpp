@@ -58,12 +58,12 @@ public:
     /// <param name="blendMode">Blend mode to apply when rendering sprites from this sheet.</param>
     SpriteSheet( const std::shared_ptr<Image>& image, std::span<const math::RectI> rects, const BlendMode& blendMode = BlendMode {} );
 
-    uint32_t getRows() const noexcept
+    int getRows() const noexcept
     {
         return m_Rows;
     }
 
-    uint32_t getColumns() const noexcept
+    int getColumns() const noexcept
     {
         return m_Columns;
     }

@@ -6,7 +6,6 @@
 #include <compare>
 #include <string_view>
 
-// Note: SIMD optimizations in this file are provided by Claude Sonnet 4 (Aug 31, 2025) Prompt: "I want to apply SIMD optimizations to this Color class. But I also want to maintain platform independence, so SIMD should only be used on the platforms that support it."
 namespace sr
 {
 inline namespace graphics
@@ -108,6 +107,8 @@ struct Color
     /// <returns>The color constructed from the given HSV values.</returns>
     static inline Color fromHSV( float H, float S = 1.0f, float V = 1.0f ) noexcept;
 
+#pragma warning( push )
+#pragma warning( disable : 4201 ) // warning C4201: nonstandard extension used: nameless struct/union
     union
     {
         uint32_t rgba;
@@ -119,6 +120,7 @@ struct Color
             uint8_t a;
         };
     };
+#pragma warning( pop )
 
     /// <summary>
     /// Masks for each of the color channels.

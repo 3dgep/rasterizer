@@ -57,10 +57,10 @@ SpriteSheet::SpriteSheet( const std::shared_ptr<Image>& image, std::optional<int
     int u = margin;
     int v = margin;
 
-    for ( uint32_t i = 0; i < m_Rows; ++i )
+    for ( int i = 0; i < m_Rows; ++i )
     {
         u = margin;
-        for ( uint32_t j = 0; j < m_Columns; ++j )
+        for ( int j = 0; j < m_Columns; ++j )
         {
             const RectI spriteRect {
                 u, v, spriteWidth, spriteHeight

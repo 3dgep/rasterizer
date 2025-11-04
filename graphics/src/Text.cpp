@@ -1,3 +1,5 @@
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING // This silences the deprecation warnings in the <codecvt> file. I'm not sure how to provide string conversion in a platform independent way.
+
 #include <graphics/Text.hpp>
 
 #include <SDL3_ttf/SDL_ttf.h>
@@ -6,6 +8,7 @@
 #include <iostream>
 #include <locale>
 #include <utility>
+
 
 using namespace sr::graphics;
 
@@ -84,10 +87,10 @@ TTF_TextEngine* Text::TextEngine()
     return context.textEngine;
 }
 
-Text::Text( Font font, std::string_view text, const Color& color )
-: m_Font { std::move( font ) }
+Text::Text( const Font& font, std::string_view text, const Color& color )
+: m_Font { &font }
 {
-    m_Text = TTF_CreateText( TextEngine(), m_Font.getTTF_Font(), text.data(), text.length() );
+    m_Text = TTF_CreateText( TextEngine(), m_Font->getTTF_Font(), text.data(), text.length() );
 
     if ( !m_Text )
     {
@@ -98,13 +101,13 @@ Text::Text( Font font, std::string_view text, const Color& color )
     setColor( color );
 }
 
-Text::Text( Font font, std::wstring_view text, const Color& color )
-: Text { std::move( font ), wstringToUTF8( text ), color }
+Text::Text( const Font& font, std::wstring_view text, const Color& color )
+: Text { font, wstringToUTF8( text ), color }
 {}
 
 Text::Text( Text&& other ) noexcept
 {
-    m_Font = std::move( other.m_Font );
+    m_Font = std::exchange( other.m_Font, nullptr );
     m_Text = std::exchange( other.m_Text, nullptr );
 }
 
@@ -118,7 +121,7 @@ Text& Text::operator=( Text&& other ) noexcept
     if ( &other == this )
         return *this;
 
-    m_Font = std::move( other.m_Font );
+    m_Font = std::exchange( other.m_Font, nullptr );
     m_Text = std::exchange( other.m_Text, nullptr );
 
     return *this;
@@ -199,9 +202,9 @@ Text::Direction Text::getDirection() const
 
 Text& Text::setFont( const Font& font )
 {
-    m_Font = font;
+    m_Font = &font;
 
-    if ( !TTF_SetTextFont( m_Text, m_Font.getTTF_Font() ) )
+    if ( !TTF_SetTextFont( m_Text, m_Font->getTTF_Font() ) )
     {
         std::cerr << "Failed to set text font: " << SDL_GetError() << std::endl;
     }
@@ -211,7 +214,8 @@ Text& Text::setFont( const Font& font )
 
 const Font& Text::getFont() const
 {
-    return m_Font;
+    assert( m_Font != nullptr );
+    return *m_Font;
 }
 
 Text& Text::setPosition( const glm::ivec2& pos )

@@ -87,6 +87,11 @@ add_library( graphics STATIC ${ALL_FILES} )
 add_library( sr::graphics ALIAS graphics )
 
 target_compile_features( graphics PUBLIC cxx_std_23 )
+target_compile_options( graphics
+    PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
+)
 
 target_include_directories( graphics
     PUBLIC inc

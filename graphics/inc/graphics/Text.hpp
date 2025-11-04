@@ -3,8 +3,8 @@
 #include "Color.hpp"
 #include "Font.hpp"
 
-#include <iostream>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <iostream>
 
 struct TTF_Text;
 struct TTF_TextEngine;
@@ -26,8 +26,8 @@ public:
     };
 
     Text() = default;
-    explicit Text( Font font, std::string_view text = {}, const Color& color = Color::White );
-    explicit Text( Font font, std::wstring_view text = {}, const Color& color = Color::White );
+    explicit Text( const Font& font, std::string_view text = {}, const Color& color = Color::White );
+    explicit Text( const Font& font, std::wstring_view text = {}, const Color& color = Color::White );
     Text( const Text& ) = delete;
     Text( Text&& ) noexcept;
     ~Text();
@@ -154,13 +154,13 @@ public:
     static TTF_TextEngine* TextEngine();
 
 private:
-    Font      m_Font;
+    const Font*     m_Font = nullptr;
     TTF_Text* m_Text = nullptr;
 };
 }  // namespace graphics
 }  // namespace sr
 
-inline std::ostream& operator<<(std::ostream& os, const sr::graphics::Text& text )
+inline std::ostream& operator<<( std::ostream& os, const sr::graphics::Text& text )
 {
     os << text.getText();
     return os;

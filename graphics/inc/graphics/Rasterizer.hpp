@@ -152,15 +152,15 @@ public:
     /// <param name="p0">The first triangle coordinate (in screen coordinates).</param>
     /// <param name="p1">The second triangle coordinate (in screen coordinates).</param>
     /// <param name="p2">The third triangle coordinate (in screen coordinates).</param>
-    void drawTriangle( const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2 );
+    void drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 );
 
-    void drawTriangle( const Vertex2Di& v0, const Vertex2Di& v1, const Vertex2Di& v2, const Image& texture, AddressMode addressMode = AddressMode::Clamp, std::optional<BlendMode> blendMode = {} );
+    void drawTriangle( Vertex2Di v0, Vertex2Di v1, Vertex2Di v2, const Image& texture, AddressMode addressMode = AddressMode::Clamp, std::optional<BlendMode> blendMode = {} );
 
     void drawTriangle( const Vertex2D& v0, const Vertex2D& v1, const Vertex2D& v2, const Image& texture, AddressMode addressMode = AddressMode::Clamp, std::optional<BlendMode> blendMode = {} );
 
-    void drawQuad( const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2, const glm::ivec2& p3 );
+    void drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 );
 
-    void drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Vertex2Di& v2, const Vertex2Di& v3, const Image& texture, AddressMode addressMode = AddressMode::Clamp, std::optional<BlendMode> blendMode = {} );
+    void drawQuad( Vertex2Di v0, Vertex2Di v1, Vertex2Di v2, Vertex2Di v3, const Image& texture, AddressMode addressMode = AddressMode::Clamp, std::optional<BlendMode> blendMode = {} );
 
     void drawQuad( const Vertex2D& v0, const Vertex2D& v1, const Vertex2D& v2, const Vertex2D& v3, const Image& texture, AddressMode addressMode = AddressMode::Clamp, std::optional<BlendMode> blendMode = {} );
 
@@ -219,8 +219,8 @@ public:
     /// Draws the specified text at the given coordinates, if provided.
     /// </summary>
     /// <param name="text">The text object to be drawn.</param>
-    /// <param name="x">The x-coordinate where the text should be drawn. If not provided, the position of the Text object is used.</param>
-    /// <param name="y">The y-coordinate where the text should be drawn. If not provided, the position of the Text object is used.</param>
+    /// <param name="x">The x-coordinate where the text should be drawn.</param>
+    /// <param name="y">The y-coordinate where the text should be drawn.</param>
     void drawText( const Text& text, int x = 0, int y = 0 );
 
     /// <summary>

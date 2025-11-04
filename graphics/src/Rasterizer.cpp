@@ -273,7 +273,7 @@ void Rasterizer::drawCircle( int cx, int cy, int r )
     }
 }
 
-void Rasterizer::drawTriangle( const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2 )
+void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
 {
     Image* image = state.colorTarget;
 
@@ -291,7 +291,11 @@ void Rasterizer::drawTriangle( const glm::ivec2& p0, const glm::ivec2& p1, const
     break;
     case FillMode::Solid:
     {
-        bool ccw     = orient2D( p0, p1, p2 ) > 0;
+        const int area = orient2D( p0, p1, p2 );
+        if ( area == 0 )  // Skip degenerate triangles.
+            return;
+
+        bool ccw     = area > 0;
         bool isFront = state.frontCounterClockwise ? ccw : !ccw;
 
         switch ( state.cullMode )
@@ -308,11 +312,9 @@ void Rasterizer::drawTriangle( const glm::ivec2& p0, const glm::ivec2& p1, const
             break;
         }
 
-        if ( isFront != state.frontCounterClockwise )
-        {
-            drawTriangle( p0, p2, p1 );  // Swap 2 vertices to flip the winding order.
-            return;
-        }
+        // Swap vertices if triangle is not counter-clockwise.
+        if ( !ccw )
+            std::swap( p1, p2 );
 
         auto aabb         = image->getAABB().clamped( AABB { state.viewport } );
         auto triangleAABB = AABB::fromTriangle( p0, p1, p2 );
@@ -330,7 +332,7 @@ void Rasterizer::drawTriangle( const glm::ivec2& p0, const glm::ivec2& p1, const
         glm::ivec2 p { minX, minY };
 
         // Edge setup.
-        Edge2D e = ccw ? Edge2D { p0, p1, p2, p } : Edge2D { p0, p2, p1, p };  // Flip winding order if vertices are the wrong way around.
+        Edge2D e = Edge2D { p0, p1, p2, p };  // Flip winding order if vertices are the wrong way around.
 
         for ( p.y = minY; p.y <= maxY; p.y++ )
         {
@@ -349,14 +351,19 @@ void Rasterizer::drawTriangle( const glm::ivec2& p0, const glm::ivec2& p1, const
     }
 }
 
-void Rasterizer::drawTriangle( const Vertex2Di& v0, const Vertex2Di& v1, const Vertex2Di& v2, const Image& texture, AddressMode addressMode, std::optional<BlendMode> _blendMode )
+void Rasterizer::drawTriangle( Vertex2Di v0, Vertex2Di v1, Vertex2Di v2, const Image& texture, AddressMode addressMode, std::optional<BlendMode> _blendMode )
 {
     Image* image = state.colorTarget;
 
     if ( !image )
         return;
 
-    bool ccw     = orient2D( v0.position, v1.position, v2.position ) > 0;
+    const int area = orient2D( v0.position, v1.position, v2.position );
+
+    if ( area == 0 )  // Ignore degenerate triangles.
+        return;
+
+    bool ccw     = area > 0;
     bool isFront = state.frontCounterClockwise ? ccw : !ccw;
 
     switch ( state.cullMode )
@@ -372,6 +379,10 @@ void Rasterizer::drawTriangle( const Vertex2Di& v0, const Vertex2Di& v1, const V
     case CullMode::None:  // No culling.
         break;
     }
+
+    // Swap vertices if triangle is not counter-clockwise.
+    if ( !ccw )
+        std::swap( v1, v2 );
 
     const BlendMode blendMode    = _blendMode.value_or( state.blendMode );
     auto            aabb         = image->getAABB().clamped( AABB { state.viewport } );
@@ -390,7 +401,7 @@ void Rasterizer::drawTriangle( const Vertex2Di& v0, const Vertex2Di& v1, const V
     glm::ivec2 p { minX, minY };
 
     // Edge setup.
-    Edge2D e = ccw ? Edge2D { v0.position, v1.position, v2.position, p } : Edge2D { v0.position, v2.position, v1.position, p };  // Flip winding order if vertices are the wrong way around.
+    Edge2D e = Edge2D { v0.position, v1.position, v2.position, p };
 
     for ( p.y = minY; p.y <= maxY; p.y++ )
     {
@@ -401,7 +412,7 @@ void Rasterizer::drawTriangle( const Vertex2Di& v0, const Vertex2Di& v1, const V
                 const glm::vec3  bc       = e.barycentric();
                 const glm::ivec2 texCoord = glm::round( math::interpolate( v0.texCoord, v1.texCoord, v2.texCoord, bc ) );
                 const Color      color    = interpolate( v0.color, v1.color, v2.color, bc );
-                const Color      srcColor = image->sample( texCoord.x, texCoord.y, addressMode ) * color;
+                const Color      srcColor = texture.sample( texCoord.x, texCoord.y, addressMode ) * color;
                 image->plot<false>( p.x, p.y, srcColor, blendMode );
             }
 
@@ -425,7 +436,7 @@ void Rasterizer::drawTriangle( const Vertex2D& _v0, const Vertex2D& _v1, const V
     drawTriangle( v0, v1, v2, texture, addressMode, blendMode );
 }
 
-void Rasterizer::drawQuad( const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2, const glm::ivec2& p3 )
+void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 )
 {
     Image* image = state.colorTarget;
 
@@ -450,7 +461,40 @@ void Rasterizer::drawQuad( const glm::ivec2& p0, const glm::ivec2& p1, const glm
         break;
     case FillMode::Solid:
     {
-        // TODO: Culling.
+        // Check culling for both triangles of the quad.
+        int area1 = orient2D( p0, p1, p2 );
+        int area2 = orient2D( p2, p3, p0 );
+
+        // Check for degenerate cases.
+        if ( area1 == 0 && area2 == 0 )
+            return;
+
+        bool ccw1 = area1 > 0;
+        bool ccw2 = area2 > 0;
+
+        bool isFront1 = state.frontCounterClockwise ? ccw1 : !ccw1;
+        bool isFront2 = state.frontCounterClockwise ? ccw2 : !ccw2;
+
+        switch ( state.cullMode )
+        {
+        case CullMode::Front:
+            if ( isFront1 && isFront2 )
+                return;
+            break;
+        case CullMode::Back:
+            if ( !( isFront1 && isFront2 ) )
+                return;
+            break;
+        case CullMode::None:
+            break;
+        }
+
+        // Swap vertices if triangles are not counter-clockwise.
+        if ( !ccw1 )
+            std::swap( p0, p1 );
+
+        if ( !ccw2 )
+            std::swap( p2, p3 );
 
         int minX = static_cast<int>( dstAABB.min.x );
         int minY = static_cast<int>( dstAABB.min.y );
@@ -488,7 +532,7 @@ void Rasterizer::drawQuad( const glm::ivec2& p0, const glm::ivec2& p1, const glm
     }
 }
 
-void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Vertex2Di& v2, const Vertex2Di& v3, const Image& texture, AddressMode addressMode, std::optional<BlendMode> _blendMode )
+void Rasterizer::drawQuad( Vertex2Di v0, Vertex2Di v1, Vertex2Di v2, Vertex2Di v3, const Image& texture, AddressMode addressMode, std::optional<BlendMode> _blendMode )
 {
     Image* dstImage = state.colorTarget;
 
@@ -496,8 +540,9 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
         return;
 
     // Check culling for both triangles of the quad.
-    int  area1 = orient2D( v0.position, v1.position, v2.position );
-    int  area2 = orient2D( v2.position, v3.position, v0.position );
+    int area1 = orient2D( v0.position, v1.position, v2.position );
+    int area2 = orient2D( v2.position, v3.position, v0.position );
+
     // Check for degenerate cases.
     if ( area1 == 0 && area2 == 0 )
         return;
@@ -522,11 +567,12 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
         break;
     }
 
-    if ( isFront1 != state.frontCounterClockwise && isFront2 != state.frontCounterClockwise )
-    {
-        drawQuad( v1, v0, v3, v2, texture, addressMode, _blendMode );
-        return;
-    }
+    // Swap vertices if triangles are not counter-clockwise.
+    if ( !ccw1 )
+        std::swap( v0, v1 );
+
+    if ( !ccw2 )
+        std::swap( v2, v3 );
 
     BlendMode blendMode = _blendMode.value_or( state.blendMode );
     AABB      dstAABB   = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
@@ -550,7 +596,6 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
 
     glm::ivec2 p { minX, minY };
 
-    // Edge setup for the 2 triangles of the quad.
     Edge2D e[] {
         Edge2D { v0.position, v1.position, v2.position, p },
         Edge2D { v2.position, v3.position, v0.position, p }
@@ -590,18 +635,16 @@ void Rasterizer::drawQuad( const Vertex2Di& v0, const Vertex2Di& v1, const Verte
                     const Vertex2Di& b = verts[i1];
                     const Vertex2Di& c = verts[i2];
 
-                    const glm::vec3  bc             = edge.barycentric();
-                    const glm::vec2  interpTexCoord = sr::math::interpolate( a.texCoord, b.texCoord, c.texCoord, bc );
+                    const glm::vec3 bc             = edge.barycentric();
+                    const glm::vec2 interpTexCoord = sr::math::interpolate( a.texCoord, b.texCoord, c.texCoord, bc );
 
                     // Use SIMD-optimized round and clamp
                     glm::ivec2 texCoord;
                     simd_round_clamp_vec2( &interpTexCoord.x, &minTexCoord.x, &maxTexCoord.x, &texCoord.x );
 
-                    const Color      color          = interpolate( a.color, b.color, c.color, bc );
-                    const Color      srcColor       = texture.sample( texCoord.x, texCoord.y, addressMode );
-                    const Color      finalColor     = srcColor * color;
-
-                    dstImage->plot<false>( p.x, p.y, finalColor, blendMode );
+                    const Color color    = interpolate( a.color, b.color, c.color, bc );
+                    const Color srcColor = texture.sample( texCoord.x, texCoord.y, addressMode ) * color;
+                    dstImage->plot<false>( p.x, p.y, srcColor, blendMode );
                 }
             }
 
@@ -672,22 +715,21 @@ void Rasterizer::drawImage( const Image& srcImage, int x, int y )
     int srcW = srcImage.getWidth();
     int srcH = srcImage.getHeight();
     int dstW = dstImage->getWidth();
-    int dstH = dstImage->getHeight();
 
     // Clamp destination rectangle to viewport and image bounds
-    AABB dstAABB = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
-    int clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), x );
-    int clipTop    = std::max( static_cast<int>( dstAABB.min.y ), y );
-    int clipRight  = std::min( static_cast<int>( dstAABB.max.x ), x + srcW - 1 );
-    int clipBottom = std::min( static_cast<int>( dstAABB.max.y ), y + srcH - 1 );
+    AABB dstAABB    = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+    int  clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), x );
+    int  clipTop    = std::max( static_cast<int>( dstAABB.min.y ), y );
+    int  clipRight  = std::min( static_cast<int>( dstAABB.max.x ), x + srcW - 1 );
+    int  clipBottom = std::min( static_cast<int>( dstAABB.max.y ), y + srcH - 1 );
 
     if ( clipLeft > clipRight || clipTop > clipBottom )
         return;
 
-    const Color* src = srcImage.data();
-    Color* dst = dstImage->data();
-    BlendMode blendMode = state.blendMode;
-    Color color = state.color;
+    const Color* src       = srcImage.data();
+    Color*       dst       = dstImage->data();
+    BlendMode    blendMode = state.blendMode;
+    Color        color     = state.color;
 
     for ( int dy = clipTop; dy <= clipBottom; ++dy )
     {
@@ -731,11 +773,11 @@ void Rasterizer::drawImage( const Image& srcImage, std::optional<sr::math::RectI
     }
 
     // Clamp destination rectangle to viewport and image bounds
-    AABB dstAABB = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
-    int clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), dstX );
-    int clipTop    = std::max( static_cast<int>( dstAABB.min.y ), dstY );
-    int clipRight  = std::min( static_cast<int>( dstAABB.max.x ), dstX + dstW - 1 );
-    int clipBottom = std::min( static_cast<int>( dstAABB.max.y ), dstY + dstH - 1 );
+    AABB dstAABB    = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+    int  clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), dstX );
+    int  clipTop    = std::max( static_cast<int>( dstAABB.min.y ), dstY );
+    int  clipRight  = std::min( static_cast<int>( dstAABB.max.x ), dstX + dstW - 1 );
+    int  clipBottom = std::min( static_cast<int>( dstAABB.max.y ), dstY + dstH - 1 );
 
     if ( clipLeft > clipRight || clipTop > clipBottom )
         return;
@@ -745,12 +787,12 @@ void Rasterizer::drawImage( const Image& srcImage, std::optional<sr::math::RectI
     float scaleY = static_cast<float>( srcH ) / dstH;
 
     const Color* src = srcImage.data();
-    Color* dst = dstImage->data();
-    int sW = srcImage.getWidth();
-    int dW = dstImage->getWidth();
+    Color*       dst = dstImage->data();
+    int          sW  = srcImage.getWidth();
+    int          dW  = dstImage->getWidth();
 
     BlendMode blendMode = state.blendMode;
-    Color color = state.color;
+    Color     color     = state.color;
 
     for ( int y = clipTop; y <= clipBottom; ++y )
     {
@@ -772,7 +814,7 @@ void Rasterizer::drawImage( const Image& srcImage, std::optional<sr::math::RectI
     }
 }
 
-void Rasterizer::drawSprite( const Sprite& sprite, int x, int y )
+void Rasterizer::drawSprite( const Sprite& sprite, int _x, int _y )
 {
     const Image* srcImage = sprite.getImage().get();
     Image*       dstImage = state.colorTarget;
@@ -788,18 +830,18 @@ void Rasterizer::drawSprite( const Sprite& sprite, int x, int y )
     glm::ivec2       uv           = sprite.getUV();
 
     // Compute viewport clipping bounds.
-    const int clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), x );
-    const int clipTop    = std::max( static_cast<int>( dstAABB.min.y ), y );
-    const int clipRight  = std::min( static_cast<int>( dstAABB.max.x ), x + size.x - 1);
-    const int clipBottom = std::min( static_cast<int>( dstAABB.max.y ), y + size.y - 1);
+    const int clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), _x );
+    const int clipTop    = std::max( static_cast<int>( dstAABB.min.y ), _y );
+    const int clipRight  = std::min( static_cast<int>( dstAABB.max.x ), _x + size.x - 1 );
+    const int clipBottom = std::min( static_cast<int>( dstAABB.max.y ), _y + size.y - 1 );
 
     // Check if the sprite is completely off-screen.
     if ( clipLeft >= clipRight || clipTop >= clipBottom )
         return;
 
     // Adjust sprite UV based on clipping.
-    uv.x += clipLeft - x;
-    uv.y += clipTop - y;
+    uv.x += clipLeft - _x;
+    uv.y += clipTop - _y;
 
     const Color* src = srcImage->data();
     Color*       dst = dstImage->data();
@@ -851,10 +893,10 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
     // Position 0.5 (first pixel center) maps to texture coordinate 0
     // Position 31.5 (last pixel center) maps to texture coordinate 31
     Vertex2Di verts[4] = {
-        { { 0, 0 }, { uv.x - 0.5f, uv.y - 0.5f }, color },                                // Top-left.
-        { { size.x, 0 }, { uv.x + size.x - 0.5f, uv.y - 0.5f }, color },                  // Top-right.
-        { { size.x, size.y }, { uv.x + size.x - 0.5f, uv.y + size.y - 0.5f }, color },    // Bottom-right.
-        { { 0, size.y }, { uv.x - 0.5f, uv.y + size.y - 0.5f }, color },                  // Bottom-left.
+        { { 0, 0 }, { uv.x - 0.5f, uv.y - 0.5f }, color },                              // Top-left.
+        { { size.x, 0 }, { uv.x + size.x - 0.5f, uv.y - 0.5f }, color },                // Top-right.
+        { { size.x, size.y }, { uv.x + size.x - 0.5f, uv.y + size.y - 0.5f }, color },  // Bottom-right.
+        { { 0, size.y }, { uv.x - 0.5f, uv.y + size.y - 0.5f }, color },                // Bottom-left.
     };
 
     // Transform vertices
@@ -913,7 +955,6 @@ void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform
 
     for ( uint32_t y = 0; y < rows; ++y )
     {
-        double offsetX = 0.0f;
         for ( uint32_t x = 0; x < columns; ++x )
         {
             int spriteId = tileMap[x, y];
