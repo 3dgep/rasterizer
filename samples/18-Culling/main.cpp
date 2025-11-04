@@ -21,7 +21,7 @@ int main()
     Image         texture { "assets/textures/Smiley.png" };
     Rasterizer    rasterizer;
     PrimitiveType primitiveType    = PrimitiveType::Triangle;
-    Font          font = Font{ 30 }.setWrapAlignment( Font::HorizontalAlignment::Center );
+    Font          font             = Font { 30 };
     Text          clockwise        = Text( font, "Clockwise", Color::Black );
     Text          counterClockwise = Text( font, "Counter\nclockwise", Color::Black );
 
@@ -121,7 +121,9 @@ int main()
         break;
         }
 
+        // "Clockwise" on the left.
         rasterizer.drawText( clockwise, 50, 75 );
+        // "Counter-clockwise" on the right.
         rasterizer.drawText( counterClockwise, 450, 60 );
 
         if ( timer.totalSeconds() > 1.0 )
