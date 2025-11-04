@@ -89,6 +89,12 @@ public:
         return 0;
     }
 
+    /// <summary>
+    /// Adds a sprite to the current collection or scene.
+    /// </summary>
+    /// <param name="sprite">The Sprite object to be added.</param>
+    void addSprite( const Sprite& sprite );
+
     const Sprite& getSprite( size_t index ) const noexcept;
 
     const Sprite& operator[](size_t index) const noexcept;

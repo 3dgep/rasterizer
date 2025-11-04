@@ -86,6 +86,11 @@ SpriteSheet::SpriteSheet( const std::shared_ptr<Image>& image, std::span<const m
     }
 }
 
+void SpriteSheet::addSprite( const Sprite& sprite )
+{
+    m_Sprites.push_back( sprite );
+}
+
 const Sprite& SpriteSheet::getSprite( size_t index ) const noexcept
 {
     if ( index < m_Sprites.size() )
