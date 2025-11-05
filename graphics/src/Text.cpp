@@ -129,7 +129,7 @@ Text& Text::operator=( Text&& other ) noexcept
 
 Text& Text::operator=( std::string_view string )
 {
-    return setString( string );  // NOLINT(misc-unconventional-assign-operator)
+    return setText( string );  // NOLINT(misc-unconventional-assign-operator)
 }
 
 Text& Text::operator+=( std::string_view string )
@@ -137,7 +137,7 @@ Text& Text::operator+=( std::string_view string )
     return appendString( string );
 }
 
-Text& Text::setString( std::string_view string )
+Text& Text::setText( std::string_view string )
 {
     if ( !TTF_SetTextString( m_Text, string.data(), string.length() ) )
     {

@@ -54,7 +54,7 @@ public:
     /// </summary>
     /// <param name="string">The string to set the text to.</param>
     /// <returns>A reference to the Text object.</returns>
-    Text& setString( std::string_view string );
+    Text& setText( std::string_view string );
 
     /// <summary>
     /// Returns a read-only view of the text.
@@ -154,8 +154,8 @@ public:
     static TTF_TextEngine* TextEngine();
 
 private:
-    const Font*     m_Font = nullptr;
-    TTF_Text* m_Text = nullptr;
+    const Font* m_Font = nullptr;
+    TTF_Text*   m_Text = nullptr;
 };
 }  // namespace graphics
 }  // namespace sr

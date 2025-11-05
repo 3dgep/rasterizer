@@ -43,8 +43,8 @@ struct Line
     /// Compute the squared distance between this line and a point.
     /// Source: Real-time Collision Detection, Christer Ericson (2005).
     /// </summary>
-    /// <param name="p">The point the compute the distance to.</param>
-    /// <returns>The squared distance between a point and this line.</returns>
+    /// <param name="p">The point to compute the distance to.</param>
+    /// <returns>The squared distance between the point and this line.</returns>
     [[nodiscard]] float squareDistance( const glm::vec3& p ) const
     {
         const glm::vec3 dir   = p1 - p0;  // ab

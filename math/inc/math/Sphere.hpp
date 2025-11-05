@@ -40,6 +40,20 @@ struct Sphere
     {
         return center + glm::vec3 { radius };
     }
+    /// <summary>
+    /// Point-sphere intersection test.
+    /// </summary>
+    /// <param name="p">The point to test for intersection with the sphere.</param>
+    /// <returns>`true` if the point lies inside the sphere, `false` otherwise.</returns>
+    bool intersect( const glm::vec3& p ) const noexcept
+    {
+        float dx = center.x - p.x;
+        float dy = center.y - p.y;
+        float dz = center.z - p.z;
+        float d  = dx * dx + dy * dy + dz * dz;
+
+        return d < radius * radius;
+    }
 
     /// <summary>
     /// Line/sphere intersection test.
@@ -60,6 +74,22 @@ struct Sphere
     bool intersect( const Line& line ) const
     {
         return line.squareDistance( center ) < radius * radius;
+    }
+
+    /// <summary>
+    /// Sphere-sphere intersection test.
+    /// </summary>
+    /// <param name="other">The other sphere to test for intersection with.</param>
+    /// <returns>`true` if the circles are overlapping, `false` otherwise.</returns>
+    bool intersect( const Sphere& other ) const noexcept
+    {
+        float dx = center.x - other.center.x;
+        float dy = center.y - other.center.y;
+        float dz = center.z - other.center.z;
+        float d  = dx * dx + dy * dy + dz * dz;
+        float r  = radius + other.radius;
+
+        return d < r * r;
     }
 
     glm::vec3 center { 0.0f };

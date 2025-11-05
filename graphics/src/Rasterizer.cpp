@@ -39,7 +39,7 @@ struct Edge2D
         // If using pixel centers, add half-pixel offset (0.5, 0.5)
         // orient2D(a, b, p) = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)
         // Adding 0.5 to p.x and p.y means we add: 0.5 * (b.x - a.x - b.y + a.y)
-        w0 += ( dY + dX ) / 2;  // Half-pixel offset
+        w0 += ( dX + dY ) / 2;  // Half-pixel offset
         w = w0;
     }
 
