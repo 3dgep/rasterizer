@@ -24,8 +24,11 @@ std::shared_ptr<SpriteSheet> fromTileSet( const std::filesystem::path& rootFolde
 
 int main()
 {
-    Window     window( "Tile Maps", 800, 512 );
-    Image      image { 800, 512 };
+    constexpr int SCREEN_WIDTH = 800;
+    constexpr int SCREEN_HEIGHT = 600;
+
+    Window     window( "Tile Maps", SCREEN_WIDTH, SCREEN_HEIGHT );
+    Image      image { SCREEN_WIDTH, SCREEN_HEIGHT };
     Rasterizer rasterizer;
     Timer      timer;
     Text       fpsText( Font::DefaultFont, "FPS: 0" );
@@ -47,7 +50,7 @@ int main()
     Transform2D transform {
         { image.getWidth() / 2.0f, image.getHeight() / 2.0f }, 0.0f, { 1, 1 }, { tileMap.getWidth() / 2.0f, tileMap.getHeight() / 2.0f }
     };
-    bool isPaused = false;
+    bool isPaused = true;
 
     // Load the tile ID's into the tilemap.
     for ( auto& tile: tilesLayer.allTiles() )
@@ -135,7 +138,6 @@ int main()
         }
 
         rasterizer.drawText( fpsText, 10, 10 );
-
 
         window.clear( Color::Black );
         window.present( image );

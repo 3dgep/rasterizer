@@ -960,8 +960,8 @@ void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform
             int spriteId = tileMap[x, y];
             if ( spriteId >= 0 )
             {
-                tileOffset[2][0] = static_cast<float>( x * spriteWidth ) - 1.0f;  // Offset by -1 to avoid black lines when scaling.
-                tileOffset[2][1] = static_cast<float>( y * spriteHeight ) - 1.0f;
+                tileOffset[2][0] = static_cast<float>( x * spriteWidth );
+                tileOffset[2][1] = static_cast<float>( y * spriteHeight );
 
                 drawSprite( tileMap.getSprite( x, y ), transform * tileOffset );
             }
