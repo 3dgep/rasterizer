@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SpriteSheet.hpp"
+#include "Vertex.hpp"
 
 namespace sr
 {
@@ -75,6 +76,12 @@ public:
     }
 
     /// <summary>
+    /// Get the image associated with the spritesheet.
+    /// </summary>
+    /// <returns>A shared pointer to the image used for the tilemap.</returns>
+    std::shared_ptr<Image> getImage() const noexcept;
+
+    /// <summary>
     /// Gets the grid of sprite indices.
     /// </summary>
     /// <returns>A constant reference to the vector of sprite indices.</returns>
@@ -82,6 +89,8 @@ public:
     {
         return m_SpriteGrid;
     }
+
+    const BlendMode& getBlendMode() const noexcept;
 
     /// <summary>
     /// Gets the sprite at the specified coordinates.
@@ -129,12 +138,16 @@ public:
         return m_Rows * getSpriteHeight();
     }
 
+    const std::vector<Vertex2Di>& getVertexBuffer() const;
+
 private:
     uint32_t m_Columns = 0u;
     uint32_t m_Rows    = 0u;
 
-    std::shared_ptr<SpriteSheet> m_SpriteSheet;
-    std::vector<int>             m_SpriteGrid;
+    std::shared_ptr<SpriteSheet>   m_SpriteSheet;
+    std::vector<int>               m_SpriteGrid;
+    mutable bool                   m_VertexBufferDirty = true;
+    mutable std::vector<Vertex2Di> m_VertexBuffer;
 };
 }  // namespace graphics
 }  // namespace sr

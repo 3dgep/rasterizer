@@ -25,6 +25,7 @@ int& TileMap::operator[]( size_t x, size_t y ) noexcept
     assert( x < m_Columns );
     assert( y < m_Rows );
 
+    m_VertexBufferDirty = true;
     return m_SpriteGrid[y * m_Columns + x];
 }
 
@@ -49,6 +50,71 @@ uint32_t TileMap::getSpriteHeight() const noexcept
     return 0u;
 }
 
+const std::vector<Vertex2Di>& TileMap::getVertexBuffer() const
+{
+    if ( m_VertexBufferDirty )
+    {
+        m_VertexBuffer.clear();
+
+        uint32_t sW = getSpriteWidth();
+        uint32_t sH = getSpriteHeight();
+
+        //  Position and UV offsets for each vertex of the quad.
+        glm::ivec2 posOffset[] = {
+            { 0, 0 },
+            { sW, 0 },
+            { sW, sH },
+            { 0, sH }
+        };
+        glm::ivec2 uvOffset[] = {
+            { 0, 0 },
+            { sW - 1, 0 },
+            { sW - 1, sH - 1 },
+            { 0, sH - 1 }
+        };
+
+        for ( uint32_t i = 0; i < m_Rows; ++i )
+        {
+            for ( uint32_t j = 0; j < m_Columns; ++j )
+            {
+                int spriteId = m_SpriteGrid[i * m_Columns + j];
+                if ( spriteId >= 0 )
+                {
+                    auto& sprite = m_SpriteSheet->getSprite( spriteId );
+                    auto  uv     = sprite.getUV();
+                    auto  c      = sprite.getColor();
+                    for ( uint32_t k = 0; k < 4; ++k )
+                        m_VertexBuffer.emplace_back( glm::ivec2 { j * sW, i * sH } + posOffset[k], uv + uvOffset[k], c );
+                }
+            }
+        }
+
+        m_VertexBufferDirty = false;
+    }
+
+    return m_VertexBuffer;
+}
+
+std::shared_ptr<Image> TileMap::getImage() const noexcept
+{
+    if (m_SpriteSheet)
+    {
+        return m_SpriteSheet->getSprite( 0 ).getImage();
+    }
+
+    return nullptr;
+}
+
+const BlendMode& TileMap::getBlendMode() const noexcept
+{
+    if (m_SpriteSheet)
+    {
+        return m_SpriteSheet->getSprite( 0 ).getBlendMode();
+    }
+
+    return BlendMode::Disable;
+}
+
 const Sprite& TileMap::getSprite( size_t x, size_t y ) const
 {
     assert( x < m_Columns );
@@ -64,5 +130,6 @@ const Sprite& TileMap::getSprite( size_t x, size_t y ) const
 
 void TileMap::setSpriteGrid( std::span<const int> spriteGrid )
 {
-    m_SpriteGrid = std::vector( spriteGrid.begin(), spriteGrid.end() );
+    m_SpriteGrid        = std::vector( spriteGrid.begin(), spriteGrid.end() );
+    m_VertexBufferDirty = true;
 }

@@ -24,7 +24,7 @@ std::shared_ptr<SpriteSheet> fromTileSet( const std::filesystem::path& rootFolde
 
 int main()
 {
-    constexpr int SCREEN_WIDTH = 800;
+    constexpr int SCREEN_WIDTH  = 800;
     constexpr int SCREEN_HEIGHT = 600;
 
     Window     window( "Tile Maps", SCREEN_WIDTH, SCREEN_HEIGHT );
@@ -131,7 +131,7 @@ int main()
 
         rasterizer.drawTileMap( tileMap, transform );
 
-                if ( timer.totalSeconds() > 1.0 )
+        if ( timer.totalSeconds() > 1.0 )
         {
             fpsText = std::format( "FPS: {:.0f}", timer.FPS() );
             timer.reset();

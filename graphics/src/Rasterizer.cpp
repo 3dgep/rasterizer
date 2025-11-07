@@ -947,24 +947,27 @@ void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform
         return;
     }
 
-    glm::mat3 tileOffset { 1 };
-    uint32_t  rows         = tileMap.getRows();
-    uint32_t  columns      = tileMap.getColumns();
-    uint32_t  spriteWidth  = tileMap.getSpriteWidth();
-    uint32_t  spriteHeight = tileMap.getSpriteHeight();
+    auto image = tileMap.getImage();
+    if ( !image )
+        return;
 
-    for ( uint32_t y = 0; y < rows; ++y )
+    auto& blendMode = tileMap.getBlendMode();
+
+    auto vb = tileMap.getVertexBuffer();
+
+    // Transform vertices.
+    for (auto& v: vb)
     {
-        for ( uint32_t x = 0; x < columns; ++x )
-        {
-            int spriteId = tileMap[x, y];
-            if ( spriteId >= 0 )
-            {
-                tileOffset[2][0] = static_cast<float>( x * spriteWidth );
-                tileOffset[2][1] = static_cast<float>( y * spriteHeight );
+        v.position = transform * glm::vec3 { v.position, 1.0f };
+    }
 
-                drawSprite( tileMap.getSprite( x, y ), transform * tileOffset );
-            }
-        }
+    for (size_t i = 0; i < vb.size(); i += 4)
+    {
+        const auto& v0 = vb[i + 0];
+        const auto& v1 = vb[i + 1];
+        const auto& v2 = vb[i + 2];
+        const auto& v3 = vb[i + 3];
+
+        drawQuad( v0, v1, v2, v3, *image, AddressMode::Clamp, blendMode );
     }
 }
