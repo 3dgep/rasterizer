@@ -213,24 +213,21 @@ void Rasterizer::drawCircle( int cx, int cy, int r )
     if ( !circleAABB.intersect( aabb ) )
         return;
 
-    int x = 0;
-    int y = r;
-    int d = 3 - 2 * r;
-
     switch ( state.fillMode )
     {
     case FillMode::WireFrame:
     {
+        int x = 0;
+        int y = r;
+        int d = 3 - 2 * r;
+
         while ( x <= y )
         {
             // Plot the 8 octants of the circle.
             for ( auto offset: { glm::ivec2 { x, y }, glm::ivec2 { -x, y }, glm::ivec2 { x, -y }, glm::ivec2 { -x, -y }, glm::ivec2 { y, x }, glm::ivec2 { -y, x }, glm::ivec2 { y, -x }, glm::ivec2 { -y, x }, glm::ivec2 { -y, -x } } )
             {
                 glm::ivec2 p { cx + offset.x, cy + offset.y };
-                if ( aabb.contains( p ) )  // Clipping.
-                {
-                    image->plot<false>( p.x, p.y, state.color, state.blendMode );
-                }
+                image->plot<true>( p.x, p.y, state.color, state.blendMode );
             }
 
             ++x;
@@ -248,25 +245,11 @@ void Rasterizer::drawCircle( int cx, int cy, int r )
     break;
     case FillMode::Solid:
     {
-        while ( x <= y )
+        float radius = static_cast<float>( r );
+        for ( float y = -radius; y <= radius; ++y )
         {
-            // Draw horizontal lines to fill the circle.
-            for ( auto offset: { glm::ivec4 { -x, y, x, y }, glm::ivec4 { -x, -y, x, -y }, glm::ivec4 { -y, x, y, x }, glm::ivec4 { -y, -x, y, -x } } )
-            {
-                // Lines are already clipped.
-                drawLine( cx + offset.x, cy + offset.y, cx + offset.z, cy + offset.w );
-            }
-
-            ++x;
-            if ( d < 0 )
-            {
-                d += 4 * x + 6;
-            }
-            else
-            {
-                --y;
-                d += 4 * ( x - y ) + 10;
-            }
+            float x = radius * std::sqrt( 1.0f - ( y * y ) / ( radius * radius ) );
+            drawLine( cx - x, cy + y, cx + x, cy + y );
         }
     }
     break;
@@ -956,12 +939,12 @@ void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform
     auto vb = tileMap.getVertexBuffer();
 
     // Transform vertices.
-    for (auto& v: vb)
+    for ( auto& v: vb )
     {
         v.position = transform * glm::vec3 { v.position, 1.0f };
     }
 
-    for (size_t i = 0; i < vb.size(); i += 4)
+    for ( size_t i = 0; i < vb.size(); i += 4 )
     {
         const auto& v0 = vb[i + 0];
         const auto& v1 = vb[i + 1];

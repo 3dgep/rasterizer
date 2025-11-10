@@ -61,7 +61,7 @@ int main()
         if ( Input::getKeyDown( Key::V ) )
             window.toggleVSync();
 
-        if ( Input::getKeyDown( Key::F11 ) || Input::getKeyDown( Key::AltKey ) && Input::getKeyDown( Key::Enter ) )
+        if ( Input::getKeyDown( Key::F11 ) || Input::getKey( Key::AltKey ) && Input::getKeyDown( Key::Enter ) )
             window.toggleFullscreen();
 
         Mouse::State mouseState = Mouse::getState();
@@ -73,7 +73,32 @@ int main()
         image.clear( Color::Black );
 
         rasterizer.drawCircle( imagePos, 7 );
-        rasterizer.drawText( mousePosText, imagePos.x - mousePosText.getWidth() / 2, imagePos.y - mousePosText.getHeight() - 10);
+        rasterizer.drawText( mousePosText, imagePos.x - mousePosText.getWidth() / 2, imagePos.y - mousePosText.getHeight() - 10 );
+
+        {
+            auto r = rasterizer;
+
+            Touch::State touch = Touch::getState();
+
+            for ( auto& t: touch.touches )
+            {
+                float x = t.x * window.getWidth();              // Touch points are normalized.
+                float y = t.y * window.getHeight();             // Touch points are normalized.
+                auto  p = window.clientToImage( x, y, image );  // Convert to image coords.
+                int radius = static_cast<int>( 30.0f + t.pressure * 60.0f ); 
+
+                r.state.blendMode = BlendMode::AlphaBlend;
+                r.state.color = Color::Blue.withAlpha( 0.5f );
+                r.drawCircle( p, radius );
+                r.state.color = Color::Blue;
+                r.state.fillMode = FillMode::WireFrame;
+                r.drawCircle( p, radius );
+                r.state.fillMode = FillMode::Solid;
+                r.drawCircle( p, 30 );
+                r.state.color = Color::White;
+                r.drawText( Font::DefaultFont, std::format( "#{}", t.id ), p.x - 10, p.y - 5);
+            }
+        }
 
         if ( timer.totalSeconds() > 1.0 )
         {
