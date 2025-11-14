@@ -42,23 +42,30 @@ FOR /F "usebackq delims=." %%i IN (`%VSWHERE% -latest -prerelease -requires Micr
     SET VS_VERSION=%%i
 )
 
-IF %VS_VERSION% == 17 (
-    SET CMAKE_PRESET="vs17"
-    SET CMAKE_BINARY_DIR=out\build\vs17
+IF %VS_VERSION% == 18 (
+    SET CMAKE_PRESET="vs18"
+    SET CMAKE_BINARY_DIR=out\build\vs18
+	SET SOLUTION_FILE=rasterizer.slnx
 ) ELSE (
-    ECHO.
-    ECHO ***********************************************************************
-    ECHO *                                                                     *
-    ECHO *                                ERROR                                *
-    ECHO *                                                                     *
-    ECHO ***********************************************************************
-    ECHO No compatible version of Microsoft Visual Studio detected.
-    ECHO Please make sure you have Visual Studio 2022 ^(or newer^) and the 
-    ECHO "Game Development with C++" workload installed before running this script.
-    ECHO Go to https://www.visualstudio.com/downloads/ to download the latest version of Visual Studio.
-    ECHO. 
-    PAUSE
-    GOTO :Exit
+	IF %VS_VERSION% == 17 (
+		SET CMAKE_PRESET="vs17"
+		SET CMAKE_BINARY_DIR=out\build\vs17
+		SET SOLUTION_FILE=rasterizer.sln
+	) ELSE (
+		ECHO.
+		ECHO ***********************************************************************
+		ECHO *                                                                     *
+		ECHO *                                ERROR                                *
+		ECHO *                                                                     *
+		ECHO ***********************************************************************
+		ECHO No compatible version of Microsoft Visual Studio detected.
+		ECHO Please make sure you have Visual Studio 2022 ^(or newer^) and the 
+		ECHO "Game Development with C++" workload installed before running this script.
+		ECHO Go to https://www.visualstudio.com/downloads/ to download the latest version of Visual Studio.
+		ECHO. 
+		PAUSE
+		GOTO :Exit
+	)
 )
 
 :GenerateProjectFiles
@@ -67,7 +74,7 @@ IF %VS_VERSION% == 17 (
 IF %ERRORLEVEL% NEQ 0 (
     PAUSE
 ) ELSE (
-    START %CMAKE_BINARY_DIR%\rasterizer.sln
+    START %CMAKE_BINARY_DIR%\%SOLUTION_FILE%
 )
 
 :Exit
