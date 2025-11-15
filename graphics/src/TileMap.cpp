@@ -97,7 +97,7 @@ const std::vector<Vertex2Di>& TileMap::getVertexBuffer() const
 
 std::shared_ptr<Image> TileMap::getImage() const noexcept
 {
-    if (m_SpriteSheet)
+    if ( m_SpriteSheet )
     {
         return m_SpriteSheet->getSprite( 0 ).getImage();
     }
@@ -107,7 +107,7 @@ std::shared_ptr<Image> TileMap::getImage() const noexcept
 
 const BlendMode& TileMap::getBlendMode() const noexcept
 {
-    if (m_SpriteSheet)
+    if ( m_SpriteSheet )
     {
         return m_SpriteSheet->getSprite( 0 ).getBlendMode();
     }
@@ -115,12 +115,17 @@ const BlendMode& TileMap::getBlendMode() const noexcept
     return BlendMode::Disable;
 }
 
-const Sprite& TileMap::getSprite( size_t x, size_t y ) const
+int TileMap::getSpriteId( size_t x, size_t y ) const
 {
     assert( x < m_Columns );
     assert( y < m_Rows );
 
-    int spriteId = m_SpriteGrid[y * m_Columns + x];
+    return m_SpriteGrid[y * m_Columns + x];
+}
+
+const Sprite& TileMap::getSprite( size_t x, size_t y ) const
+{
+    int spriteId = getSpriteId( x, y );
     if ( spriteId >= 0 )
         return m_SpriteSheet->getSprite( spriteId );
 

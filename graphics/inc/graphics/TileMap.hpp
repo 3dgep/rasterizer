@@ -93,6 +93,14 @@ public:
     const BlendMode& getBlendMode() const noexcept;
 
     /// <summary>
+    /// Retrieves the sprite ID at the specified coordinates.
+    /// </summary>
+    /// <param name="x">The horizontal coordinate (column).</param>
+    /// <param name="y">The vertical coordinate (row).</param>
+    /// <returns>The ID of the sprite located at the given (x, y) coordinates.</returns>
+    int getSpriteId( size_t x, size_t y ) const;
+
+    /// <summary>
     /// Gets the sprite at the specified coordinates.
     /// </summary>
     /// <param name="x">The x-coordinate (column) of the tile.</param>

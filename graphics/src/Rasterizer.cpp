@@ -7,7 +7,10 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_query.hpp>  // glm::isIdentity.
 
+#include <algorithm>
+#include <execution>
 #include <iostream>
+#include <ranges>
 
 using namespace sr::graphics;
 using namespace sr::math;
@@ -893,27 +896,40 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
 
 void Rasterizer::drawTileMap( const TileMap& tileMap, int x, int y )
 {
-    int tileX        = 0;
-    int tileY        = 0;
+    // int tileX        = 0;
+    // int tileY        = 0;
     int rows         = static_cast<int>( tileMap.getRows() );
     int columns      = static_cast<int>( tileMap.getColumns() );
     int spriteWidth  = static_cast<int>( tileMap.getSpriteWidth() );
     int spriteHeight = static_cast<int>( tileMap.getSpriteHeight() );
 
-    for ( int i = 0; i < rows; ++i )
-    {
-        tileX = 0;
-        for ( int j = 0; j < columns; ++j )
+    // for ( int i = 0; i < rows; ++i )
+    //{
+    //     tileX = 0;
+    //     for ( int j = 0; j < columns; ++j )
+    //     {
+    //         int spriteId = tileMap[j, i];
+    //         if ( spriteId >= 0 )
+    //         {
+    //             drawSprite( tileMap.getSprite( j, i ), x + tileX, y + tileY );
+    //         }
+    //         tileX += spriteWidth;
+    //     }
+    //     tileY += spriteHeight;
+    // }
+
+    auto range = std::views::iota( 0, rows * columns );
+    std::for_each( std::execution::par_unseq, range.begin(), range.end(), [this, x, y, columns, spriteWidth, spriteHeight, &tileMap]( int n ) {
+        int i        = n / columns;
+        int j        = n % columns;
+        int spriteId = tileMap.getSpriteId( j, i );
+        if ( spriteId >= 0 )
         {
-            int spriteId = tileMap[j, i];
-            if ( spriteId >= 0 )
-            {
-                drawSprite( tileMap.getSprite( j, i ), x + tileX, y + tileY );
-            }
-            tileX += spriteWidth;
+            int tileX = j * spriteWidth;
+            int tileY = i * spriteHeight;
+            drawSprite( tileMap.getSprite( j, i ), x + tileX, y + tileY );
         }
-        tileY += spriteHeight;
-    }
+    } );
 }
 
 void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform )
@@ -939,18 +955,32 @@ void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform
     auto vb = tileMap.getVertexBuffer();
 
     // Transform vertices.
-    for ( auto& v: vb )
-    {
-        v.position = transform * glm::vec3 { v.position, 1.0f };
-    }
+    // for ( auto& v: vb )
+    //{
+    //    v.position = transform * glm::vec3 { v.position, 1.0f };
+    //}
 
-    for ( size_t i = 0; i < vb.size(); i += 4 )
-    {
-        const auto& v0 = vb[i + 0];
-        const auto& v1 = vb[i + 1];
-        const auto& v2 = vb[i + 2];
-        const auto& v3 = vb[i + 3];
+    // for ( size_t i = 0; i < vb.size(); i += 4 )
+    //{
+    //     const auto& v0 = vb[i + 0];
+    //     const auto& v1 = vb[i + 1];
+    //     const auto& v2 = vb[i + 2];
+    //     const auto& v3 = vb[i + 3];
+
+    //    drawQuad( v0, v1, v2, v3, *image, AddressMode::Clamp, blendMode );
+    //}
+
+    std::for_each( std::execution::par_unseq, vb.begin(), vb.end(), [&transform]( Vertex2Di& v ) {
+        v.position = transform * glm::vec3 { v.position, 1.0f };
+    } );
+
+    auto range = std::views::iota( 0, static_cast<int>( vb.size() / 4 ) );
+    std::for_each( std::execution::par_unseq, range.begin(), range.end(), [this, image, &blendMode, &vb]( int i ) {
+        const auto& v0 = vb[i * 4 + 0];
+        const auto& v1 = vb[i * 4 + 1];
+        const auto& v2 = vb[i * 4 + 2];
+        const auto& v3 = vb[i * 4 + 3];
 
         drawQuad( v0, v1, v2, v3, *image, AddressMode::Clamp, blendMode );
-    }
+    } );
 }
