@@ -1,5 +1,6 @@
 #include <Player.hpp>
 
+#include <algorithm>
 #include <graphics/Font.hpp>
 #include <graphics/ResourceManager.hpp>
 #include <graphics/SpriteAnimation.hpp>
@@ -94,7 +95,6 @@ Player::Player( const Transform2D& _transform )
 
     hitSound.loadSound( "assets/sounds/death.wav" );
     hitSound.setVolume( 0.5f );
-
 }
 
 void Player::reset()
@@ -139,11 +139,19 @@ void Player::update( float deltaTime ) noexcept
         break;
     }
 
+    // Clamp x velocity to maxSpeed (frame-rate independent)
+    if ( std::abs( velocity.x ) > maxSpeed )
+        velocity.x = ( velocity.x > 0 ? 1.0f : -1.0f ) * maxSpeed;
+
+    // Apply a constant friction to slow the player when not accelerating
+    if ( std::abs( Input::getAxis( "Horizontal" ) ) < 0.01f )
+    {
+        constexpr float damping = 20.0f;
+        velocity.x              = smoothDamp( velocity.x, 0.0f, damping, deltaTime );
+    }
+
     // Update player position.
     transform.translate( glm::vec2 { velocity.x, -velocity.y } * deltaTime );
-
-    // Dampen x velocity
-    velocity.x = velocity.x / ( 1.0f + xDampen * deltaTime );
 
     // Update jump timer.
     jumpTimer += deltaTime;
@@ -163,9 +171,9 @@ void Player::draw( Rasterizer& rasterizer ) const noexcept
 
 #if _DEBUG
     // Draw the current state of the player.
-    auto r   = rasterizer;
+    auto r        = rasterizer;
     r.state.color = Color::White;
-    auto pos = transform.getPosition() - glm::vec2 { 12, 50 };
+    auto pos      = transform.getPosition() - glm::vec2 { 12, 50 };
     r.drawText( Font::DefaultFont, stateToString[state], static_cast<int>( pos.x ), static_cast<int>( pos.y ) );
 
     // Draw the AABB of the player
@@ -259,7 +267,8 @@ void Player::endState( State oldState, State newState )
 
 float Player::doHorizontalMovement( float deltaTime )
 {
-    const float horizontal = Input::getAxis( "Horizontal" ) * accel * deltaTime;
+    const float horizontal = Input::getAxis( "Horizontal" );
+    velocity.x             = moveToward( velocity.x, horizontal * maxSpeed, accel * deltaTime );
 
     if ( horizontal < 0.0f )
     {
@@ -289,13 +298,12 @@ void Player::doIdle( float deltaTime )
 void Player::doRun( float deltaTime )
 {
     const float horizontal = doHorizontalMovement( deltaTime );
-    velocity.x += horizontal;
 
     if ( jumpTimer < jumpBuffer || Input::getButtonDown( "Jump" ) )
     {
         setState( State::Jump );
     }
-    else if ( horizontal == 0.0f )
+    else if ( std::abs( horizontal ) < 1e-6f )
     {
         setState( State::Idle );
     }
@@ -303,8 +311,7 @@ void Player::doRun( float deltaTime )
 
 void Player::doJump( float deltaTime )
 {
-    const float horizontal = doHorizontalMovement( deltaTime );
-    velocity.x += horizontal;
+    doHorizontalMovement( deltaTime );
 
     // Apply gravity
     velocity.y -= gravity * deltaTime;
@@ -337,8 +344,7 @@ void Player::doHit( float deltaTime )
 
 void Player::doDoubleJump( float deltaTime )
 {
-    const float horizontal = doHorizontalMovement( deltaTime );
-    velocity.x += horizontal;
+    doHorizontalMovement( deltaTime );
 
     // Apply gravity
     velocity.y -= gravity * deltaTime;
@@ -351,8 +357,7 @@ void Player::doDoubleJump( float deltaTime )
 
 void Player::doFalling( float deltaTime )
 {
-    const float horizontal = doHorizontalMovement( deltaTime );
-    velocity.x += horizontal;
+    doHorizontalMovement( deltaTime );
 
     velocity.y -= gravity * deltaTime;
 
@@ -371,14 +376,14 @@ void Player::doFalling( float deltaTime )
 
 void Player::doWallJump( float deltaTime )
 {
-    const float horizontal = doHorizontalMovement( deltaTime );
-    velocity.x += horizontal;
+    doHorizontalMovement( deltaTime );
 
     // Apply gravity
     velocity.y -= gravity * deltaTime;
 
-    // Clamp gravity.
-    velocity.y = std::max( velocity.y, -gravity * deltaTime * 3.0f );
+    // Clamp gravity to a maximum downward speed.
+    constexpr float maxFallSpeed = 50.0f;
+    velocity.y                   = std::max( velocity.y, -maxFallSpeed );
 
     if ( Input::getButtonDown( "Jump" ) )
     {

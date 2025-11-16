@@ -16,8 +16,6 @@
 
 #include <SDL3/SDL_events.h>
 
-#include <cstdint>
-
 class Game
 {
 public:
