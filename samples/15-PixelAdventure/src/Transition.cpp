@@ -2,6 +2,9 @@
 
 #include <graphics/ResourceManager.hpp>
 
+#include <algorithm>
+#include <execution>
+
 using namespace sr;
 
 Transition::Transition( const std::filesystem::path& fileName )
@@ -60,8 +63,7 @@ void Transition::setRatio( float ratio )
 
 void Transition::draw( Rasterizer& rasterizer ) const
 {
-    for ( auto& transform: transforms )
-    {
+    std::for_each( std::execution::par_unseq, transforms.begin(), transforms.end(), [this, &rasterizer]( const Transform2D& transform ) {
         rasterizer.drawSprite( sprite, transform );
-    }
+    } );
 }

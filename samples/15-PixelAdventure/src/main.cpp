@@ -30,6 +30,7 @@ int main()
                     break;
                 case SDLK_V:
                     window.toggleVSync();
+                    std::cout << "VSync " << (window.isVSync() ? "enabled." : "disabled.") << std::endl;
                     break;
                 case SDLK_RETURN:
                     if ( ( event.key.mod & SDL_KMOD_ALT ) != 0 )

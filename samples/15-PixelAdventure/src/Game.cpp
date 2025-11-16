@@ -94,13 +94,13 @@ Game::Game( uint32_t screenWidth, uint32_t screenHeight )
         return b || enter;
     } );
 
-    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Blue.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
-    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Brown.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
-    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Gray.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
-    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Green.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
-    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Pink.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
-    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Purple.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
-    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Yellow.png", 1.0f, { 0.0f, 1.0f }, 0.3f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Blue.png", { 0.0f, 1.0f }, 20.0f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Brown.png", { 0.0f, 1.0f }, 20.0f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Gray.png", { 0.0f, 1.0f }, 20.0f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Green.png", { 0.0f, 1.0f }, 20.0f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Pink.png", { 0.0f, 1.0f }, 20.0f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Purple.png", { 0.0f, 1.0f }, 20.0f } );
+    backgrounds.emplace_back( Background { "assets/Pixel Adventure/Background/Yellow.png", { 0.0f, 1.0f }, 20.0f } );
 
     // The loadLevel function will switch to the next level.
     // Setting the current background to the last background ensures
