@@ -1,5 +1,6 @@
-cmake_minimum_required( VERSION 3.12...3.31 )
+cmake_minimum_required( VERSION 3.12...4.20 )
 
+# Example...
 option( BUILD_SHARED_LIBS "Build using shared libraries" OFF )
 option( SR_BUILD_SAMPLES "Build samples." ON )
 option( SR_BUILD_TESTS "Build tests." OFF )
@@ -12,6 +13,7 @@ set( SR_VERSION ${SR_VERSION_MAJOR}.${SR_VERSION_MINOR}.${SR_VERSION_PATCH})
 # Use solution folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# Tell CMake we are making a C++ project
 project( rasterizer VERSION ${SR_VERSION} LANGUAGES C CXX )
 
 # Enable multi-processor builds in MSVC.

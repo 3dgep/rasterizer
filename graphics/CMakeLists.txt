@@ -87,6 +87,8 @@ add_library( graphics STATIC ${ALL_FILES} )
 add_library( sr::graphics ALIAS graphics )
 
 target_compile_features( graphics PUBLIC cxx_std_23 )
+
+# Warning level 4 and treat warnings as errors.
 target_compile_options( graphics
     PRIVATE
         $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
