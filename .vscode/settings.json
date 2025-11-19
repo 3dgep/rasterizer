@@ -1,5 +1,9 @@
 {
     "cmake.debugConfig": {
         "cwd": "${workspaceFolder}/samples"
+    },
+    "files.associations": {
+        "utility": "cpp",
+        "limits": "cpp"
     }
 }

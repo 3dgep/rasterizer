@@ -7,6 +7,7 @@
 
 #include <format>
 #include <iostream>
+#include <filesystem>
 
 using namespace sr;
 using namespace input;

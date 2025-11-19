@@ -10,8 +10,8 @@
 
 #include <cstdint>
 #include <filesystem>
-#include <utility>
 #include <optional>
+#include <utility>
 
 namespace sr
 {
@@ -92,8 +92,8 @@ struct Image final
     const Color& operator[]( size_t x, size_t y ) const
     {
         assert( m_Surface != nullptr );
-        assert( x < m_Surface->w );
-        assert( y < m_Surface->h );
+        assert( x < static_cast<size_t>( m_Surface->w ) );
+        assert( y < static_cast<size_t>( m_Surface->h ) );
 
         return *reinterpret_cast<const Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) );
     }
@@ -101,8 +101,8 @@ struct Image final
     Color& operator[]( size_t x, size_t y )
     {
         assert( m_Surface != nullptr );
-        assert( x < m_Surface->w );
-        assert( y < m_Surface->h );
+        assert( x < static_cast<size_t>( m_Surface->w ) );
+        assert( y < static_cast<size_t>( m_Surface->h ) );
 
         return *reinterpret_cast<Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) );
     }
@@ -116,8 +116,8 @@ struct Image final
     const Color& operator()( size_t x, size_t y ) const
     {
         assert( m_Surface != nullptr );
-        assert( x < m_Surface->w );
-        assert( y < m_Surface->h );
+        assert( x < static_cast<size_t>( m_Surface->w ) );
+        assert( y < static_cast<size_t>( m_Surface->h ) );
 
         return *reinterpret_cast<const Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) );
     }
@@ -131,8 +131,8 @@ struct Image final
     Color& operator()( size_t x, size_t y )
     {
         assert( m_Surface != nullptr );
-        assert( x < m_Surface->w );
-        assert( y < m_Surface->h );
+        assert( x < static_cast<size_t>( m_Surface->w ) );
+        assert( y < static_cast<size_t>( m_Surface->h ) );
 
         return *reinterpret_cast<Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) );
     }
@@ -176,7 +176,7 @@ struct Image final
     {
         assert( m_Surface != nullptr );
 
-        return sample( static_cast<int>( u * static_cast<float>( m_Surface->w - 1) + 0.5f ), static_cast<int>( v * static_cast<float>( m_Surface->h - 1) + 0.5f ), addressMode );  // NOLINT(bugprone-incorrect-roundings)
+        return sample( static_cast<int>( u * static_cast<float>( m_Surface->w - 1 ) + 0.5f ), static_cast<int>( v * static_cast<float>( m_Surface->h - 1 ) + 0.5f ), addressMode );  // NOLINT(bugprone-incorrect-roundings)
     }
 
     /// <summary>

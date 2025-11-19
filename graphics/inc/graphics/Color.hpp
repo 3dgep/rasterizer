@@ -107,8 +107,13 @@ struct Color
     /// <returns>The color constructed from the given HSV values.</returns>
     static inline Color fromHSV( float H, float S = 1.0f, float V = 1.0f ) noexcept;
 
-#pragma warning( push )
-#pragma warning( disable : 4201 ) // warning C4201: nonstandard extension used: nameless struct/union
+#ifdef _MSC_VER
+    #pragma warning( push )
+    #pragma warning( disable : 4201 )  // warning C4201: nonstandard extension used: nameless struct/union
+#elif defined( __GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wpedantic"
+#endif
     union
     {
         uint32_t rgba;
@@ -120,7 +125,11 @@ struct Color
             uint8_t a;
         };
     };
-#pragma warning( pop )
+#ifdef _MSC_VER
+    #pragma warning( pop )
+#elif defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic pop
+#endif
 
     /// <summary>
     /// Masks for each of the color channels.
@@ -715,10 +724,10 @@ inline Color interpolate( const Color& c0, const Color& c1, const Color& c2, con
     a = std::fma<float>( c2.a, bc.z, a );
 
     return {
-        static_cast<uint8_t>(r),
-        static_cast<uint8_t>(g),
-        static_cast<uint8_t>(b),
-        static_cast<uint8_t>(a)
+        static_cast<uint8_t>( r ),
+        static_cast<uint8_t>( g ),
+        static_cast<uint8_t>( b ),
+        static_cast<uint8_t>( a )
     };
 }
 

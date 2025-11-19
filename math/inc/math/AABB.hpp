@@ -106,6 +106,17 @@ struct AABB
         max = glm::vec3 { viewport.x + viewport.width - 1, viewport.y + viewport.height - 1, viewport.maxDepth };
     }
 
+    AABB operator=( const AABB& rhs ) noexcept
+    {
+        if ( this == &rhs )
+            return *this;
+
+        min = rhs.min;
+        max = rhs.max;
+
+        return *this;
+    }
+
     /// <summary>
     /// Translate this AABB.
     /// </summary>
@@ -652,7 +663,7 @@ struct AABB
     /// <returns>The minimum overlap between the circle and this AABB, or a null optional if no overlap occurs.</returns>
     std::optional<glm::vec2> overlap( const Circle& circle ) const noexcept
     {
-        glm::vec2 c               = closestPoint( circle.center ); // Returns circle.center if circle is inside the AABB.
+        glm::vec2 c               = closestPoint( circle.center );  // Returns circle.center if circle is inside the AABB.
         glm::vec2 d               = circle.center - c;
         float     squaredDistance = glm::length2( d );
 
@@ -703,7 +714,7 @@ struct AABB
     /// <returns>The minimum overlap between the sphere and this AABB, or a null optional if no overlap occurs.</returns>
     std::optional<glm::vec3> overlap( const Sphere& sphere ) const noexcept
     {
-        glm::vec3 c               = closestPoint( sphere.center ); // Returns sphere.center if sphere is inside this AABB.
+        glm::vec3 c               = closestPoint( sphere.center );  // Returns sphere.center if sphere is inside this AABB.
         glm::vec3 d               = sphere.center - c;
         float     squaredDistance = glm::length2( d );  // Squared length between the closest point and the center of the sphere.
 
@@ -712,7 +723,7 @@ struct AABB
             glm::vec3 mtv;  // Compute the minimum translation vector.
 
             // If the sphere's center is inside the AABB or almost on the boundary
-            if ( squaredDistance < 1e-6f ) // std::numeric_limits<float>::epsilon() )
+            if ( squaredDistance < 1e-6f )  // std::numeric_limits<float>::epsilon() )
             {
                 // Compute the min/max overlap in each axis.
                 float minX = sphere.center.x - min.x;
