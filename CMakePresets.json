@@ -24,7 +24,7 @@
             "name": "ninja",
             "displayName": "Ninja",
             "description": "Ninja generator (cross-platform)",
-            "generator": "Ninja",
+            "generator": "Ninja Multi-Config",
             "binaryDir": "${sourceDir}/out/build/${presetName}"
         }
     ],

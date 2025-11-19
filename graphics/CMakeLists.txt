@@ -101,5 +101,5 @@ target_include_directories( graphics
 )
 
 target_link_libraries( graphics
-    PUBLIC math SDL3_ttf::SDL3_ttf SDL3::SDL3
+    PUBLIC sr::math SDL3_ttf::SDL3_ttf SDL3::SDL3
 )
