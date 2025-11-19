@@ -690,7 +690,7 @@ void Level::draw( Rasterizer& rasterizer ) const
 
     player.draw( rasterizer );
 
-#if _DEBUG
+#ifndef NDEBUG
     for ( const auto& collider: colliders )
     {
         auto r = rasterizer;

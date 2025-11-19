@@ -112,8 +112,8 @@ void Game::draw()
         }
     }
 
-#if _DEBUG
-    //drawFPS();
+#ifndef NDEBUG
+    drawFPS();
 #endif
 }
 

@@ -219,7 +219,7 @@ void Game::update()
         transition.draw( rasterizer );
     }
 
-#if _DEBUG
+#ifndef NDEBUG
     {
         drawFPS();
 
@@ -254,7 +254,7 @@ void Game::processEvent( const SDL_Event& _event )
         case SDLK_P:
             paused = !paused;
             break;
-    case SDLK_S:
+        case SDLK_S:
             if ( event.key.mod & SDL_KMOD_CTRL )
             {
                 image.save( "screenshot.png" );

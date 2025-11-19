@@ -78,7 +78,7 @@ void Box::draw( Rasterizer& rasterizer ) const
 {
     Character::draw( rasterizer, transform );
 
-#if _DEBUG
+#ifndef NDEBUG
     auto r = rasterizer;
     r.state.color = Color::Yellow;
     r.state.blendMode = BlendMode::Disable;

@@ -4,6 +4,7 @@
     },
     "files.associations": {
         "utility": "cpp",
-        "limits": "cpp"
+        "limits": "cpp",
+        "random": "cpp"
     }
 }

@@ -34,7 +34,7 @@ void PowerUp::draw( Rasterizer& rasterizer ) const
     r.state.color = Color::White;
     r.drawSprite( sprites, x, y );
 
-#if _DEBUG
+#ifndef NDEBUG
     r.state.color = Color::Yellow;
     r.state.fillMode = FillMode::WireFrame;
     r.drawAABB( getAABB() );

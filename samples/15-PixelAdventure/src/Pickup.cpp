@@ -43,7 +43,7 @@ void Pickup::draw( Rasterizer& rasterizer ) const
     const size_t frame = static_cast<size_t>( time * static_cast<float>( frameRate ) ) % spriteSheet->getNumSprites();
     rasterizer.drawSprite( ( *spriteSheet )[frame], transform );
 
-#if _DEBUG
+#ifndef NDEBUG
     auto r = rasterizer;
     r.state.color = Color::Yellow;
     r.state.fillMode = FillMode::WireFrame;

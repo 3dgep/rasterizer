@@ -169,7 +169,7 @@ void Player::draw( Rasterizer& rasterizer ) const noexcept
         currentCharacter->draw( rasterizer, transform );
     }
 
-#if _DEBUG
+#ifndef NDEBUG
     // Draw the current state of the player.
     auto r        = rasterizer;
     r.state.color = Color::White;
@@ -177,10 +177,10 @@ void Player::draw( Rasterizer& rasterizer ) const noexcept
     r.drawText( Font::DefaultFont, stateToString[state], static_cast<int>( pos.x ), static_cast<int>( pos.y ) );
 
     // Draw the AABB of the player
-    // r.state.color = Color::Red;
-    // r.state.blendMode = BlendMode::Disable;
-    // r.state.fillMode  = FillMode::WireFrame;
-    // r.drawAABB( getAABB() );
+    r.state.color = Color::Red;
+    r.state.blendMode = BlendMode::Disable;
+    r.state.fillMode  = FillMode::WireFrame;
+    r.drawAABB( getAABB() );
 #endif
 }
 

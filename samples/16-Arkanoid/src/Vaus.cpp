@@ -92,7 +92,7 @@ void Vaus::update( float deltaTime )
 
     using Keyboard::Key;
 
-#if _DEBUG
+#ifndef NDEBUG
     if ( Input::getKeyDown( Key::D1 ) )
     {
         setState( State::Appear );
@@ -159,7 +159,7 @@ void Vaus::draw( Rasterizer& rasterizer )
         r.drawSprite( *sprite, pos.x, pos.y );
     }
 
-#if _DEBUG
+#ifndef NDEBUG
     {
         static auto font = ResourceManager::loadFont( "assets/fonts/ARCADE_N.ttf", 8 );
 

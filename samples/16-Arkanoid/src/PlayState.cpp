@@ -306,7 +306,7 @@ void PlayState::doStart( float deltaTime )
 
 void PlayState::doPlaying( float deltaTime )
 {
-#if _DEBUG
+#ifndef NDEBUG
     // In debug mode, put vaus under the ball...
     auto x = balls[0].getPosition().x;
     auto y = vaus.getPosition().y;
@@ -404,7 +404,7 @@ void PlayState::checkCollisions( Ball& ball )
     }
     else if ( c.center.y + c.radius >= bottom )
     {
-#if _DEBUG
+#ifndef NDEBUG
         c.center.y = bottom - c.radius;
         v.y *= -1;
 #else

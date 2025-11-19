@@ -28,7 +28,7 @@ GameState::GameState( int screenWidth, int screenHeight )
 {
     // Controls for the left paddle.
     Input::addAxisCallback( "P1", []( std::span<const GamepadStateTracker> gamepadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
-#if _DEBUG
+#ifndef NDEBUG
         float leftY  = 0.0f;
         float rightY = 0.0f;
         if ( gamepadStates[1].getLastState().connected )
@@ -53,7 +53,7 @@ GameState::GameState( int screenWidth, int screenHeight )
 
     // Controls for the right paddle.
     Input::addAxisCallback( "P2", []( std::span<const GamepadStateTracker> gamepadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
-#if _DEBUG
+#ifndef NDEBUG
         float leftY = 0.0f;
         float rightY = 0.0f;
         if ( gamepadStates[1].getLastState().connected )

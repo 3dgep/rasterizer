@@ -60,7 +60,7 @@ void Paddle::draw( sr::Rasterizer& rasterizer )
 
     rasterizer.drawAABB( getAABB() );
 
-#if _DEBUG
+#ifndef NDEBUG
     rasterizer.state.color    = Color::Red;
     rasterizer.state.fillMode = FillMode::WireFrame;
     rasterizer.drawAABB( getAABB() );

@@ -71,7 +71,7 @@ void Button::draw( Rasterizer& rasterizer )
     const auto pos  = glm::vec2 { getAABB().center() } - glm::vec2 { size.x, -size.y } / 2.0f;
     rasterizer.drawText( buttonText, static_cast<int>( pos.x ), static_cast<int>( pos.y + ( state == State::Pressed ? 5.0f : 0.0f ) ) );
 
-#if _DEBUG
+#ifndef NDEBUG
     auto r = rasterizer;
     r.state.color = Color::Red;
     r.state.fillMode = FillMode::WireFrame;

@@ -41,7 +41,7 @@ void Ball::draw( Rasterizer& rasterizer )
 
     rasterizer.drawSprite( sprite, x, y );
 
-#if _DEBUG
+#ifndef NDEBUG
     {
         auto r           = rasterizer;
         r.state.color    = Color::Yellow;
