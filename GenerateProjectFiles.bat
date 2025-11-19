@@ -46,29 +46,31 @@ IF %VS_VERSION% == 18 (
     SET CMAKE_PRESET="vs18"
     SET CMAKE_BINARY_DIR=out\build\vs18
 	SET SOLUTION_FILE=rasterizer.slnx
+) ELSE IF %VS_VERSION% == 17 (
+	SET CMAKE_PRESET="vs17"
+	SET CMAKE_BINARY_DIR=out\build\vs17
+	SET SOLUTION_FILE=rasterizer.sln
 ) ELSE (
-	IF %VS_VERSION% == 17 (
-		SET CMAKE_PRESET="vs17"
-		SET CMAKE_BINARY_DIR=out\build\vs17
-		SET SOLUTION_FILE=rasterizer.sln
-	) ELSE (
-		ECHO.
-		ECHO ***********************************************************************
-		ECHO *                                                                     *
-		ECHO *                                ERROR                                *
-		ECHO *                                                                     *
-		ECHO ***********************************************************************
-		ECHO No compatible version of Microsoft Visual Studio detected.
-		ECHO Please make sure you have Visual Studio 2022 ^(or newer^) and the 
-		ECHO "Game Development with C++" workload installed before running this script.
-		ECHO Go to https://www.visualstudio.com/downloads/ to download the latest version of Visual Studio.
-		ECHO. 
-		PAUSE
-		GOTO :Exit
-	)
+	ECHO.
+	ECHO ***********************************************************************
+	ECHO *                                                                     *
+	ECHO *                                ERROR                                *
+	ECHO *                                                                     *
+	ECHO ***********************************************************************
+	ECHO No compatible version of Microsoft Visual Studio detected.
+	ECHO Please make sure you have Visual Studio 2022 ^(or newer^) and the 
+	ECHO "Game Development with C++" workload installed before running this script.
+	ECHO Go to https://www.visualstudio.com/downloads/ to download the latest version of Visual Studio.
+	ECHO. 
+	PAUSE
+	GOTO :Exit
 )
 
 :GenerateProjectFiles
+ECHO CMake preset: %CMAKE_PRESET%
+ECHO CMake binary dir: %CMAKE_BINARY_DIR%
+ECHO Solution file: %SOLUTION_FILE%
+
 %CMAKE% --preset %CMAKE_PRESET% -Wno-dev
 
 IF %ERRORLEVEL% NEQ 0 (
@@ -78,5 +80,5 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :Exit
-
+PAUSE
 POPD

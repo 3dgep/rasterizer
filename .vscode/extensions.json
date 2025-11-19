@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "kylinideteam.cmake-intellisence",
+        "ms-vscode.cmake-tools",
+        "ms-vscode.cpptools-extension-pack"
+    ]
+}
