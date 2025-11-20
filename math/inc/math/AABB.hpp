@@ -772,6 +772,40 @@ struct AABB
     }
 
     /// <summary>
+    /// Calculates the minimum translation vector (MTV) for the overlap between this axis-aligned bounding box (AABB) and another AABB. Returns the MTV if there is an overlap, or an empty optional otherwise.
+    /// </summary>
+    /// <param name="aabb">The other axis-aligned bounding box to check for overlap.</param>
+    /// <returns>An optional containing the minimum translation vector (glm::vec3) required to resolve the overlap if the AABBs intersect, or an empty optional if there is no overlap.</returns>
+    std::optional<glm::vec3> overlap( const AABB& aabb ) const noexcept
+    {
+        glm::vec3 overlapMin = glm::max( min, aabb.min );
+        glm::vec3 overlapMax = glm::min( max, aabb.max );
+        glm::vec3 overlapSize = overlapMax - overlapMin;
+        if ( all( greaterThan( overlapSize, glm::vec3 { 0.0f } ) ) )
+        {
+            // Find the minimum translation vector (MTV)
+            glm::vec3 mtv;
+            float xOverlap = overlapSize.x;
+            float yOverlap = overlapSize.y;
+            float zOverlap = overlapSize.z;
+            if ( xOverlap < yOverlap && xOverlap < zOverlap )
+            {
+                mtv = { ( min.x < aabb.min.x ? -xOverlap : xOverlap ), 0.0f, 0.0f };
+            }
+            else if ( yOverlap < zOverlap )
+            {
+                mtv = { 0.0f, ( min.y < aabb.min.y ? -yOverlap : yOverlap ), 0.0f };
+            }
+            else
+            {
+                mtv = { 0.0f, 0.0f, ( min.z < aabb.min.z ? -zOverlap : zOverlap ) };
+            }
+            return mtv;
+        }
+        return {};
+    }
+
+    /// <summary>
     /// Construct an AABB from min & max points.
     /// </summary>
     /// <param name="min">The min point.</param>
