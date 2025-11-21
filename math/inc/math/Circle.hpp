@@ -29,6 +29,27 @@ struct Circle
     {}
 
     /// <summary>
+    /// Returns a new Circle translated by the given vector.
+    /// </summary>
+    /// <param name="rhs">The 2D vector by which to translate the circle's center.</param>
+    /// <returns>A new Circle whose center is offset by rhs and whose radius remains unchanged.</returns>
+    Circle operator+( const glm::vec2& rhs ) const noexcept
+    {
+        return { center + rhs, radius };
+    }
+
+    /// <summary>
+    /// Adds a 2D vector to the center of the circle and returns a reference to the modified circle.
+    /// </summary>
+    /// <param name="rhs">The 2D vector to add to the circle's center.</param>
+    /// <returns>A reference to the modified Circle object.</returns>
+    Circle& operator+=( const glm::vec2& rhs ) noexcept
+    {
+        center += rhs;
+        return *this;
+    }
+
+    /// <summary>
     /// Get the diameter of the circle.
     /// </summary>
     /// <returns>The diameter of the circle.</returns>

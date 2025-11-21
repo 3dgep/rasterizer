@@ -15,6 +15,48 @@ struct Sphere
     {}
 
     /// <summary>
+    /// Returns a new Sphere translated by the given vector.
+    /// </summary>
+    /// <param name="rhs">The vector by which to translate the sphere's center.</param>
+    /// <returns>A Sphere whose center is offset by rhs and whose radius remains unchanged.</returns>
+    Sphere operator+( const glm::vec3& rhs ) const noexcept
+    {
+        return { center + rhs, radius };
+    }
+
+    /// <summary>
+    /// Returns a new Sphere translated by the negation of the given vector.
+    /// </summary>
+    /// <param name="rhs">The vector to subtract from the sphere's center.</param>
+    /// <returns>A new Sphere with its center moved by subtracting rhs, and the same radius.</returns>
+    Sphere operator-=( const glm::vec3& rhs ) const noexcept
+    {
+        return { center - rhs, radius };
+    }
+
+    /// <summary>
+    /// Adds a vector to the center of the sphere and returns the updated sphere.
+    /// </summary>
+    /// <param name="rhs">The vector to add to the sphere's center.</param>
+    /// <returns>A reference to the updated sphere after addition.</returns>
+    Sphere& operator+=( const glm::vec3& rhs ) noexcept
+    {
+        center += rhs;
+        return *this;
+    }
+
+    /// <summary>
+    /// Subtracts a 3D vector from the sphere's center and returns the modified sphere.
+    /// </summary>
+    /// <param name="rhs">The 3D vector to subtract from the sphere's center.</param>
+    /// <returns>A reference to the modified sphere after subtraction.</returns>
+    Sphere& operator-=( const glm::vec3& rhs ) noexcept
+    {
+        center -= rhs;
+        return *this;
+    }
+
+    /// <summary>
     /// Get the diameter of the sphere.
     /// </summary>
     /// <returns>The sphere diameter.</returns>

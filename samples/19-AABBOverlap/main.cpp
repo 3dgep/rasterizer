@@ -23,10 +23,10 @@ std::vector<AABB> generateRandomAABBs( uint32_t n = 1 )
     {
         int w    = dist( rng, param_type { 20, 50 } );
         int h    = dist( rng, param_type { 20, 50 } );
-        int minX = dist( rng, param_type { 0, SCREEN_WIDTH - w } );
-        int minY = dist( rng, param_type { 0, SCREEN_HEIGHT - h } );
+        int x = dist( rng, param_type { 0, SCREEN_WIDTH - w } );
+        int y = dist( rng, param_type { 0, SCREEN_HEIGHT - h } );
 
-        aabbs.emplace_back( glm::vec2 { minX, minY }, glm::vec2 { minX + w, minY + h } );
+        aabbs.emplace_back( glm::vec2 { x - w, y - h}, glm::vec2 { x + w, y + h } );
     }
 
     return aabbs;
@@ -47,7 +47,8 @@ int main()
     // Setup some random AABBs
     std::vector<AABB> aabbs = generateRandomAABBs();
     // Create a dynamic AABB that will follow the mouse cursor.
-    AABB dynamicAABB { { -20, -20 }, { 20, 20 } };
+    AABB aabb { { -20, -20 }, { 20, 20 } };
+    Circle circle { { 0.0f, 0.0f }, 20.0f };
 
     bool freezeAABB = false;
 
@@ -102,31 +103,61 @@ int main()
         }
 
         // Translate the AABB to the mouse cursor.
-        AABB translatedAABB = dynamicAABB + mousePos;
+        AABB translatedAABB = aabb + mousePos;
+        Circle translatedCircle = circle + mousePos;
+
+        // Expand the AABB a bit to make the collision "pixel perfect".
+        AABB collisionAABB { translatedAABB.min - glm::vec3 { 1.0f }, translatedAABB.max + glm::vec3 { 1.0f } };
+        Circle collisionCircle { translatedCircle.center, translatedCircle.radius + 1.0f };
 
         // Check collisions.
-        bool collides = false;
-        for ( const auto& aabb: aabbs )
+        bool aabbCollides = false;
+        bool circleCollides = false;
+
+        for ( const auto& c : aabbs )
         {
-            if ( auto mtv = translatedAABB.overlapXY( aabb ) )
+            if ( auto mtv = collisionAABB.overlapXY( c ) )
             {
                 translatedAABB += *mtv;
-                collides = true;
+                aabbCollides = true;
+            }
+            if (auto mtv = c.overlap( collisionCircle ))
+            {
+                translatedCircle.center += *mtv;
+                circleCollides = true;
             }
         }
 
         image.clear( Color::Black );
 
-        // Draw the static AABB's
-        rasterizer.state.color = Color::Blue;
-        for ( const auto& aabb: aabbs )
         {
-            rasterizer.drawAABB( aabb );
-        }
+            auto r = rasterizer;
 
-        // Draw the dynamic AABB
-        rasterizer.state.color = collides ? Color::Red : Color::Green;
-        rasterizer.drawAABB( translatedAABB );
+            // Draw the static AABB's
+            r.state.color = Color::Blue;
+            for ( const auto& aabb: aabbs )
+            {
+                r.drawAABB( aabb );
+            }
+
+            // Draw the translated AABB
+            r.state.fillMode = FillMode::Solid;
+            r.state.color    = aabbCollides ? Color::Red : Color::Green;
+            r.drawAABB( translatedAABB );
+
+
+            // Draw the translated Circle
+            r.state.color    = circleCollides ? Color::Magenta : Color::Green;
+            r.drawCircle( translatedCircle );
+
+            // Draw the collision AABB
+            r.state.color    = Color::Yellow;
+            r.state.fillMode = FillMode::WireFrame;
+            r.drawAABB( collisionAABB );
+
+            // Draw the collision Circle
+            r.drawCircle( collisionCircle );
+        }
 
         if ( timer.totalSeconds() > 1.0 )
         {

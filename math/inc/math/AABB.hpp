@@ -810,7 +810,7 @@ struct AABB
     {
         glm::vec3 overlap = glm::min( max, aabb.max ) - glm::max( min, aabb.min );
 
-        if ( overlap.x >= 0.0f && overlap.y >= 0.0f && overlap.z >= 0.0f )
+        if ( overlap.x > 0.0f && overlap.y > 0.0f && overlap.z > 0.0f )
         {
             if ( overlap.x < overlap.y && overlap.x < overlap.z )
             {
@@ -836,7 +836,7 @@ struct AABB
     {
         glm::vec3 overlap = glm::min( max, aabb.max ) - glm::max( min, aabb.min );
 
-        if ( overlap.x >= 0.0f && overlap.y >= 0.0f )
+        if ( overlap.x > 0.0f && overlap.y > 0.0f )
         {
             if ( overlap.x < overlap.y )
             {
