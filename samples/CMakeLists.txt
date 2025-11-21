@@ -44,6 +44,7 @@ add_sample( 15-PixelAdventure )
 add_sample( 16-Arkanoid )
 add_sample( 17-Physics )
 add_sample( 18-Culling )
+add_sample( 19-AABBOverlap )
 
 # Set the startup project.
 set_directory_properties( PROPERTIES

@@ -58,6 +58,15 @@ struct AABB
     }
 
     /// <summary>
+    /// Constructs an axis-aligned bounding box (AABB) from two 2D points by converting them to 3D points with a zero z-coordinate.
+    /// </summary>
+    /// <param name="a">The first 2D point (glm::vec2) representing one corner of the bounding box.</param>
+    /// <param name="b">The second 2D point (glm::vec2) representing the opposite corner of the bounding box.</param>
+    AABB( const glm::vec2& a, const glm::vec2& b )
+    : AABB( glm::vec3 { a, 0.0f }, glm::vec3 { b, 0.0f } )
+    {}
+
+    /// <summary>
     /// Construct an axis-aligned bounding box from 3 2D points.
     /// </summary>
     /// <param name="a">The first point.</param>
@@ -130,6 +139,16 @@ struct AABB
     /// <summary>
     /// Translate this AABB.
     /// </summary>
+    /// <param name="rhs">The amount to translate this AABB (in 2D - the z component is not translated)</param>
+    /// <returns>The translated AABB.</returns>
+    AABB operator+( const glm::vec2& rhs ) const noexcept
+    {
+        return operator+( glm::vec3 { rhs, 0.0f } );
+    }
+
+    /// <summary>
+    /// Translate this AABB.
+    /// </summary>
     /// <param name="rhs">The amount to translate this AABB by.</param>
     /// <returns>A reference to this AABB after translation.</returns>
     AABB& operator+=( const glm::vec3& rhs ) noexcept
@@ -138,6 +157,16 @@ struct AABB
         max += rhs;
 
         return *this;
+    }
+
+    /// <summary>
+    /// Translate this AABB.
+    /// </summary>
+    /// <param name="rhs">The amount to translate this AABB by.</param>
+    /// <returns>A reference to this AABB after translation.</returns>
+    AABB& operator+=( const glm::vec2& rhs ) noexcept
+    {
+        return operator+=( glm::vec3 { rhs, 0.0f } );
     }
 
     /// <summary>
@@ -772,36 +801,51 @@ struct AABB
     }
 
     /// <summary>
-    /// Calculates the minimum translation vector (MTV) for the overlap between this axis-aligned bounding box (AABB) and another AABB. Returns the MTV if there is an overlap, or an empty optional otherwise.
+    /// Calculates the minimum translation vector (MTV) for the overlap between this axis-aligned bounding box (AABB) and another AABB in 3D (X, Y, and Z).
+    /// Returns the MTV if there is an overlap, or an empty optional otherwise.
     /// </summary>
     /// <param name="aabb">The other axis-aligned bounding box to check for overlap.</param>
     /// <returns>An optional containing the minimum translation vector (glm::vec3) required to resolve the overlap if the AABBs intersect, or an empty optional if there is no overlap.</returns>
-    std::optional<glm::vec3> overlap( const AABB& aabb ) const noexcept
+    std::optional<glm::vec3> overlapXYZ( const AABB& aabb ) const noexcept
     {
-        glm::vec3 overlapMin = glm::max( min, aabb.min );
-        glm::vec3 overlapMax = glm::min( max, aabb.max );
-        glm::vec3 overlapSize = overlapMax - overlapMin;
-        if ( all( greaterThan( overlapSize, glm::vec3 { 0.0f } ) ) )
+        glm::vec3 overlap = glm::min( max, aabb.max ) - glm::max( min, aabb.min );
+
+        if ( overlap.x >= 0.0f && overlap.y >= 0.0f && overlap.z >= 0.0f )
         {
-            // Find the minimum translation vector (MTV)
-            glm::vec3 mtv;
-            float xOverlap = overlapSize.x;
-            float yOverlap = overlapSize.y;
-            float zOverlap = overlapSize.z;
-            if ( xOverlap < yOverlap && xOverlap < zOverlap )
+            if ( overlap.x < overlap.y && overlap.x < overlap.z )
             {
-                mtv = { ( min.x < aabb.min.x ? -xOverlap : xOverlap ), 0.0f, 0.0f };
+                return glm::vec3 { ( center().x < aabb.center().x ? -overlap.x : overlap.x ), 0.0f, 0.0f };
             }
-            else if ( yOverlap < zOverlap )
+            if ( overlap.y < overlap.z )
             {
-                mtv = { 0.0f, ( min.y < aabb.min.y ? -yOverlap : yOverlap ), 0.0f };
+                return glm::vec3 { 0.0f, ( center().y < aabb.center().y ? -overlap.y : overlap.y ), 0.0f };
             }
-            else
-            {
-                mtv = { 0.0f, 0.0f, ( min.z < aabb.min.z ? -zOverlap : zOverlap ) };
-            }
-            return mtv;
+
+            return glm::vec3 { 0.0f, 0.0f, ( center().z < aabb.center().z ? -overlap.z : overlap.z ) };
         }
+
+        return {};
+    }
+
+    /// <summary>
+    /// Calculates the overlap between this axis-aligned bounding box (AABB) and another AABB along the X and Y axes, if they intersect.
+    /// </summary>
+    /// <param name="aabb">The axis-aligned bounding box to check for overlap with.</param>
+    /// <returns>An optional 2D vector representing the overlap along the X and Y axes if the AABBs intersect; otherwise, an empty optional.</returns>
+    std::optional<glm::vec2> overlapXY( const AABB& aabb ) const noexcept
+    {
+        glm::vec3 overlap = glm::min( max, aabb.max ) - glm::max( min, aabb.min );
+
+        if ( overlap.x >= 0.0f && overlap.y >= 0.0f )
+        {
+            if ( overlap.x < overlap.y )
+            {
+                return glm::vec2 { ( center().x < aabb.center().x ? -overlap.x : overlap.x ), 0.0f };
+            }
+
+            return glm::vec2 { 0.0f, ( center().y < aabb.center().y ? -overlap.y : overlap.y ) };
+        }
+
         return {};
     }
 
