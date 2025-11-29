@@ -177,7 +177,7 @@ Color Text::getColor() const
 
 Text& Text::setColor( const Color& color )
 {
-    if ( !TTF_SetTextColor( m_Text, color.r, color.g, color.b, color.a ) )
+    if ( !TTF_SetTextColor( m_Text, color.channels.r, color.channels.g, color.channels.b, color.channels.a ) )
     {
         std::cerr << "Failed to set text color: " << SDL_GetError() << std::endl;
     }

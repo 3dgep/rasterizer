@@ -287,7 +287,7 @@ glm::vec2 Window::clientToImage( float _x, float _y, const Image& image ) const 
 
 void Window::clear( const Color& color )
 {
-    SDL_SetRenderDrawColor( m_Renderer, color.r, color.g, color.b, color.a );
+    SDL_SetRenderDrawColor( m_Renderer, color.channels.r, color.channels.g, color.channels.b, color.channels.a );
     SDL_RenderClear( m_Renderer );
 }
 

@@ -5,6 +5,19 @@
     "files.associations": {
         "utility": "cpp",
         "limits": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "chrono": "cpp",
+        "deque": "cpp",
+        "execution": "cpp",
+        "filesystem": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "locale": "cpp",
+        "regex": "cpp",
+        "valarray": "cpp",
+        "vector": "cpp",
+        "xlocmon": "cpp",
+        "xlocnum": "cpp",
+        "xstring": "cpp"
     }
 }

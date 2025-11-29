@@ -15,8 +15,6 @@ namespace sr
 inline namespace graphics
 {
 
-class WindowImpl;
-
 class Window final
 {
 public:
@@ -46,7 +44,7 @@ public:
     bool pollEvent( SDL_Event& event );
 
     void setFullscreen( bool fullscreen );
-
+    
     void toggleFullscreen();
 
     bool isFullscreen() const noexcept;

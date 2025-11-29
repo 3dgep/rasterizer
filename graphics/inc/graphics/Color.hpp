@@ -10,7 +10,7 @@ namespace sr
 {
 inline namespace graphics
 {
-struct Color
+union Color
 {
     /// <summary>
     /// Construct a default (black) color.
@@ -107,29 +107,14 @@ struct Color
     /// <returns>The color constructed from the given HSV values.</returns>
     static inline Color fromHSV( float H, float S = 1.0f, float V = 1.0f ) noexcept;
 
-#ifdef _MSC_VER
-    #pragma warning( push )
-    #pragma warning( disable : 4201 )  // warning C4201: nonstandard extension used: nameless struct/union
-#elif defined( __GNUC__) || defined(__clang__)
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wpedantic"
-#endif
-    union
+    uint32_t rgba;
+    struct Channels
     {
-        uint32_t rgba;
-        struct
-        {
-            uint8_t r;
-            uint8_t g;
-            uint8_t b;
-            uint8_t a;
-        };
-    };
-#ifdef _MSC_VER
-    #pragma warning( pop )
-#elif defined(__GNUC__) || defined(__clang__)
-    #pragma GCC diagnostic pop
-#endif
+        uint8_t r;
+        uint8_t g;
+        uint8_t b;
+        uint8_t a;
+    } channels;
 
     /// <summary>
     /// Masks for each of the color channels.
@@ -298,10 +283,7 @@ struct Color
 };
 
 constexpr Color::Color() noexcept
-: r { 0 }
-, g { 0 }
-, b { 0 }
-, a { 255 }
+: channels{ 0, 0, 0, 255 }
 {}
 
 constexpr Color::Color( uint32_t rgba ) noexcept
@@ -309,10 +291,7 @@ constexpr Color::Color( uint32_t rgba ) noexcept
 {}
 
 constexpr Color::Color( uint8_t r, uint8_t g, uint8_t b, uint8_t a ) noexcept
-: r { r }
-, g { g }
-, b { b }
-, a { a }
+: channels{ r, g, b, a }
 {}
 
 constexpr bool Color::operator==( const Color& rhs ) const noexcept
@@ -322,14 +301,14 @@ constexpr bool Color::operator==( const Color& rhs ) const noexcept
 
 constexpr auto Color::operator<=>( const Color& rhs ) const noexcept
 {
-    if ( const auto cmp = r <=> rhs.r; cmp != 0 )
+    if ( const auto cmp = channels.r <=> rhs.channels.r; cmp != 0 )
         return cmp;
-    if ( const auto cmp = g <=> rhs.g; cmp != 0 )
+    if ( const auto cmp = channels.g <=> rhs.channels.g; cmp != 0 )
         return cmp;
-    if ( const auto cmp = b <=> rhs.b; cmp != 0 )
+    if ( const auto cmp = channels.b <=> rhs.channels.b; cmp != 0 )
         return cmp;
 
-    return a <=> rhs.a;
+    return channels.a <=> rhs.channels.a;
 }
 
 inline Color Color::operator+( const Color& rhs ) const noexcept
@@ -355,10 +334,10 @@ inline Color Color::operator+( const Color& rhs ) const noexcept
 #else
     // Fallback scalar implementation
     return {
-        static_cast<uint8_t>( math::min( r + rhs.r, 255 ) ),
-        static_cast<uint8_t>( math::min( g + rhs.g, 255 ) ),
-        static_cast<uint8_t>( math::min( b + rhs.b, 255 ) ),
-        static_cast<uint8_t>( math::min( a + rhs.a, 255 ) ),
+        static_cast<uint8_t>( math::min( channels.r + rhs.channels.r, 255 ) ),
+        static_cast<uint8_t>( math::min( channels.g + rhs.channels.g, 255 ) ),
+        static_cast<uint8_t>( math::min( channels.b + rhs.channels.b, 255 ) ),
+        static_cast<uint8_t>( math::min( channels.a + rhs.channels.a, 255 ) ),
     };
 #endif
 }
@@ -391,10 +370,10 @@ inline Color Color::operator-( const Color& rhs ) const noexcept
 #else
     // Fallback scalar implementation
     return {
-        static_cast<uint8_t>( math::max( r - rhs.r, 0 ) ),
-        static_cast<uint8_t>( math::max( g - rhs.g, 0 ) ),
-        static_cast<uint8_t>( math::max( b - rhs.b, 0 ) ),
-        static_cast<uint8_t>( math::max( a - rhs.a, 0 ) ),
+        static_cast<uint8_t>( math::max( channels.r - rhs.channels.r, 0 ) ),
+        static_cast<uint8_t>( math::max( channels.g - rhs.channels.g, 0 ) ),
+        static_cast<uint8_t>( math::max( channels.b - rhs.channels.b, 0 ) ),
+        static_cast<uint8_t>( math::max( channels.a - rhs.channels.a, 0 ) ),
     };
 #endif
 }
@@ -432,10 +411,10 @@ inline Color Color::operator*( const Color& rhs ) const noexcept
     return Color( vget_lane_u32( vreinterpret_u32_u8( result_u8 ), 0 ) );
 #else
     // Fallback scalar implementation
-    const auto red   = static_cast<uint8_t>( r * rhs.r / 255 );
-    const auto green = static_cast<uint8_t>( g * rhs.g / 255 );
-    const auto blue  = static_cast<uint8_t>( b * rhs.b / 255 );
-    const auto alpha = static_cast<uint8_t>( a * rhs.a / 255 );
+    const auto red   = static_cast<uint8_t>( channels.r * rhs.channels.r / 255 );
+    const auto green = static_cast<uint8_t>( channels.g * rhs.channels.g / 255 );
+    const auto blue  = static_cast<uint8_t>( channels.b * rhs.channels.b / 255 );
+    const auto alpha = static_cast<uint8_t>( channels.a * rhs.channels.a / 255 );
 
     return { red, green, blue, alpha };
 #endif
@@ -500,10 +479,10 @@ inline Color Color::operator*( float rhs ) const noexcept
 
 #else
     // Fallback scalar implementation
-    const auto red   = static_cast<uint8_t>( math::clamp( static_cast<float>( r ) * rhs, 0.0f, 255.0f ) );
-    const auto green = static_cast<uint8_t>( math::clamp( static_cast<float>( g ) * rhs, 0.0f, 255.0f ) );
-    const auto blue  = static_cast<uint8_t>( math::clamp( static_cast<float>( b ) * rhs, 0.0f, 255.0f ) );
-    const auto alpha = static_cast<uint8_t>( math::clamp( static_cast<float>( a ) * rhs, 0.0f, 255.0f ) );
+    const auto red   = static_cast<uint8_t>( math::clamp( static_cast<float>( channels.r ) * rhs, 0.0f, 255.0f ) );
+    const auto green = static_cast<uint8_t>( math::clamp( static_cast<float>( channels.g ) * rhs, 0.0f, 255.0f ) );
+    const auto blue  = static_cast<uint8_t>( math::clamp( static_cast<float>( channels.b ) * rhs, 0.0f, 255.0f ) );
+    const auto alpha = static_cast<uint8_t>( math::clamp( static_cast<float>( channels.a ) * rhs, 0.0f, 255.0f ) );
 
     return { red, green, blue, alpha };
 #endif
@@ -535,7 +514,7 @@ inline Color& Color::operator/=( float rhs ) noexcept
 
 constexpr Color Color::withAlpha( uint8_t alpha ) const noexcept
 {
-    return { r, g, b, alpha };
+    return { channels.r, channels.g, channels.b, alpha };
 }
 
 constexpr Color Color::withAlpha( float alpha ) const noexcept
@@ -658,10 +637,10 @@ inline Color min( const Color& c1, const Color& c2 )
     return Color( vget_lane_u32( vreinterpret_u32_u8( result ), 0 ) );
 #else
     // Fallback scalar implementation
-    const auto r = math::min( c1.r, c2.r );
-    const auto g = math::min( c1.g, c2.g );
-    const auto b = math::min( c1.b, c2.b );
-    const auto a = math::min( c1.a, c2.a );
+    const auto r = math::min( c1.channels.r, c2.channels.r );
+    const auto g = math::min( c1.channels.g, c2.channels.g );
+    const auto b = math::min( c1.channels.b, c2.channels.b );
+    const auto a = math::min( c1.channels.a, c2.channels.a );
 
     return { r, g, b, a };
 #endif
@@ -694,10 +673,10 @@ inline Color max( const Color& c1, const Color& c2 )
     return Color( vget_lane_u32( vreinterpret_u32_u8( result ), 0 ) );
 #else
     // Fallback scalar implementation
-    const auto r = math::max( c1.r, c2.r );
-    const auto g = math::max( c1.g, c2.g );
-    const auto b = math::max( c1.b, c2.b );
-    const auto a = math::max( c1.a, c2.a );
+    const auto r = math::max( c1.channels.r, c2.channels.r );
+    const auto g = math::max( c1.channels.g, c2.channels.g );
+    const auto b = math::max( c1.channels.b, c2.channels.b );
+    const auto a = math::max( c1.channels.a, c2.channels.a );
 
     return { r, g, b, a };
 #endif
@@ -706,22 +685,22 @@ inline Color max( const Color& c1, const Color& c2 )
 inline Color interpolate( const Color& c0, const Color& c1, const Color& c2, const glm::vec3& bc )
 {
     // c = c0 * bc.x
-    float r = static_cast<float>( c0.r ) * bc.x;
-    float g = static_cast<float>( c0.g ) * bc.x;
-    float b = static_cast<float>( c0.b ) * bc.x;
-    float a = static_cast<float>( c0.a ) * bc.x;
+    float r = static_cast<float>( c0.channels.r ) * bc.x;
+    float g = static_cast<float>( c0.channels.g ) * bc.x;
+    float b = static_cast<float>( c0.channels.b ) * bc.x;
+    float a = static_cast<float>( c0.channels.a ) * bc.x;
 
     // c += c1 * bc.y
-    r = std::fma<float>( c1.r, bc.y, r );
-    g = std::fma<float>( c1.g, bc.y, g );
-    b = std::fma<float>( c1.b, bc.y, b );
-    a = std::fma<float>( c1.a, bc.y, a );
+    r = std::fma<float>( c1.channels.r, bc.y, r );
+    g = std::fma<float>( c1.channels.g, bc.y, g );
+    b = std::fma<float>( c1.channels.b, bc.y, b );
+    a = std::fma<float>( c1.channels.a, bc.y, a );
 
     // c += c2 * bc.z
-    r = std::fma<float>( c2.r, bc.z, r );
-    g = std::fma<float>( c2.g, bc.z, g );
-    b = std::fma<float>( c2.b, bc.z, b );
-    a = std::fma<float>( c2.a, bc.z, a );
+    r = std::fma<float>( c2.channels.r, bc.z, r );
+    g = std::fma<float>( c2.channels.g, bc.z, g );
+    b = std::fma<float>( c2.channels.b, bc.z, b );
+    a = std::fma<float>( c2.channels.a, bc.z, a );
 
     return {
         static_cast<uint8_t>( r ),

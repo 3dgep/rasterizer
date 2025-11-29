@@ -185,15 +185,15 @@ constexpr Color ComputeBlendFactor( const Color& src, const Color& dst, BlendFac
     case BlendFactor::OneMinusDstColor:
         return Color::White - dst;
     case BlendFactor::SrcAlpha:
-        return { src.a, src.a, src.a, src.a };
+        return { src.channels.a, src.channels.a, src.channels.a, src.channels.a };
     case BlendFactor::OneMinusSrcAlpha:
-        return Color::White - Color { src.a, src.a, src.a, src.a };
+        return Color::White - Color { src.channels.a, src.channels.a, src.channels.a, src.channels.a };
     case BlendFactor::DstAlpha:
-        return { dst.a, dst.a, dst.a, dst.a };
+        return { dst.channels.a, dst.channels.a, dst.channels.a, dst.channels.a };
     case BlendFactor::OneMinusDstAlpha:
-        return Color::White - Color { dst.a, dst.a, dst.a, dst.a };
+        return Color::White - Color { dst.channels.a, dst.channels.a, dst.channels.a, dst.channels.a };
     case BlendFactor::SrcAlphaSat:
-        return min( Color { src.a, src.a, src.a, src.a }, Color::White - Color { dst.a, dst.a, dst.a, dst.a } );
+        return min( Color { src.channels.a, src.channels.a, src.channels.a, src.channels.a }, Color::White - Color { dst.channels.a, dst.channels.a, dst.channels.a, dst.channels.a } );
     }
 
     return src;
@@ -242,18 +242,18 @@ constexpr Color BlendMode::Blend( const Color srcColor, const Color dstColor ) c
     if ( !blendEnable )
         return srcColor;
 
-    if ( srcColor.a < alphaThreshold )
+    if ( srcColor.channels.a < alphaThreshold )
         return dstColor;
 
     const Color sRGB = ComputeBlendFactor( srcColor, dstColor, srcFactor ) * srcColor;
     const Color dRGB = ComputeBlendFactor( srcColor, dstColor, dstFactor ) * dstColor;
-    const auto  sA   = static_cast<uint8_t>( ComputeBlendFactor( srcColor.a, dstColor.a, srcAlphaFactor ) * srcColor.a / 255 );
-    const auto  dA   = static_cast<uint8_t>( ComputeBlendFactor( srcColor.a, dstColor.a, dstAlphaFactor ) * dstColor.a / 255 );
+    const auto  sA   = static_cast<uint8_t>( ComputeBlendFactor( srcColor.channels.a, dstColor.channels.a, srcAlphaFactor ) * srcColor.channels.a / 255 );
+    const auto  dA   = static_cast<uint8_t>( ComputeBlendFactor( srcColor.channels.a, dstColor.channels.a, dstAlphaFactor ) * dstColor.channels.a / 255 );
 
     const Color   RGB = ComputeBlendOp( sRGB, dRGB, blendOp );
     const uint8_t A   = ComputeBlendOp( sA, dA, alphaOp );
 
-    return { RGB.r, RGB.g, RGB.b, A };
+    return { RGB.channels.r, RGB.channels.g, RGB.channels.b, A };
 }
 
 }  // namespace graphics
