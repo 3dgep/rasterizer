@@ -710,5 +710,7 @@ inline Color interpolate( const Color& c0, const Color& c1, const Color& c2, con
     };
 }
 
+static_assert( sizeof( Color ) == sizeof( uint32_t ) );
+
 }  // namespace graphics
 }  // namespace sr

@@ -1,37 +1,35 @@
+#include "graphics/Image.hpp"
 #include <graphics/Image.hpp>
 #include <iostream>
 
 #include <stb_image.h>
 #include <stb_image_write.h>
 
-#include <climits> // For INT_MAX
-#include <cstring> // For std::memcpy
+#include <climits>  // For INT_MAX
+#include <cstring>  // For std::memcpy
 
 using namespace sr::graphics;
 
-Image::Image() = default;
-
-Image::~Image()
-{
-    SDL_DestroySurface( m_Surface );
-}
+Image::Image()  = default;
+Image::~Image() = default;
 
 Image::Image( const Image& copy )
 {
-    if ( copy.m_Surface )
+    if ( copy.m_Pixels )
     {
-        resize( copy.m_Surface->w, copy.m_Surface->h );
-        std::memcpy( m_Surface->pixels, copy.m_Surface->pixels, m_Surface->pitch * m_Surface->h );
+        resize( copy.m_Width, copy.m_Height );
+        std::memcpy( m_Pixels.get(), copy.m_Pixels.get(), static_cast<size_t>( m_Width ) * m_Height * sizeof( Color ) );
     }
 }
 
 Image::Image( Image&& other ) noexcept
-: m_AABB { other.m_AABB }
-{
-    m_Surface       = other.m_Surface;
-    other.m_Surface = nullptr;
-    other.m_AABB    = {};
-}
+: widthInfo( std::exchange( other.widthInfo, {} ) )
+, heightInfo( std::exchange( other.heightInfo, {} ) )
+, m_AABB( std::exchange( other.m_AABB, {} ) )
+, m_Width( std::exchange( other.m_Width, 0 ) )
+, m_Height( std::exchange( other.m_Height, 0 ) )
+, m_Pixels( std::move( other.m_Pixels ) )
+{}
 
 Image::Image( const std::filesystem::path& fileName )
 {
@@ -44,7 +42,7 @@ Image::Image( const std::filesystem::path& fileName )
     }
 
     resize( static_cast<uint32_t>( w ), static_cast<uint32_t>( h ) );
-    std::memcpy( m_Surface->pixels, data, m_Surface->pitch * m_Surface->h );
+    std::memcpy( m_Pixels.get(), data, static_cast<size_t>( m_Width ) * m_Height * sizeof( Color ) );
 
     stbi_image_free( data );
 }
@@ -63,10 +61,10 @@ Image& Image::operator=( const Image& copy )
     if ( this == &copy )
         return *this;
 
-    if ( copy.m_Surface )
+    if ( copy.m_Pixels )
     {
-        resize( copy.m_Surface->w, copy.m_Surface->h );
-        std::memcpy( m_Surface->pixels, copy.m_Surface->pixels, m_Surface->pitch * m_Surface->h );
+        resize( copy.m_Width, copy.m_Height );
+        std::memcpy( m_Pixels.get(), copy.m_Pixels.get(), static_cast<size_t>( copy.m_Width ) * copy.m_Height * sizeof( Color ) );
     }
 
     return *this;
@@ -77,21 +75,20 @@ Image& Image::operator=( Image&& other ) noexcept
     if ( this == &other )
         return *this;
 
-    m_AABB    = other.m_AABB;
-    m_Surface = other.m_Surface;
-
-    other.m_Surface = nullptr;
-    other.m_AABB    = {};
+    widthInfo  = std::exchange( other.widthInfo, {} );
+    heightInfo = std::exchange( other.heightInfo, {} );
+    m_AABB     = std::exchange( other.m_AABB, {} );
+    m_Width    = std::exchange( other.m_Width, 0 );
+    m_Height   = std::exchange( other.m_Height, 0 );
+    m_Pixels   = std::move( other.m_Pixels );
 
     return *this;
 }
 
 const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexcept
 {
-    assert( m_Surface != nullptr );
-
-    const int w = m_Surface->w;
-    const int h = m_Surface->h;
+    const int w = m_Width;
+    const int h = m_Height;
 
     switch ( addressMode )
     {
@@ -110,7 +107,7 @@ const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexce
     case AddressMode::Mirror:
         u = mirror_coord( u, w );
         v = mirror_coord( v, h );
-    break;
+        break;
     case AddressMode::Clamp:
         // Branchless clamping - often faster than std::clamp due to avoided branches
         u = u < 0 ? 0 : ( u >= w ? w - 1 : u );
@@ -121,30 +118,28 @@ const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexce
     assert( u >= 0 && u < w );
     assert( v >= 0 && v < h );
 
-    return *reinterpret_cast<const Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + v * m_Surface->pitch + u * sizeof( Color ) );
+    return m_Pixels[v * m_Width + u];
 }
 
 void Image::save( const std::filesystem::path& file ) const
 {
-    assert( m_Surface != nullptr );
-
     const auto extension = file.extension();
 
     if ( extension == ".png" )
     {
-        stbi_write_png( file.string().c_str(), m_Surface->w, m_Surface->h, 4, m_Surface->pixels, m_Surface->pitch );
+        stbi_write_png( file.string().c_str(), m_Width, m_Height, 4, m_Pixels.get(), m_Width * static_cast<int>( sizeof( Color ) ) );
     }
     else if ( extension == ".bmp" )
     {
-        stbi_write_bmp( file.string().c_str(), m_Surface->w, m_Surface->h, 4, m_Surface->pixels );
+        stbi_write_bmp( file.string().c_str(), m_Width, m_Height, 4, m_Pixels.get() );
     }
     else if ( extension == ".tga" )
     {
-        stbi_write_tga( file.string().c_str(), m_Surface->w, m_Surface->h, 4, m_Surface->pixels );
+        stbi_write_tga( file.string().c_str(), m_Width, m_Height, 4, m_Pixels.get() );
     }
     else if ( extension == ".jpg" )
     {
-        stbi_write_jpg( file.string().c_str(), m_Surface->w, m_Surface->h, 4, m_Surface->pixels, 10 );
+        stbi_write_jpg( file.string().c_str(), m_Width, m_Height, 4, m_Pixels.get(), 10 );
     }
     else
     {
@@ -154,9 +149,7 @@ void Image::save( const std::filesystem::path& file ) const
 
 void Image::clear( const Color& color ) noexcept
 {
-    assert( m_Surface != nullptr );
-
-    std::fill_n( static_cast<Color*>( m_Surface->pixels ), m_Surface->pitch * m_Surface->h / sizeof( Color ), color );
+    std::fill_n( m_Pixels.get(), m_Width * m_Height, color );
 }
 
 void Image::resize( uint32_t width, uint32_t height )
@@ -164,25 +157,19 @@ void Image::resize( uint32_t width, uint32_t height )
     assert( width < INT_MAX );
     assert( height < INT_MAX );
 
-    if ( m_Surface && std::cmp_equal( m_Surface->w, width ) && std::cmp_equal( m_Surface->h, height ) )
+    if ( m_Pixels && std::cmp_equal( m_Width, width ) && std::cmp_equal( m_Height, height ) )
         return;
 
-    if ( m_Surface )
-        SDL_DestroySurface( m_Surface );
+    m_Width  = static_cast<int>( width );
+    m_Height = static_cast<int>( height );
 
-    m_Surface = SDL_CreateSurface( width, height, SDL_PIXELFORMAT_RGBA32 );
+    m_Pixels = make_aligned_unique<Color[], 64>( static_cast<size_t>( width ) * height );
 
-    if ( !m_Surface )
-    {
-        std::cerr << "Failed to create surface: " << SDL_GetError() << std::endl;
-        return;
-    }
-
-    widthInfo = AddressingInfo { m_Surface->w };
-    heightInfo = AddressingInfo { m_Surface->h };
+    widthInfo  = AddressingInfo { m_Width };
+    heightInfo = AddressingInfo { m_Height };
 
     m_AABB = {
         { 0, 0, 0 },
-        { m_Surface->w - 1, m_Surface->h - 1, 0 }
+        { m_Width - 1, m_Height - 1, 0 }
     };
 }

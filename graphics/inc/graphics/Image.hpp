@@ -3,12 +3,10 @@
 #include "BlendMode.hpp"
 #include "Color.hpp"
 #include "Enums.hpp"
+#include "aligned_unique_ptr.hpp"
 
 #include <math/AABB.hpp>
 
-#include <SDL3/SDL_surface.h>
-
-#include <cstdint>
 #include <filesystem>
 #include <optional>
 #include <utility>
@@ -72,9 +70,8 @@ struct Image final
     /// <returns>A constant reference to the color of the pixel at the given index.</returns>
     const Color& operator[]( size_t i ) const
     {
-        assert( m_Surface != nullptr );
-        assert( i < static_cast<size_t>( m_Surface->w ) * m_Surface->h );
-        return static_cast<const Color*>( m_Surface->pixels )[i];
+        assert( i < m_Width * m_Height );
+        return m_Pixels[i];
     }
 
     /// <summary>
@@ -84,27 +81,24 @@ struct Image final
     /// <returns>A reference to the color of the pixel at the given index.</returns>
     Color& operator[]( size_t i )
     {
-        assert( m_Surface != nullptr );
-        assert( i < static_cast<size_t>( m_Surface->w ) * m_Surface->h );
-        return static_cast<Color*>( m_Surface->pixels )[i];
+        assert( i < m_Width * m_Height );
+        return m_Pixels[i];
     }
 
     const Color& operator[]( size_t x, size_t y ) const
     {
-        assert( m_Surface != nullptr );
-        assert( x < static_cast<size_t>( m_Surface->w ) );
-        assert( y < static_cast<size_t>( m_Surface->h ) );
+        assert( x < m_Width );
+        assert( y < m_Height );
 
-        return *reinterpret_cast<const Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) );
+        return m_Pixels[y * m_Width + x];
     }
 
     Color& operator[]( size_t x, size_t y )
     {
-        assert( m_Surface != nullptr );
-        assert( x < static_cast<size_t>( m_Surface->w ) );
-        assert( y < static_cast<size_t>( m_Surface->h ) );
+        assert( x < m_Width );
+        assert( y < m_Height );
 
-        return *reinterpret_cast<Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) );
+        return m_Pixels[y * m_Width + x];
     }
 
     /// <summary>
@@ -115,11 +109,10 @@ struct Image final
     /// <returns>A constant reference to the color of the pixel at the given coordinates.</returns>
     const Color& operator()( size_t x, size_t y ) const
     {
-        assert( m_Surface != nullptr );
-        assert( x < static_cast<size_t>( m_Surface->w ) );
-        assert( y < static_cast<size_t>( m_Surface->h ) );
+        assert( x < m_Width );
+        assert( y < m_Height );
 
-        return *reinterpret_cast<const Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) );
+        return m_Pixels[y * m_Width + x];
     }
 
     /// <summary>
@@ -130,19 +123,18 @@ struct Image final
     /// <returns>A reference to the color of the pixel at the given coordinates.</returns>
     Color& operator()( size_t x, size_t y )
     {
-        assert( m_Surface != nullptr );
-        assert( x < static_cast<size_t>( m_Surface->w ) );
-        assert( y < static_cast<size_t>( m_Surface->h ) );
+        assert( x < m_Width );
+        assert( y < m_Height );
 
-        return *reinterpret_cast<Color*>( static_cast<unsigned char*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) );
+        return m_Pixels[y * m_Width + x];
     }
 
     /// <summary>
-    /// Check if the image has been initialized and has an image buffer.
+    /// Check if the image has been initialized and has a pixel buffer.
     /// </summary>
     explicit operator bool() const noexcept
     {
-        return m_Surface != nullptr;
+        return m_Pixels != nullptr;
     }
 
     /// <summary>
@@ -174,9 +166,7 @@ struct Image final
     /// <returns>The color of the texel at the given UV texture coordinates.</returns>
     const Color& sample( float u, float v, AddressMode addressMode = AddressMode::Wrap ) const noexcept
     {
-        assert( m_Surface != nullptr );
-
-        return sample( static_cast<int>( u * static_cast<float>( m_Surface->w - 1 ) + 0.5f ), static_cast<int>( v * static_cast<float>( m_Surface->h - 1 ) + 0.5f ), addressMode );  // NOLINT(bugprone-incorrect-roundings)
+        return sample( static_cast<int>( u * static_cast<float>( m_Width - 1 ) + 0.5f ), static_cast<int>( v * static_cast<float>( m_Height - 1 ) + 0.5f ), addressMode );  // NOLINT(bugprone-incorrect-roundings)
     }
 
     /// <summary>
@@ -200,20 +190,18 @@ struct Image final
     template<bool BoundsCheck = true, bool Blending = true>
     void plot( uint32_t x, uint32_t y, const Color& src, const BlendMode& blendMode = BlendMode {} ) noexcept
     {
-        assert( m_Surface != nullptr );
-
         if constexpr ( BoundsCheck )
         {
-            if ( std::cmp_greater_equal( x, m_Surface->w ) || std::cmp_greater_equal( y, m_Surface->h ) )
+            if ( std::cmp_greater_equal( x, m_Width ) || std::cmp_greater_equal( y, m_Height ) )
                 return;
         }
         else
         {
-            assert( std::cmp_less( x, m_Surface->w ) );
-            assert( std::cmp_less( y, m_Surface->h ) );
+            assert( std::cmp_less( x, m_Width ) );
+            assert( std::cmp_less( y, m_Height ) );
         }
 
-        Color& dst = *( reinterpret_cast<Color*>( static_cast<Uint8*>( m_Surface->pixels ) + y * m_Surface->pitch + x * sizeof( Color ) ) );
+        Color& dst = m_Pixels[y * m_Width + x];
         if constexpr ( Blending )
         {
             dst = blendMode.Blend( src, dst );
@@ -255,8 +243,7 @@ struct Image final
     /// <returns>The width of the image (in pixels).</returns>
     int getWidth() const noexcept
     {
-        assert( m_Surface != nullptr );
-        return m_Surface->w;
+        return m_Width;
     }
 
     /// <summary>
@@ -265,18 +252,16 @@ struct Image final
     /// <returns>The height of the image (in pixels).</returns>
     int getHeight() const noexcept
     {
-        assert( m_Surface != nullptr );
-        return m_Surface->h;
+        return m_Height;
     }
 
     /// <summary>
     /// Get the distance in bytes between rows of pixels.
     /// </summary>
     /// <returns>The distance in bytes between the rows of pixels.</returns>
-    uint32_t getPitch() const noexcept
+    int getPitch() const noexcept
     {
-        assert( m_Surface != nullptr );
-        return m_Surface->pitch;
+        return m_Width * static_cast<int>( sizeof( Color ) );
     }
 
     /// <summary>
@@ -294,8 +279,7 @@ struct Image final
     /// <returns>A pointer to the pixel buffer of the image.</returns>
     Color* data() noexcept
     {
-        assert( m_Surface != nullptr );
-        return static_cast<Color*>( m_Surface->pixels );
+        return m_Pixels.get();
     }
 
     /// <summary>
@@ -304,33 +288,26 @@ struct Image final
     /// <returns>A read-only pointer to the pixel buffer of the image.</returns>
     const Color* data() const noexcept
     {
-        assert( m_Surface != nullptr );
-        return static_cast<const Color*>( m_Surface->pixels );
-    }
-
-    // For internal use.
-    SDL_Surface* getSDL_Surface() const
-    {
-        return m_Surface;
+        return m_Pixels.get();
     }
 
 private:
     // Precompute power-of-2 check results to avoid repeated computation
     struct AddressingInfo
     {
-        int  size;
-        int  mask;  // size - 1 if power of 2, otherwise -1
-        bool isPowerOf2;
-
-        constexpr AddressingInfo( int s ) noexcept
+        constexpr AddressingInfo( int s = 0 ) noexcept
         : size( s )
-        , mask( ( s & ( s - 1 ) ) == 0 ? s - 1 : -1 )
         , isPowerOf2( ( s & ( s - 1 ) ) == 0 )
+        , mask( isPowerOf2 ? s - 1 : -1 )
         {}
+
+        int  size       = 0;
+        bool isPowerOf2 = true;
+        int  mask       = 0;  // size - 1 if power of 2, otherwise -1
     };
 
-    AddressingInfo widthInfo { 0 };
-    AddressingInfo heightInfo { 0 };
+    AddressingInfo widthInfo {};
+    AddressingInfo heightInfo {};
 
     /// <summary>
     /// Axis-aligned bounding box (used for clipping).
@@ -338,9 +315,19 @@ private:
     AABB m_AABB;
 
     /// <summary>
-    /// Surface that contains pixels.
+    /// The image width (in pixels).
     /// </summary>
-    SDL_Surface* m_Surface = nullptr;
+    int m_Width = 0;
+
+    /// <summary>
+    /// The image height (in pixels).
+    /// </summary>
+    int m_Height = 0;
+
+    /// <summary>
+    /// The pixel buffer.
+    /// </summary>
+    aligned_unique_ptr<Color[]> m_Pixels;
 };
 }  // namespace graphics
 }  // namespace sr

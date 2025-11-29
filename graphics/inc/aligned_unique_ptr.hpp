@@ -1,15 +1,16 @@
 #pragma once
 
+#include <new> // For std::bad_alloc
 #include <memory>
 #include <type_traits>
-#include <cstdlib>
 
-#if defined( _MSC_VER )
+#ifdef _MSC_VER
     #define aligned_malloc( size, alignment ) _aligned_malloc( ( size ), ( alignment ) )
     #define aligned_free                      _aligned_free
 #else
-    #define aligned_malloc( size, alignment ) aligned_alloc( ( alignment ), ( size ) )
-    #define aligned_free                      free
+    #include <cstdlib>
+    #define aligned_malloc( size, alignment ) std::aligned_alloc( ( alignment ), ( size ) )
+    #define aligned_free                      std::free
 #endif
 
 struct aligned_deleter
@@ -37,6 +38,15 @@ template<typename T, std::size_t N>
 constexpr bool is_bounded_array_v<T[N]> = true;
 }  // namespace detail
 
+class bad_aligned_alloc : public std::bad_alloc
+{
+public:
+    const char* what() const noexcept override
+    {
+        return "aligned memory allocation failed";
+    }
+};
+
 template<typename T>
 using aligned_unique_ptr = std::unique_ptr<T, aligned_deleter>;
 
@@ -45,6 +55,10 @@ std::enable_if_t<!std::is_array_v<T>, aligned_unique_ptr<T>>
     make_aligned_unique( Args&&... args )
 {
     aligned_unique_ptr<T> ptr = aligned_unique_ptr<T>( static_cast<T*>( aligned_malloc( sizeof( T ), Align ) ), aligned_deleter() );
+    
+    if ( !ptr )
+        throw bad_aligned_alloc();
+
     new ( ptr.get() ) T( std::forward<Args>( args )... );
     return ptr;
 }
@@ -55,6 +69,9 @@ std::enable_if_t<detail::is_unbounded_array_v<T> && std::is_default_constructibl
 {
     using T2                  = std::remove_extent_t<T>;
     aligned_unique_ptr<T> ptr = aligned_unique_ptr<T>( static_cast<T2*>( aligned_malloc( sizeof( T2 ) * n, Align ) ), aligned_deleter() );
+
+    if ( !ptr )
+        throw bad_aligned_alloc();
 
     // Default construct the elements.
     T2* p = ptr.get();
