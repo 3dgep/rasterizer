@@ -70,7 +70,7 @@ struct Image final
     /// <returns>A constant reference to the color of the pixel at the given index.</returns>
     const Color& operator[]( size_t i ) const
     {
-        assert( i < m_Width * m_Height );
+        assert( std::cmp_less(i ,m_Width * m_Height) );
         return m_Pixels[i];
     }
 
@@ -81,22 +81,22 @@ struct Image final
     /// <returns>A reference to the color of the pixel at the given index.</returns>
     Color& operator[]( size_t i )
     {
-        assert( i < m_Width * m_Height );
+        assert( std::cmp_less( i , m_Width * m_Height ) );
         return m_Pixels[i];
     }
 
     const Color& operator[]( size_t x, size_t y ) const
     {
-        assert( x < m_Width );
-        assert( y < m_Height );
+        assert( std::cmp_less( x , m_Width ) );
+        assert( std::cmp_less( y , m_Height ) );
 
         return m_Pixels[y * m_Width + x];
     }
 
     Color& operator[]( size_t x, size_t y )
     {
-        assert( x < m_Width );
-        assert( y < m_Height );
+        assert( std::cmp_less( x , m_Width ) );
+        assert( std::cmp_less( y , m_Height ) );
 
         return m_Pixels[y * m_Width + x];
     }
@@ -109,8 +109,8 @@ struct Image final
     /// <returns>A constant reference to the color of the pixel at the given coordinates.</returns>
     const Color& operator()( size_t x, size_t y ) const
     {
-        assert( x < m_Width );
-        assert( y < m_Height );
+        assert( std::cmp_less( x , m_Width ) );
+        assert( std::cmp_less( y , m_Height ) );
 
         return m_Pixels[y * m_Width + x];
     }
@@ -123,8 +123,8 @@ struct Image final
     /// <returns>A reference to the color of the pixel at the given coordinates.</returns>
     Color& operator()( size_t x, size_t y )
     {
-        assert( x < m_Width );
-        assert( y < m_Height );
+        assert( std::cmp_less( x , m_Width ) );
+        assert( std::cmp_less( y , m_Height ) );
 
         return m_Pixels[y * m_Width + x];
     }
