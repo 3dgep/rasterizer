@@ -21,12 +21,12 @@ std::vector<AABB> generateRandomAABBs( uint32_t n = 1 )
     std::uniform_int_distribution<> dist;
     for ( int i = 0; i < n; ++i )
     {
-        int w    = dist( rng, param_type { 20, 50 } );
-        int h    = dist( rng, param_type { 20, 50 } );
+        int w = dist( rng, param_type { 20, 50 } );
+        int h = dist( rng, param_type { 20, 50 } );
         int x = dist( rng, param_type { 0, SCREEN_WIDTH - w } );
         int y = dist( rng, param_type { 0, SCREEN_HEIGHT - h } );
 
-        aabbs.emplace_back( glm::vec2 { x - w, y - h}, glm::vec2 { x + w, y + h } );
+        aabbs.emplace_back( glm::vec2 { x - w, y - h }, glm::vec2 { x + w, y + h } );
     }
 
     return aabbs;
@@ -47,7 +47,7 @@ int main()
     // Setup some random AABBs
     std::vector<AABB> aabbs = generateRandomAABBs();
     // Create a dynamic AABB that will follow the mouse cursor.
-    AABB aabb { { -20, -20 }, { 20, 20 } };
+    AABB   aabb { { -20, -20 }, { 20, 20 } };
     Circle circle { { 0.0f, 0.0f }, 20.0f };
 
     bool freezeAABB = false;
@@ -103,27 +103,27 @@ int main()
         }
 
         // Translate the AABB to the mouse cursor.
-        AABB translatedAABB = aabb + mousePos;
+        AABB   translatedAABB   = aabb + mousePos;
         Circle translatedCircle = circle + mousePos;
 
         // Expand the AABB a bit to make the collision "pixel perfect".
-        AABB collisionAABB { translatedAABB.min - glm::vec3 { 1.0f }, translatedAABB.max + glm::vec3 { 1.0f } };
+        AABB   collisionAABB { translatedAABB.min - glm::vec3 { 1.0f }, translatedAABB.max + glm::vec3 { 1.0f } };
         Circle collisionCircle { translatedCircle.center, translatedCircle.radius + 1.0f };
 
         // Check collisions.
-        bool aabbCollides = false;
+        bool aabbCollides   = false;
         bool circleCollides = false;
 
-        for ( const auto& c : aabbs )
+        for ( const auto& c: aabbs )
         {
-            if ( auto mtv = collisionAABB.overlapXY( c ) )
+            if ( auto mtv = c.overlapXY( collisionAABB ) )
             {
-                translatedAABB += *mtv;
+                collisionAABB += *mtv;
                 aabbCollides = true;
             }
-            if (auto mtv = c.overlap( collisionCircle ))
+            if ( auto mtv = c.overlap( collisionCircle ) )
             {
-                translatedCircle.center += *mtv;
+                collisionCircle.center += *mtv;
                 circleCollides = true;
             }
         }
@@ -134,29 +134,33 @@ int main()
             auto r = rasterizer;
 
             // Draw the static AABB's
-            r.state.color = Color::Blue;
             for ( const auto& aabb: aabbs )
             {
+                r.state.fillMode = FillMode::Solid;
+                r.state.color    = Color::Blue;
+                r.drawAABB( aabb );
+
+                r.state.fillMode = FillMode::WireFrame;
+                r.state.color    = Color::Orange;
                 r.drawAABB( aabb );
             }
 
-            // Draw the translated AABB
+            // Draw the translated AABB either red (colliding) or green (not colliding)
             r.state.fillMode = FillMode::Solid;
             r.state.color    = aabbCollides ? Color::Red : Color::Green;
-            r.drawAABB( translatedAABB );
-
-
-            // Draw the translated Circle
-            r.state.color    = circleCollides ? Color::Magenta : Color::Green;
-            r.drawCircle( translatedCircle );
-
-            // Draw the collision AABB
-            r.state.color    = Color::Yellow;
-            r.state.fillMode = FillMode::WireFrame;
             r.drawAABB( collisionAABB );
 
-            // Draw the collision Circle
+            // Draw the translated Circle either magenta (colliding) or green (not colliding)
+            r.state.color = circleCollides ? Color::Magenta : Color::Green;
             r.drawCircle( collisionCircle );
+
+            // Draw the collision AABB as a yellow wireframe.
+            r.state.color    = Color::Yellow;
+            r.state.fillMode = FillMode::WireFrame;
+            r.drawAABB( translatedAABB );
+
+            // Draw the collision Circle as a yellow wireframe.
+            r.drawCircle( translatedCircle );
         }
 
         if ( timer.totalSeconds() > 1.0 )

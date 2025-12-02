@@ -192,6 +192,16 @@ struct AABB
         return *this;
     }
 
+    /// <summary>
+    /// Translate this AABB by the 2D vector.
+    /// </summary>
+    /// <param name="rhs">The 2D vector to translate the AABB.</param>
+    /// <returns>A reference this AABB after translation.</returns>
+    AABB& operator-=( const glm::vec2& rhs ) noexcept
+    {
+        return operator-=( glm::vec3 { rhs, 0.0f } );
+    }
+
     float left() const noexcept
     {
         return min.x;
@@ -712,9 +722,9 @@ struct AABB
                 float yOverlap = std::min( minY, maxY );
 
                 if ( xOverlap < yOverlap )
-                    mtv = { ( minX < maxX ? -circle.radius : circle.radius ), 0.0f };
+                    mtv = { ( minX < maxX ? -minX - circle.radius : maxX + circle.radius ), 0.0f };
                 else
-                    mtv = { 0.0f, ( minY < maxY ? -circle.radius : circle.radius ) };
+                    mtv = { 0.0f, ( minY < maxY ? -minY - circle.radius : maxY + circle.radius ) };
             }
             else
             {
@@ -768,15 +778,15 @@ struct AABB
 
                 if ( xOverlap < yOverlap && xOverlap < zOverlap )
                 {
-                    mtv = { minX < maxX ? -sphere.radius : sphere.radius, 0.0f, 0.0f };
+                    mtv = { minX < maxX ? -minX - sphere.radius : maxX + sphere.radius, 0.0f, 0.0f };
                 }
                 else if ( yOverlap < zOverlap )
                 {
-                    mtv = { 0.0f, minY < maxY ? -sphere.radius : sphere.radius, 0.0f };
+                    mtv = { 0.0f, minY < maxY ? -minY - sphere.radius : maxY + sphere.radius, 0.0f };
                 }
                 else
                 {
-                    mtv = { 0.0f, 0.0f, minZ < maxZ ? -sphere.radius : sphere.radius };
+                    mtv = { 0.0f, 0.0f, minZ < maxZ ? -minZ - sphere.radius : maxZ + sphere.radius };
                 }
             }
             else
@@ -805,7 +815,7 @@ struct AABB
     /// Returns the MTV if there is an overlap, or an empty optional otherwise.
     /// </summary>
     /// <param name="aabb">The other axis-aligned bounding box to check for overlap.</param>
-    /// <returns>An optional containing the minimum translation vector (glm::vec3) required to resolve the overlap if the AABBs intersect, or an empty optional if there is no overlap.</returns>
+    /// <returns>An optional 3D vector containing the minimum translation vector required to resolve the overlap if the AABBs intersect, or an empty optional if there is no overlap.</returns>
     std::optional<glm::vec3> overlapXYZ( const AABB& aabb ) const noexcept
     {
         glm::vec3 overlap = glm::min( max, aabb.max ) - glm::max( min, aabb.min );
@@ -814,14 +824,14 @@ struct AABB
         {
             if ( overlap.x < overlap.y && overlap.x < overlap.z )
             {
-                return glm::vec3 { ( center().x < aabb.center().x ? -overlap.x : overlap.x ), 0.0f, 0.0f };
+                return glm::vec3 { ( center().x < aabb.center().x ? max.x - aabb.min.x : min.x - aabb.max.x ), 0.0f, 0.0f };
             }
             if ( overlap.y < overlap.z )
             {
-                return glm::vec3 { 0.0f, ( center().y < aabb.center().y ? -overlap.y : overlap.y ), 0.0f };
+                return glm::vec3 { 0.0f, ( center().y < aabb.center().y ? max.y - aabb.min.y : min.y - aabb.max.y ), 0.0f };
             }
 
-            return glm::vec3 { 0.0f, 0.0f, ( center().z < aabb.center().z ? -overlap.z : overlap.z ) };
+            return glm::vec3 { 0.0f, 0.0f, ( center().z < aabb.center().z ? max.z - aabb.min.z : min.z - aabb.max.z ) };
         }
 
         return {};
@@ -840,10 +850,10 @@ struct AABB
         {
             if ( overlap.x < overlap.y )
             {
-                return glm::vec2 { ( center().x < aabb.center().x ? -overlap.x : overlap.x ), 0.0f };
+                return glm::vec2 { ( center().x < aabb.center().x ? max.x - aabb.min.x : min.x - aabb.max.x ), 0.0f };
             }
 
-            return glm::vec2 { 0.0f, ( center().y < aabb.center().y ? -overlap.y : overlap.y ) };
+            return glm::vec2 { 0.0f, ( center().y < aabb.center().y ? max.y - aabb.min.y : min.y - aabb.max.y ) };
         }
 
         return {};
