@@ -1,4 +1,3 @@
-#include "graphics/Image.hpp"
 #include <graphics/Image.hpp>
 #include <iostream>
 
