@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.12...3.33 )
+cmake_minimum_required( VERSION 3.12...4.2 )
 
 configure_file( resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc" @ONLY )
 
