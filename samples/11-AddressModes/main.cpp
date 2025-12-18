@@ -8,11 +8,14 @@
 
 using namespace sr;
 
+constexpr int SCREEN_WIDTH = 768;
+constexpr int SCREEN_HEIGHT = 768;
+
 int main()
 {
-    Window      window( "Clear Screen", 512, 512 );
-    Image       image { 512, 512 };
-    Image       texture { "assets/textures/Lake Louise.png" };
+    Window      window( "Clear Screen", SCREEN_WIDTH, SCREEN_HEIGHT );
+    Image       image { SCREEN_WIDTH, SCREEN_HEIGHT };
+    Image       texture { "assets/textures/256px-UV_Checker.png" };
     Rasterizer  rasterizer;
     Timer       timer;
     AddressMode addressMode = AddressMode::Clamp;
@@ -95,6 +98,9 @@ int main()
             timer.reset();
         }
 
+        fpsText.setColor( Color::Black );
+        rasterizer.drawText( fpsText, 12, 12 );
+        fpsText.setColor( Color::White );
         rasterizer.drawText( fpsText, 10, 10 );
 
         window.clear( Color::Black );
