@@ -410,7 +410,7 @@ constexpr float absolute( float v )
 }
 
 // Source: https://grok.com (March 8th, 2025). "What is the best way to implement a character controller for a 2D platforming game?"
-// Move the current value towards teh target value with a maximum delta.
+// Move the current value towards the target value with a maximum delta.
 constexpr float moveToward( float current, float target, float maxDelta )
 {
     // Calculate the difference between current and target.
