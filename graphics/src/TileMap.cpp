@@ -56,17 +56,17 @@ const std::vector<Vertex2D>& TileMap::getVertexBuffer() const
     {
         m_VertexBuffer.clear();
 
-        uint32_t sW = getSpriteWidth();
-        uint32_t sH = getSpriteHeight();
+        float sW = static_cast<float>( getSpriteWidth() );
+        float sH = static_cast<float>( getSpriteHeight() );
 
         //  Position and UV offsets for each vertex of the quad.
-        glm::ivec2 posOffset[] = {
+        glm::vec2 posOffset[] = {
             { 0, 0 },
             { sW, 0 },
             { sW, sH },
             { 0, sH }
         };
-        glm::ivec2 uvOffset[] = {
+        glm::vec2 uvOffset[] = {
             { 0, 0 },
             { sW - 1, 0 },
             { sW - 1, sH - 1 },
@@ -80,11 +80,11 @@ const std::vector<Vertex2D>& TileMap::getVertexBuffer() const
                 int spriteId = m_SpriteGrid[i * m_Columns + j];
                 if ( spriteId >= 0 )
                 {
-                    auto& sprite = m_SpriteSheet->getSprite( spriteId );
-                    auto  uv     = sprite.getUV();
-                    auto  c      = sprite.getColor();
+                    auto&     sprite = m_SpriteSheet->getSprite( spriteId );
+                    glm::vec2 uv     = sprite.getUV();
+                    auto      c      = sprite.getColor();
                     for ( uint32_t k = 0; k < 4; ++k )
-                        m_VertexBuffer.emplace_back( glm::ivec2 { j * sW, i * sH } + posOffset[k], uv + uvOffset[k], c );
+                        m_VertexBuffer.emplace_back( glm::vec2 { j * sW, i * sH } + posOffset[k], uv + uvOffset[k], c );
                 }
             }
         }

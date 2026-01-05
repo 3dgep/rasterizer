@@ -52,8 +52,8 @@ if(SR_ENABLE_SIMD_SSE4_1)
     target_compile_options(math PUBLIC
         $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-msse4.1>
         $<$<CXX_COMPILER_ID:Intel>:/QxSSE4.1>
-        # MSVC x86 only supports up to /arch:SSE2, x64 has SSE4.1 by default
-        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<NOT:$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>>>:/arch:SSE2>
+        # MSVC requires /arch:AVX to enable SSE4.1
+        $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX>
     )
     message(STATUS "SR: SSE4.1 optimizations enabled for math library")
 endif()

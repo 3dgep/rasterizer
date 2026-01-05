@@ -585,14 +585,6 @@ void Rasterizer::drawQuad( Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3, c
         2, 3, 0
     };
 
-    // Compute valid texture coordinate bounds from vertices to prevent bleeding into tile margins
-    // Vertices have texture coords offset by -0.5 for pixel center sampling
-    const glm::vec2 minVertexTC = glm::min( glm::min( v0.texCoord, v1.texCoord ), glm::min( v2.texCoord, v3.texCoord ) );
-    const glm::vec2 maxVertexTC = glm::max( glm::max( v0.texCoord, v1.texCoord ), glm::max( v2.texCoord, v3.texCoord ) );
-    // Convert from vertex coords (offset by -0.5) to valid sampling range
-    const glm::vec2 minTexCoord = glm::floor( minVertexTC + 0.5f );
-    const glm::vec2 maxTexCoord = glm::ceil( maxVertexTC - 0.5f );
-
     for ( p.y = minY; p.y <= maxY; ++p.y )
     {
         for ( p.x = minX; p.x <= maxX; ++p.x )
@@ -611,11 +603,7 @@ void Rasterizer::drawQuad( Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3, c
                     const Vertex2D& c = verts[i2];
 
                     const glm::vec3 bc       = edge.barycentric();
-                    const glm::vec2 interpTexCoord = sr::math::interpolate( a.texCoord, b.texCoord, c.texCoord, bc );
-
-                    // Use SIMD-optimized round and clamp
-                     glm::ivec2 texCoord;
-                     simd_round_clamp_vec2( &interpTexCoord.x, &minTexCoord.x, &maxTexCoord.x, &texCoord.x );
+                    const glm::vec2 texCoord = sr::math::interpolate( a.texCoord, b.texCoord, c.texCoord, bc );
 
                     const Color color    = interpolate( a.color, b.color, c.color, bc );
                     const Color srcColor = texture.sample( texCoord.x, texCoord.y, samplerState ) * color;
@@ -854,10 +842,10 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
     // Position 0.5 (first pixel center) maps to texture coordinate 0
     // Position 31.5 (last pixel center) maps to texture coordinate 31
     Vertex2D verts[4] = {
-        { { 0, 0 }, { uv.x - 0.5f, uv.y - 0.5f }, color },                              // Top-left.
-        { { size.x, 0 }, { uv.x + size.x - 0.5f, uv.y - 0.5f }, color },                // Top-right.
-        { { size.x, size.y }, { uv.x + size.x - 0.5f, uv.y + size.y - 0.5f }, color },  // Bottom-right.
-        { { 0, size.y }, { uv.x - 0.5f, uv.y + size.y - 0.5f }, color },                // Bottom-left.
+        { { 0, 0 }, { uv.x, uv.y}, color },                              // Top-left.
+        { { size.x, 0 }, { uv.x + size.x, uv.y}, color },                // Top-right.
+        { { size.x, size.y }, { uv.x + size.x, uv.y + size.y}, color },  // Bottom-right.
+        { { 0, size.y }, { uv.x, uv.y + size.y}, color },                // Bottom-left.
     };
 
     // Transform vertices
