@@ -146,7 +146,7 @@ public:
         return m_Rows * getSpriteHeight();
     }
 
-    const std::vector<Vertex2Di>& getVertexBuffer() const;
+    const std::vector<Vertex2D>& getVertexBuffer() const;
 
 private:
     uint32_t m_Columns = 0u;
@@ -155,7 +155,7 @@ private:
     std::shared_ptr<SpriteSheet>   m_SpriteSheet;
     std::vector<int>               m_SpriteGrid;
     mutable bool                   m_VertexBufferDirty = true;
-    mutable std::vector<Vertex2Di> m_VertexBuffer;
+    mutable std::vector<Vertex2D> m_VertexBuffer;
 };
 }  // namespace graphics
 }  // namespace sr

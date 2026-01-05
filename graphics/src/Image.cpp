@@ -84,12 +84,12 @@ Image& Image::operator=( Image&& other ) noexcept
     return *this;
 }
 
-const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexcept
+const Color& Image::sample( int u, int v, const SamplerState& samplerState ) const noexcept
 {
     const int w = m_Width;
     const int h = m_Height;
 
-    switch ( addressMode )
+    switch ( samplerState.addressMode )
     {
     case AddressMode::Wrap:
         // Optimized wrap using bitwise operations for power-of-2, fast mod otherwise
@@ -111,6 +111,10 @@ const Color& Image::sample( int u, int v, AddressMode addressMode ) const noexce
         // Branchless clamping - often faster than std::clamp due to avoided branches
         u = u < 0 ? 0 : ( u >= w ? w - 1 : u );
         v = v < 0 ? 0 : ( v >= h ? h - 1 : v );
+        break;
+    case AddressMode::Border:
+        if ( u < 0 || u >= w || v < 0 || v >= h )
+            return samplerState.borderColor;
         break;
     }
 

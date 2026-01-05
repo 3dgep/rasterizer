@@ -10,6 +10,7 @@ set( INC_FILES
 	inc/graphics/Image.hpp
     inc/graphics/Rasterizer.hpp
     inc/graphics/ResourceManager.hpp
+    inc/graphics/SamplerState.hpp
     inc/graphics/SpriteAnimation.hpp
     inc/graphics/Sprite.hpp
     inc/graphics/SpriteSheet.hpp

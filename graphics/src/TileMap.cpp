@@ -50,7 +50,7 @@ uint32_t TileMap::getSpriteHeight() const noexcept
     return 0u;
 }
 
-const std::vector<Vertex2Di>& TileMap::getVertexBuffer() const
+const std::vector<Vertex2D>& TileMap::getVertexBuffer() const
 {
     if ( m_VertexBufferDirty )
     {

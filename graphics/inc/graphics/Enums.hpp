@@ -14,6 +14,7 @@ enum class AddressMode
     Wrap,    ///< Tile the texture.
     Mirror,  ///< Flip the texture coordinates at integer boundaries.
     Clamp,   ///< Clamp texture coordinates in the range 0..1.
+    Border   ///< Use border color for out-of-range texture coordinates.
 };
 
 /// <summary>

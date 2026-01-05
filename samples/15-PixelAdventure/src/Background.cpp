@@ -42,7 +42,7 @@ void Background::draw( Rasterizer& rasterizer ) const
     };
 
     // Build the tile vertices over the screen
-    std::vector<Vertex2Di> vertices;
+    std::vector<Vertex2D> vertices;
     vertices.reserve( tileRows * tileColumns * 4 );  // 4 vertices per tile.
 
     for ( size_t i = 0; i < tileRows; ++i )
@@ -66,6 +66,6 @@ void Background::draw( Rasterizer& rasterizer ) const
         const auto& v2 = vertices[i * 4 + 2];
         const auto& v3 = vertices[i * 4 + 3];
 
-        rasterizer.drawQuad( v0, v1, v2, v3, *backgroundImage, AddressMode::Wrap );
+        rasterizer.drawQuad( v0, v1, v2, v3, *backgroundImage );
     } );
 }

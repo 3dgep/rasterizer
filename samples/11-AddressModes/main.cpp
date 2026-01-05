@@ -8,18 +8,18 @@
 
 using namespace sr;
 
-constexpr int SCREEN_WIDTH = 768;
+constexpr int SCREEN_WIDTH  = 768;
 constexpr int SCREEN_HEIGHT = 768;
 
 int main()
 {
-    Window      window( "Clear Screen", SCREEN_WIDTH, SCREEN_HEIGHT );
-    Image       image { SCREEN_WIDTH, SCREEN_HEIGHT };
-    Image       texture { "assets/textures/256px-UV_Checker.png" };
-    Rasterizer  rasterizer;
-    Timer       timer;
-    AddressMode addressMode = AddressMode::Clamp;
-    Text        fpsText { Font::DefaultFont, "FPS: 0" };
+    Window       window( "Clear Screen", SCREEN_WIDTH, SCREEN_HEIGHT );
+    Image        image { SCREEN_WIDTH, SCREEN_HEIGHT };
+    Image        texture { "assets/textures/256px-UV_Checker.png" };
+    Rasterizer   rasterizer;
+    Timer        timer;
+    SamplerState samplerState { AddressMode::Wrap, Color::Black, true };
+    Text         fpsText { Font::DefaultFont, "FPS: 0" };
 
     window.setVSync( false );
 
@@ -63,13 +63,16 @@ int main()
                     }
                     break;
                 case SDLK_1:
-                    addressMode = AddressMode::Wrap;
+                    samplerState.addressMode = AddressMode::Wrap;
                     break;
                 case SDLK_2:
-                    addressMode = AddressMode::Mirror;
+                    samplerState.addressMode = AddressMode::Mirror;
                     break;
                 case SDLK_3:
-                    addressMode = AddressMode::Clamp;
+                    samplerState.addressMode = AddressMode::Clamp;
+                    break;
+                case SDLK_4:
+                    samplerState.addressMode = AddressMode::Border;
                     break;
                 }
                 break;
@@ -79,18 +82,18 @@ int main()
         // ImGui drop-down for AddressMode selection
         if ( ImGui::Begin( "Address Mode" ) )
         {
-            static const char* addressModes[] = { "Wrap", "Mirror", "Clamp" };
-            int                currentMode    = static_cast<int>( addressMode );
+            static const char* addressModes[] = { "Wrap", "Mirror", "Clamp", "Border" };
+            int                currentMode    = static_cast<int>( samplerState.addressMode );
             if ( ImGui::Combo( "AddressMode", &currentMode, addressModes, IM_ARRAYSIZE( addressModes ) ) )
             {
-                addressMode = static_cast<AddressMode>( currentMode );
+                samplerState.addressMode = static_cast<AddressMode>( currentMode );
             }
             ImGui::End();
         }
 
         image.clear( Color::Black );
 
-        rasterizer.drawQuad( verts[0], verts[1], verts[2], verts[3], texture, addressMode );
+        rasterizer.drawQuad( verts[0], verts[1], verts[2], verts[3], texture, samplerState );
 
         if ( timer.totalSeconds() > 1.0 )
         {

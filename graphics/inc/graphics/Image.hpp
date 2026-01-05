@@ -1,8 +1,7 @@
 #pragma once
 
 #include "BlendMode.hpp"
-#include "Color.hpp"
-#include "Enums.hpp"
+#include "SamplerState.hpp"
 #include "aligned_unique_ptr.hpp"
 
 #include <math/AABB.hpp>
@@ -142,42 +141,48 @@ struct Image final
     /// </summary>
     /// <param name="u">The U texture coordinate.</param>
     /// <param name="v">The V texture coordinate.</param>
-    /// <param name="addressMode">Determines how to apply out-of-bounds texture coordinates.</param>
+    /// <param name="samplerState">(Optional) Determines how to sample a pixel from the image.</param>
     /// <returns>The color of the texel at the given UV coordinates.</returns>
-    const Color& sample( int u, int v, AddressMode addressMode = AddressMode::Wrap ) const noexcept;
+    const Color& sample( int u, int v, const SamplerState& samplerState = SamplerState{}) const noexcept;
 
     /// <summary>
     /// Sample the image at integer coordinates.
     /// </summary>
     /// <param name="uv">The texture coordinates.</param>
-    /// <param name="addressMode">(Optional) The address mode to use during sampling. Default: AddressMode::Wrap.</param>
+    /// <param name="samplerState">(Optional) Determines how to sample a pixel from the image.</param>
     /// <returns>The color of the texel at the given UV coordinates.</returns>
-    const Color& sample( const glm::ivec2& uv, AddressMode addressMode = AddressMode::Wrap ) const noexcept
+    const Color& sample( const glm::ivec2& uv, const SamplerState& samplerState = SamplerState{} ) const noexcept
     {
-        return sample( uv.x, uv.y, addressMode );
+        return sample( uv.x, uv.y, samplerState );
     }
 
     /// <summary>
     /// Sample the image using normalized texture coordinates (in the range from [0..1]).
     /// </summary>
-    /// <param name="u">The normalized U texture coordinate.</param>
-    /// <param name="v">The normalized V texture coordinate.</param>
-    /// <param name="addressMode">(Optional) The addressing mode to use during sampling. Default: AddressMode::Wrap.</param>
+    /// <param name="u">The U texture coordinate.</param>
+    /// <param name="v">The V texture coordinate.</param>
+    /// <param name="samplerState">(Optional) Determines how to sample a pixel from the image.</param>
     /// <returns>The color of the texel at the given UV texture coordinates.</returns>
-    const Color& sample( float u, float v, AddressMode addressMode = AddressMode::Wrap ) const noexcept
+    const Color& sample( float u, float v, const SamplerState& samplerState = SamplerState{} ) const noexcept
     {
-        return sample( static_cast<int>( u * static_cast<float>( m_Width - 1 ) + 0.5f ), static_cast<int>( v * static_cast<float>( m_Height - 1 ) + 0.5f ), addressMode );  // NOLINT(bugprone-incorrect-roundings)
+        if (samplerState.normalizedCoordinates)
+        {
+            u = u * static_cast<float>( m_Width - 1 ) + 0.5f;  // NOLINT(bugprone-incorrect-roundings)
+            v = v * static_cast<float>( m_Height - 1 ) + 0.5f;  // NOLINT(bugprone-incorrect-roundings)
+        }
+
+        return sample( static_cast<int>( u ), static_cast<int>( v ), samplerState );
     }
 
     /// <summary>
     /// Sample the image using normalized texture coordinates (in the range from [0..1]).
     /// </summary>
     /// <param name="uv">The normalized texture coordinates.</param>
-    /// <param name="addressMode">The addressing mode to use during sampling.</param>
+    /// <param name="samplerState">(Optional) Determines how to sample a pixel from the image.</param>
     /// <returns>The color of the texel at the given UV texture coordinates.</returns>
-    const Color& sample( const glm::vec2& uv, AddressMode addressMode = AddressMode::Wrap ) const noexcept
+    const Color& sample( const glm::vec2& uv, const SamplerState& samplerState = SamplerState{} ) const noexcept
     {
-        return sample( uv.x, uv.y, addressMode );
+        return sample( uv.x, uv.y, samplerState );
     }
 
     /// <summary>
