@@ -1,6 +1,5 @@
 #include <graphics/Rasterizer.hpp>
 #include <graphics/Vertex.hpp>
-#include <math/Intrinsics.hpp>
 
 #include <SDL3_ttf/SDL_ttf.h>
 
@@ -43,6 +42,7 @@ struct Edge2D
         // orient2D(a, b, p) = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)
         // Adding 0.5 to p.x and p.y means we add: 0.5 * (b.x - a.x - b.y + a.y)
         w0 += ( dX + dY ) / 2;  // Half-pixel offset
+
         w = w0;
     }
 
@@ -842,10 +842,10 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
     // Position 0.5 (first pixel center) maps to texture coordinate 0
     // Position 31.5 (last pixel center) maps to texture coordinate 31
     Vertex2D verts[4] = {
-        { { 0, 0 }, { uv.x, uv.y}, color },                              // Top-left.
-        { { size.x, 0 }, { uv.x + size.x, uv.y}, color },                // Top-right.
-        { { size.x, size.y }, { uv.x + size.x, uv.y + size.y}, color },  // Bottom-right.
-        { { 0, size.y }, { uv.x, uv.y + size.y}, color },                // Bottom-left.
+        { { 0, 0 }, { uv.x, uv.y }, color },                              // Top-left.
+        { { size.x, 0 }, { uv.x + size.x, uv.y }, color },                // Top-right.
+        { { size.x, size.y }, { uv.x + size.x, uv.y + size.y }, color },  // Bottom-right.
+        { { 0, size.y }, { uv.x, uv.y + size.y }, color },                // Bottom-left.
     };
 
     // Transform vertices
@@ -909,10 +909,13 @@ void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform
         return;
     }
 
+#if 1
+
     auto image = tileMap.getImage();
     if ( !image )
         return;
 
+    
     auto& blendMode = tileMap.getBlendMode();
 
     auto vb = tileMap.getVertexBuffer();
@@ -946,4 +949,25 @@ void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform
 
         drawQuad( v0, v1, v2, v3, *image, SamplerState {}, blendMode );
     } );
+#else
+    int rows    = static_cast<int>( tileMap.getRows() );
+    int columns = static_cast<int>( tileMap.getColumns() );
+
+    for ( int i = 0; i < rows; ++i )
+    {
+        for ( int j = 0; j < columns; ++j )
+        {
+            if ( auto& sprite = tileMap.getSprite( j, i ) )
+            {
+                glm::mat3 t {
+                    1, 0, 0,
+                    0, 1, 0,
+                    j * tileMap.getSpriteWidth(), i * tileMap.getSpriteHeight(), 1
+                };
+                drawSprite( sprite, transform * t );
+            }
+        }
+    }
+
+#endif
 }
