@@ -75,6 +75,9 @@ union Color
     /// <param name="a">(optional) The alpha component. Default: 1.0f</param>
     /// <returns>The color.</returns>
     static constexpr Color fromFloats( float r, float g, float b, float a = 1.0f ) noexcept;
+    static constexpr Color fromFloats( const glm::vec4& vec ) noexcept;
+
+    glm::vec4 toFloats() const noexcept;
 
     /// <summary>
     /// Construct a color from a 32-bit unsigned integer (usually expressed as a hexadecimal value).
@@ -530,6 +533,21 @@ constexpr Color Color::fromFloats( float r, float g, float b, float a ) noexcept
     const auto alpha = static_cast<uint8_t>( a * 255.0f );
 
     return { red, green, blue, alpha };
+}
+
+constexpr Color Color::fromFloats( const glm::vec4& vec ) noexcept
+{
+    return fromFloats( vec.r, vec.g, vec.b, vec.a );
+}
+
+inline glm::vec4 Color::toFloats() const noexcept
+{
+    return glm::vec4(
+        static_cast<float>( channels.r ) / 255.0f,
+        static_cast<float>( channels.g ) / 255.0f,
+        static_cast<float>( channels.b ) / 255.0f,
+        static_cast<float>( channels.a ) / 255.0f
+    );
 }
 
 constexpr Color Color::fromHex( uint32_t color ) noexcept

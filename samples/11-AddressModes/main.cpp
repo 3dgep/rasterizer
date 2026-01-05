@@ -4,7 +4,12 @@
 #include <graphics/Rasterizer.hpp>
 #include <graphics/Window.hpp>
 
+#include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
+
+#include <algorithm>
+#include <execution>
+#include <ranges>
 
 using namespace sr;
 
@@ -88,12 +93,55 @@ int main()
             {
                 samplerState.addressMode = static_cast<AddressMode>( currentMode );
             }
+            // Add a color picker for the border color
+            glm::vec4 borderColor = samplerState.borderColor.toFloats();
+            if ( ImGui::ColorEdit3( "Border Color", glm::value_ptr( borderColor ) ) )
+            {
+                samplerState.borderColor = Color::fromFloats( borderColor );
+            }
+
             ImGui::End();
         }
 
         image.clear( Color::Black );
 
+#if 0
         rasterizer.drawQuad( verts[0], verts[1], verts[2], verts[3], texture, samplerState );
+#else
+        // Draw the quad in tiles to improve rendering performance.
+        const int tileSize = 16;
+        const int tilesX   = ( w + tileSize - 1 ) / tileSize;
+        const int tilesY   = ( h + tileSize - 1 ) / tileSize;
+        auto      range    = std::views::iota( 0, tilesY * tilesX );
+
+        std::for_each( std::execution::par_unseq, range.begin(), range.end(), [tilesX, &rasterizer, &verts, &texture, &samplerState]( int i ) {
+            const int x = i % tilesX;
+            const int y = i / tilesX;
+            auto      r = rasterizer;
+
+            r.state.viewport = Viewport {
+                static_cast<float>( x * tileSize ),
+                static_cast<float>( y * tileSize ),
+                tileSize, tileSize
+            };
+            r.drawQuad( verts[0], verts[1], verts[2], verts[3], texture, samplerState );
+        } );
+
+        //for ( int y = 0; y < tilesY; ++y )
+        //{
+        //    for ( int x = 0; x < tilesX; ++x )
+        //    {
+        //        auto r           = rasterizer;
+        //        r.state.viewport = Viewport {
+        //            static_cast<float>( x * tileSize ),
+        //            static_cast<float>( y * tileSize ),
+        //            tileSize, tileSize
+        //        };
+        //        r.drawQuad( verts[0], verts[1], verts[2], verts[3], texture, samplerState );
+        //    }
+        //}
+
+#endif
 
         if ( timer.totalSeconds() > 1.0 )
         {
