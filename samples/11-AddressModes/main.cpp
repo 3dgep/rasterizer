@@ -18,7 +18,7 @@ constexpr int SCREEN_HEIGHT = 768;
 
 int main()
 {
-    Window       window( "Clear Screen", SCREEN_WIDTH, SCREEN_HEIGHT );
+    Window       window( "Address Modes", SCREEN_WIDTH, SCREEN_HEIGHT );
     Image        image { SCREEN_WIDTH, SCREEN_HEIGHT };
     Image        texture { "assets/textures/256px-UV_Checker.png" };
     Rasterizer   rasterizer;

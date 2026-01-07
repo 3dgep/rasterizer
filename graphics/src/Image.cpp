@@ -163,10 +163,10 @@ void Image::resize( uint32_t width, uint32_t height )
     if ( m_Pixels && std::cmp_equal( m_Width, width ) && std::cmp_equal( m_Height, height ) )
         return;
 
-    m_Width  = static_cast<int>( width );
-    m_Height = static_cast<int>( height );
-
     m_Pixels = make_aligned_unique<Color[], 64>( static_cast<size_t>( width ) * height );
+
+    m_Width    = static_cast<int>( width );
+    m_Height   = static_cast<int>( height );
 
     widthInfo  = AddressingInfo { m_Width };
     heightInfo = AddressingInfo { m_Height };
