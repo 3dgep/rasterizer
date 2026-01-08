@@ -33,6 +33,7 @@ set( SRC_FILES
     src/Image.cpp
     src/Rasterizer.cpp
     src/ResourceManager.cpp
+    src/SamplerState.cpp
     src/Sprite.cpp
     src/SpriteAnimation.cpp
     src/SpriteSheet.cpp

@@ -57,8 +57,8 @@ int main()
 
         // Triangle vertices.
         glm::vec2 p0 = { w * 0.5f + dx, h * 0.25f };
-        glm::vec2 p1 = { w * 0.25f + dx, h * 0.75f };
-        glm::vec2 p2 = { w * 0.75f + dx, h * 0.75f };
+        glm::vec2 p1 = { w * 0.75f + dx, h * 0.75f };
+        glm::vec2 p2 = { w * 0.25f + dx, h * 0.75f };
 
         image.clear( Color::White );
 

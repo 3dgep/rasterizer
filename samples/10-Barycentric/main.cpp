@@ -108,7 +108,7 @@ void drawTexturedTriangle( Rasterizer& rasterizer, const Vertex2D& v0, const Ver
 
                 glm::vec2 texCoord = v0.texCoord * bc0 + v1.texCoord * bc1 + v2.texCoord * bc2;
                 // Color     color    = Color { texCoord.x, texCoord.y, 0.0f };
-                Color color = texture.sample( texCoord );
+                Color color = texture.sample( texCoord, SamplerState::ClampNormalized );
                 image->plot<false, false>( x, y, color );
             }
         }

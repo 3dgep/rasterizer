@@ -391,6 +391,10 @@ void Rasterizer::drawTriangle( Vertex2D v0, Vertex2D v1, Vertex2D v2, const Imag
     // Edge setup.
     Edge2D e = Edge2D { v0.position, v1.position, v2.position, p };
 
+    // Compute valid texture coordinate bounds from vertices to prevent bleeding into tile margins
+    const glm::vec2 minTexCoord = glm::min( glm::min( v0.texCoord, v1.texCoord ), v2.texCoord );
+    const glm::vec2 maxTexCoord = glm::max( glm::max( v0.texCoord, v1.texCoord ), v2.texCoord );
+
     for ( p.y = minY; p.y <= maxY; p.y++ )
     {
         for ( p.x = minX; p.x <= maxX; p.x++ )
@@ -398,7 +402,7 @@ void Rasterizer::drawTriangle( Vertex2D v0, Vertex2D v1, Vertex2D v2, const Imag
             if ( e.inside() )
             {
                 const glm::vec3  bc       = e.barycentric();
-                const glm::ivec2 texCoord = glm::round( math::interpolate( v0.texCoord, v1.texCoord, v2.texCoord, bc ) );
+                const glm::ivec2 texCoord = glm::clamp( math::interpolate( v0.texCoord, v1.texCoord, v2.texCoord, bc ), minTexCoord, maxTexCoord );
                 const Color      color    = interpolate( v0.color, v1.color, v2.color, bc );
                 const Color      srcColor = texture.sample( texCoord.x, texCoord.y, samplerState ) * color;
                 image->plot<false>( p.x, p.y, srcColor, blendMode );
@@ -585,6 +589,10 @@ void Rasterizer::drawQuad( Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3, c
         2, 3, 0
     };
 
+    // Compute valid texture coordinate bounds from vertices to prevent bleeding into tile margins
+    const glm::vec2 minTexCoord = glm::min( glm::min( v0.texCoord, v1.texCoord ), glm::min( v2.texCoord, v3.texCoord ) );
+    const glm::vec2 maxTexCoord = glm::max( glm::max( v0.texCoord, v1.texCoord ), glm::max( v2.texCoord, v3.texCoord ) );
+
     for ( p.y = minY; p.y <= maxY; ++p.y )
     {
         for ( p.x = minX; p.x <= maxX; ++p.x )
@@ -603,7 +611,7 @@ void Rasterizer::drawQuad( Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3, c
                     const Vertex2D& c = verts[i2];
 
                     const glm::vec3 bc       = edge.barycentric();
-                    const glm::vec2 texCoord = sr::math::interpolate( a.texCoord, b.texCoord, c.texCoord, bc );
+                    const glm::vec2 texCoord = glm::clamp( math::interpolate( a.texCoord, b.texCoord, c.texCoord, bc ), minTexCoord, maxTexCoord );
 
                     const Color color    = interpolate( a.color, b.color, c.color, bc );
                     const Color srcColor = texture.sample( texCoord.x, texCoord.y, samplerState ) * color;
@@ -915,7 +923,6 @@ void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform
     if ( !image )
         return;
 
-    
     auto& blendMode = tileMap.getBlendMode();
 
     auto vb = tileMap.getVertexBuffer();
