@@ -49,9 +49,10 @@ set( IMGUI_INC_FILES
     ../externals/imgui/imconfig.h
     ../externals/imgui/imgui.h
     ../externals/imgui/imgui_internal.h
-    ../externals/imgui/imstb_rectpack.h
-    ../externals/imgui/imstb_textedit.h
-    ../externals/imgui/imstb_truetype.h
+#    ../externals/imgui/imstb_rectpack.h
+#    ../externals/imgui/imstb_textedit.h
+#    ../externals/imgui/imstb_truetype.h
+    ../externals/imgui/misc/freetype/imgui_freetype.h
 )
 
 set( IMGUI_SRC_FILES 
@@ -60,6 +61,7 @@ set( IMGUI_SRC_FILES
     ../externals/imgui/imgui_draw.cpp
     ../externals/imgui/imgui_tables.cpp
     ../externals/imgui/imgui_widgets.cpp
+    ../externals/imgui/misc/freetype/imgui_freetype.cpp
 )
 
 set( IMGUI_BACKEND_FILES
@@ -89,6 +91,7 @@ add_library( graphics STATIC ${ALL_FILES} )
 add_library( sr::graphics ALIAS graphics )
 
 target_compile_features( graphics PUBLIC cxx_std_23 )
+target_compile_definitions( graphics PRIVATE IMGUI_ENABLE_FREETYPE ) # Use Freetype for font rendering.
 
 # Warning level 4 and treat warnings as errors.
 target_compile_options( graphics
@@ -103,5 +106,5 @@ target_include_directories( graphics
 )
 
 target_link_libraries( graphics
-    PUBLIC sr::math SDL3_ttf::SDL3_ttf SDL3::SDL3
+    PUBLIC sr::math Freetype::Freetype SDL3_ttf::SDL3_ttf SDL3::SDL3 # Include Freetype so Imgui can find ft2build.h.
 )
