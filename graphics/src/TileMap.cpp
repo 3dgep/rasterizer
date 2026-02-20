@@ -125,7 +125,7 @@ int TileMap::getSpriteId( size_t x, size_t y ) const
 
 const Sprite& TileMap::getSprite( size_t x, size_t y ) const
 {
-    int spriteId = getSpriteId( x, y );
+    int spriteId = operator[]( x, y );
     if ( spriteId >= 0 )
         return m_SpriteSheet->getSprite( spriteId );
 
