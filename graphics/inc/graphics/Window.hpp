@@ -2,6 +2,7 @@
 
 #include "Color.hpp"
 #include "Image.hpp"
+#include "Renderer.hpp"
 
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_render.h>
@@ -31,6 +32,8 @@ public:
     explicit operator bool() const;
 
     void create( std::string_view title, int width, int height, bool fullScreen = false );
+
+    Renderer getRenderer() const;
 
     int getWidth() const;
 

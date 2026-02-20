@@ -17,7 +17,7 @@ struct SDL_Context
 {
     SDL_Context()
     {
-        if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_GAMEPAD )  )
+        if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_GAMEPAD ) )
         {
             SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL: %s", SDL_GetError() );
             throw std::runtime_error( SDL_GetError() );
@@ -137,6 +137,11 @@ void Window::create( std::string_view title, int width, int height, bool fullscr
     ImGui_ImplSDLRenderer3_Init( m_Renderer );
 
     beginFrame();
+}
+
+Renderer Window::getRenderer() const
+{
+    return { m_Renderer };
 }
 
 int Window::getWidth() const

@@ -9,12 +9,14 @@ set( INC_FILES
     inc/graphics/Font.hpp
 	inc/graphics/Image.hpp
     inc/graphics/Rasterizer.hpp
+    inc/graphics/Renderer.hpp
     inc/graphics/ResourceManager.hpp
     inc/graphics/SamplerState.hpp
     inc/graphics/SpriteAnimation.hpp
     inc/graphics/Sprite.hpp
     inc/graphics/SpriteSheet.hpp
     inc/graphics/Text.hpp
+    inc/graphics/Texture.hpp
     inc/graphics/TileMap.hpp
     inc/graphics/Vertex.hpp
 	inc/graphics/Window.hpp
@@ -32,12 +34,14 @@ set( SRC_FILES
     src/Font.cpp
     src/Image.cpp
     src/Rasterizer.cpp
+    src/Renderer.cpp
     src/ResourceManager.cpp
     src/SamplerState.cpp
     src/Sprite.cpp
     src/SpriteAnimation.cpp
     src/SpriteSheet.cpp
     src/Text.cpp
+    src/Texture.cpp
     src/TileMap.cpp
 	src/Window.cpp
     src/stb_image.cpp
