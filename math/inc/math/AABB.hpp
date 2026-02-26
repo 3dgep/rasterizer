@@ -352,16 +352,6 @@ struct AABB
     }
 
     /// <summary>
-    /// Check to see if another AABB intersects with this one.
-    /// </summary>
-    /// <param name="aabb">The other AABB to check for intersection.</param>
-    /// <returns>`true` if the AABBs intersect, `false` otherwise.</returns>
-    bool intersect( const AABB& aabb ) const noexcept
-    {
-        return all( lessThanEqual( min, aabb.max ) ) && all( greaterThanEqual( max, aabb.min ) );
-    }
-
-    /// <summary>
     /// Check to see if this is a valid AABB.
     /// The min point of a valid AABB is less than the max point.
     /// </summary>
@@ -599,6 +589,16 @@ struct AABB
     bool clip( glm::vec2& p0, glm::vec2& p1 ) const
     {
         return clip( p0.x, p0.y, p1.x, p1.y );
+    }
+
+    /// <summary>
+    /// Check to see if another AABB intersects with this one.
+    /// </summary>
+    /// <param name="aabb">The other AABB to check for intersection.</param>
+    /// <returns>`true` if the AABBs intersect, `false` otherwise.</returns>
+    [[nodiscard]] bool intersect( const AABB& aabb ) const noexcept
+    {
+        return all( lessThanEqual( min, aabb.max ) ) && all( greaterThanEqual( max, aabb.min ) );
     }
 
     /// <summary>
