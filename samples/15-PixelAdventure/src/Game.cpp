@@ -15,6 +15,7 @@ Game::Game( uint32_t screenWidth, uint32_t screenHeight )
 , arial20 { "assets/fonts/arial.ttf", 20 }
 , arial24 { "assets/fonts/arial.ttf", 24 }
 {
+    timer.setMaxTimeStep( 1.0 / 10.0 );  // Cap the maximum time step to prevent spiral of death.
 
     rasterizer.state.colorTarget = &image;
     rasterizer.state.cullMode    = CullMode::None;  // Disable culling.
@@ -232,7 +233,7 @@ void Game::update()
     }
 #endif
 
-    //timer.limitFPS( 30 );
+    // timer.limitFPS( 5 );
 }
 
 void Game::processEvent( const SDL_Event& _event )
@@ -396,17 +397,14 @@ void Game::loadLevel( size_t levelId, size_t characterId )
 
 void Game::drawFPS()
 {
-    static double      totalTime = 0.0;
-    static uint64_t    frames    = 0;
-    static std::string fps       = "FPS: 0";
+    static Timer       timer;
+    static std::string fps = "FPS: 0";
 
-    ++frames;
-    totalTime += timer.elapsedSeconds();
-    if ( totalTime > 1.0 )
+    timer.tick();
+    if ( timer.totalSeconds() > 1.0 )
     {
-        fps       = std::format( "FPS: {:.3f}", static_cast<double>( frames ) / totalTime );
-        frames    = 0;
-        totalTime = 0.0;
+        fps = std::format( "FPS: {:.3f}", timer.FPS() );
+        timer.reset();
     }
 
     auto r        = rasterizer;

@@ -29,6 +29,14 @@ public:
     double getFixedTimeStep() const noexcept;
 
     /// <summary>
+    /// Sets the maximum time step to prevent spiral of death when using a fixed time step.
+    /// This is a safety measure to prevent the timer from trying to catch up too much if the application was paused or running very slowly.
+    /// </summary>
+    /// <param name="seconds">The maximum time step in seconds.</param>
+    void   setMaxTimeStep( double seconds ) noexcept;
+    double getMaxTimeStep() const noexcept;
+
+    /// <summary>
     /// Tick the timer. Pass an optional update function that will be called with the delta time (in seconds).
     /// If a fixed time step is set, the update function will be called with a fixed time step until the accumulated time is less than the fixed time step.
     /// If no fixed time step is set, the update function will be called once with the actual elapsed time since the last tick.
@@ -36,7 +44,7 @@ public:
     void tick( const UpdateFunc& f = {} ) noexcept;
 
     /// <summary>
-    /// Reset the timer. This will set the elapsed and total time to zero, reset the tick count, 
+    /// Reset the timer. This will set the elapsed and total time to zero, reset the tick count,
     /// and set the internal time points to the current time.
     /// </summary>
     void reset() noexcept;
@@ -77,6 +85,10 @@ private:
     double fixedTimeStep = 0.0;
     // The accumulated time since the last update when using a fixed time step.
     double accumulatedTime = 0.0;
+    // The maximum time step to prevent spiral of death when using a fixed time step.
+    // This is a safety measure to prevent the timer from trying to catch up too much if the application was paused or running very slowly.
+    // By default, don't limit the time step, but users can set this to a reasonable value (e.g., 0.25 seconds) to prevent issues.
+    double maxTimeStep = std::numeric_limits<double>::max();
 
     uint64_t ticks = 0;
 };

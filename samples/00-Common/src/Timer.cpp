@@ -21,6 +21,16 @@ double Timer::getFixedTimeStep() const noexcept
     return fixedTimeStep;
 }
 
+void Timer::setMaxTimeStep( double seconds ) noexcept
+{
+    maxTimeStep = seconds;
+}
+
+double Timer::getMaxTimeStep() const noexcept
+{
+    return maxTimeStep;
+}
+
 void Timer::reset() noexcept
 {
     t0         = clock::now();
@@ -41,6 +51,9 @@ void Timer::tick( const UpdateFunc& f ) noexcept
     elapsedTime = delta.count();
     totalTime += elapsedTime;
     ++ticks;
+
+    // Clamp the elapsed time to the maximum time step to prevent spiral of death.
+    elapsedTime = std::min( elapsedTime, maxTimeStep );
 
     if ( fixedTimeStep > 0.0 )
     {
