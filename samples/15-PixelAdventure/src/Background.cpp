@@ -16,9 +16,9 @@ Background::Background( const std::filesystem::path& filePath, const glm::vec2& 
 , scrollSpeed { scrollSpeed }
 {}
 
-void Background::update( const Timer& timer )
+void Background::update( float elapsedTime )
 {
-    textureOffset -= scrollDirection * scrollSpeed * static_cast<float>( timer.elapsedSeconds() );
+    textureOffset -= scrollDirection * scrollSpeed * elapsedTime;
 }
 
 void Background::draw( Rasterizer& rasterizer ) const

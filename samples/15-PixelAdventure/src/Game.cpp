@@ -11,6 +11,7 @@ using namespace input;
 
 Game::Game( uint32_t screenWidth, uint32_t screenHeight )
 : image { screenWidth, screenHeight }
+, timer { physicsTick }
 , arial20 { "assets/fonts/arial.ttf", 20 }
 , arial24 { "assets/fonts/arial.ttf", 24 }
 {
@@ -147,16 +148,9 @@ void Game::update()
     if ( paused )
         return;
 
-    timer.tick();
+    timer.tick( [&]( float elapsedTime ) {
+        currentBackground->update( elapsedTime );
 
-    // Update and draw the background.
-    // image.clear( Color::Black );
-    currentBackground->update( timer );
-    currentBackground->draw( rasterizer );
-
-    auto elapsedTime = static_cast<float>( timer.elapsedSeconds() );
-    do
-    {
         // Update the input state.
         Input::update();
 
@@ -174,9 +168,8 @@ void Game::update()
             onRestartClicked();
         }
 
-        currentLevel.update( std::min( elapsedTime, physicsTick ) );
-        elapsedTime -= physicsTick;
-    } while ( elapsedTime > 0.0f );
+        currentLevel.update( elapsedTime );
+    } );
 
     // Check to see if the player died
     if ( currentLevel.getPlayer().isDead() )
@@ -185,6 +178,7 @@ void Game::update()
         onRestartClicked();
     }
 
+    currentBackground->draw( rasterizer );
     currentLevel.draw( rasterizer );
 
     // Draw the buttons
@@ -238,7 +232,7 @@ void Game::update()
     }
 #endif
 
-    //    timer.limitFPS( 30 );
+    //timer.limitFPS( 30 );
 }
 
 void Game::processEvent( const SDL_Event& _event )
