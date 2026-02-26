@@ -64,7 +64,7 @@ private:
     bool                     paused = false;
 
     // Maximum tick time for physics.
-    const float physicsTick = 1.0f / 60.0f;
+    static constexpr double physicsTick = 1.0 / 60.0;
 
     // The game rectangle in the Window's coordinate frame.
     // Used for translating mouse coordinates.

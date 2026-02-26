@@ -4,16 +4,26 @@
 #include <thread>
 
 using std::chrono::duration;
-using std::chrono::high_resolution_clock;
 
-Timer::Timer() noexcept
+Timer::Timer( double fixedTimeStep ) noexcept
+: fixedTimeStep( fixedTimeStep )
 {
     reset();
 }
 
+void Timer::setFixedTimeStep( double seconds ) noexcept
+{
+    fixedTimeStep = seconds;
+}
+
+double Timer::getFixedTimeStep() const noexcept
+{
+    return fixedTimeStep;
+}
+
 void Timer::reset() noexcept
 {
-    t0         = high_resolution_clock::now();
+    t0         = clock::now();
     t1         = t0;
     beginFrame = t0;
 
@@ -22,48 +32,65 @@ void Timer::reset() noexcept
     ticks       = 0;
 }
 
-void Timer::tick() noexcept
+void Timer::tick( const UpdateFunc& f ) noexcept
 {
-    t1                                       = high_resolution_clock::now();
-    const duration<double, std::micro> delta = t1 - t0;
-    t0                                       = t1;
+    t1                           = clock::now();
+    const duration<double> delta = t1 - t0;
+    t0                           = t1;
 
     elapsedTime = delta.count();
     totalTime += elapsedTime;
     ++ticks;
+
+    if ( fixedTimeStep > 0.0 )
+    {
+        accumulatedTime += elapsedTime;
+        while ( accumulatedTime > fixedTimeStep )
+        {
+            if ( f )
+                f( fixedTimeStep );
+
+            accumulatedTime -= fixedTimeStep;
+        }
+    }
+    else
+    {
+        if ( f )
+            f( elapsedTime );
+    }
 }
 
 double Timer::elapsedSeconds() const noexcept
 {
-    return elapsedTime * 1e-6;
+    return elapsedTime;
 }
 double Timer::elapsedMilliseconds() const noexcept
 {
-    return elapsedTime * 1e-3;
+    return elapsedTime * 1e3;
 }
 
 double Timer::elapsedMicroseconds() const noexcept
 {
-    return elapsedTime;
+    return elapsedTime * 1e6;
 }
 
 double Timer::totalSeconds() const noexcept
 {
-    return totalTime * 1e-6;
+    return totalTime;
 }
 
 double Timer::totalMilliseconds() const noexcept
 {
-    return totalTime * 1e-3;
+    return totalTime * 1e3;
 }
 double Timer::totalMicroseconds() const noexcept
 {
-    return totalTime;
+    return totalTime * 1e6;
 }
 
 double Timer::FPS() const noexcept
 {
-    return static_cast<double>( ticks ) / totalSeconds();
+    return static_cast<double>( ticks ) / totalTime;
 }
 
 void Timer::limitFPS( int fps ) const noexcept
@@ -76,7 +103,7 @@ void Timer::limitFPS( double seconds ) const noexcept
     limitFPS( duration<double>( std::max( 0.0, seconds ) ) );
 }
 
-void Timer::limitFPS( const high_resolution_clock::duration& duration ) const noexcept
+void Timer::limitFPS( const clock::duration& duration ) const noexcept
 {
     const auto endTime = beginFrame + duration;
 

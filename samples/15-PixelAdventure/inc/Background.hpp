@@ -27,8 +27,8 @@ public:
     /// <summary>
     /// Update the scrolling background.
     /// </summary>
-    /// <param name="timer">The timer used to update the texture offset.</param>
-    void update( const Timer& timer );
+    /// <param name="elapsedTime">The elapsed time since the last update.</param>
+    void update( float elapsedTime );
 
     /// <summary>
     /// Draw this background using the rasterizer.
