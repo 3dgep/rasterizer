@@ -251,38 +251,19 @@ void Window::resize( int width, int height )
     }
 }
 
-glm::vec2 Window::clientToImage( float _x, float _y, const Image& image ) const noexcept
+glm::vec2 Window::clientToImage( float x, float y, const Image& image ) const noexcept
 {
     const float imageWidth   = static_cast<float>( image.getWidth() );
     const float imageHeight  = static_cast<float>( image.getHeight() );
     const float windowWidth  = static_cast<float>( m_Width );
     const float windowHeight = static_cast<float>( m_Height );
 
-    const float aspectRatio = imageWidth / imageHeight;
-    const float scaleWidth  = windowWidth / imageWidth;
-    const float scaleHeight = windowHeight / imageHeight;
+    const float scale = std::min( windowWidth / imageWidth, windowHeight / imageHeight );
 
-    float width, height;
+    const float offsetX = ( windowWidth - imageWidth * scale ) / 2.0f;
+    const float offsetY = ( windowHeight - imageHeight * scale ) / 2.0f;
 
-    if ( scaleWidth < scaleHeight )
-    {
-        width  = windowWidth;
-        height = width / aspectRatio;  // Scale height according to aspect ratio.
-    }
-    else
-    {
-        height = windowHeight;
-        width  = height * aspectRatio;  // Scale width according to aspect ratio.
-    }
-
-    // Compute the offset into image space.
-    float x = ( windowWidth - width ) / 2.0f;
-    float y = ( windowHeight - height ) / 2.0f;
-    // Compute scale.
-    float sx = imageWidth / width;
-    float sy = imageHeight / height;
-
-    return { ( _x - x ) * sx, ( _y - y ) * sy };
+    return { ( x - offsetX ) / scale, ( y - offsetY ) / scale };
 }
 
 void Window::clear( const Color& color )
