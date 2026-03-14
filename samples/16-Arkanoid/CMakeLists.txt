@@ -53,6 +53,24 @@ add_executable( ${TARGET_NAME} ${ALL_FILES} )
 
 target_include_directories( ${TARGET_NAME} PRIVATE inc )
 
-target_link_libraries( ${TARGET_NAME} 
+target_link_libraries( ${TARGET_NAME}
     PRIVATE sr::graphics sr::math input::SDL3 00-Common Audio::Audio LDtkLoader::LDtkLoader
+)
+
+# Packaging
+set( CPACK_ARCHIVE_${TARGET_NAME}_FILE_NAME "Arkanoid-${PROJECT_VERSION}" )
+
+install( TARGETS ${TARGET_NAME}
+    RUNTIME DESTINATION .
+    COMPONENT ${TARGET_NAME}
+)
+
+install( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../assets/Arkanoid
+    DESTINATION assets
+    COMPONENT ${TARGET_NAME}
+)
+
+install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/../assets/fonts/ARCADE_N.ttf
+    DESTINATION assets/fonts
+    COMPONENT ${TARGET_NAME}
 )

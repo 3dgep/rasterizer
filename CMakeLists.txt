@@ -33,3 +33,9 @@ if(SR_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif(SR_BUILD_TESTS)
+
+# CPack configuration
+set( CPACK_GENERATOR "ZIP" )
+set( CPACK_ARCHIVE_COMPONENT_INSTALL ON )
+set( CPACK_COMPONENTS_GROUPING ONE_PER_GROUP )
+include( CPack )

@@ -65,5 +65,47 @@
             "configurePreset": "ninja",
             "configuration": "Release"
         }
+    ],
+    "packagePresets": [
+        {
+            "name": "vs18-PixelAdventure",
+            "displayName": "15-PixelAdventure (VS 2026)",
+            "configurePreset": "vs18",
+            "configurations": ["Release"],
+            "generators": ["ZIP"],
+            "variables": {
+                "CPACK_COMPONENTS_ALL": "15-PixelAdventure"
+            }
+        },
+        {
+            "name": "vs18-Arkanoid",
+            "displayName": "16-Arkanoid (VS 2026)",
+            "configurePreset": "vs18",
+            "configurations": ["Release"],
+            "generators": ["ZIP"],
+            "variables": {
+                "CPACK_COMPONENTS_ALL": "16-Arkanoid"
+            }
+        },
+        {
+            "name": "vs17-PixelAdventure",
+            "displayName": "15-PixelAdventure (VS 2022)",
+            "configurePreset": "vs17",
+            "configurations": ["Release"],
+            "generators": ["ZIP"],
+            "variables": {
+                "CPACK_COMPONENTS_ALL": "15-PixelAdventure"
+            }
+        },
+        {
+            "name": "vs17-Arkanoid",
+            "displayName": "16-Arkanoid (VS 2022)",
+            "configurePreset": "vs17",
+            "configurations": ["Release"],
+            "generators": ["ZIP"],
+            "variables": {
+                "CPACK_COMPONENTS_ALL": "16-Arkanoid"
+            }
+        }
     ]
 }

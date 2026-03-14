@@ -35,6 +35,41 @@ add_executable( ${TARGET_NAME} ${ALL_FILES} )
 
 target_include_directories( ${TARGET_NAME} PRIVATE inc )
 
-target_link_libraries( ${TARGET_NAME} 
+target_link_libraries( ${TARGET_NAME}
     PRIVATE sr::graphics sr::math input::SDL3 00-Common Audio::Audio LDtkLoader::LDtkLoader
+)
+
+# Packaging
+set( CPACK_ARCHIVE_${TARGET_NAME}_FILE_NAME "PixelAdventure-${PROJECT_VERSION}" )
+
+install( TARGETS ${TARGET_NAME}
+    RUNTIME DESTINATION .
+    COMPONENT ${TARGET_NAME}
+)
+
+install( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../assets/Pixel\ Adventure
+    DESTINATION assets
+    COMPONENT ${TARGET_NAME}
+)
+
+install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/../assets/fonts/arial.ttf
+    DESTINATION assets/fonts
+    COMPONENT ${TARGET_NAME}
+)
+
+install( FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/../assets/sounds/8-bit-powerup.mp3
+    ${CMAKE_CURRENT_SOURCE_DIR}/../assets/sounds/jump.mp3
+    ${CMAKE_CURRENT_SOURCE_DIR}/../assets/sounds/death.wav
+    ${CMAKE_CURRENT_SOURCE_DIR}/../assets/sounds/wood_break_1.wav
+    ${CMAKE_CURRENT_SOURCE_DIR}/../assets/sounds/wood_break_2.wav
+    ${CMAKE_CURRENT_SOURCE_DIR}/../assets/sounds/wood_break_3.wav
+    ${CMAKE_CURRENT_SOURCE_DIR}/../assets/sounds/wood_break_4.wav
+    ${CMAKE_CURRENT_SOURCE_DIR}/../assets/sounds/wood_break_5.wav
+    ${CMAKE_CURRENT_SOURCE_DIR}/../assets/sounds/wood_break_6.wav
+    "${CMAKE_CURRENT_SOURCE_DIR}/../assets/sounds/Sweet Treats.ogg"
+    ${CMAKE_CURRENT_SOURCE_DIR}/../assets/sounds/Puzzles.ogg
+    ${CMAKE_CURRENT_SOURCE_DIR}/../assets/sounds/Radiohead.ogg
+    DESTINATION assets/sounds
+    COMPONENT ${TARGET_NAME}
 )
