@@ -107,5 +107,43 @@
                 "CPACK_COMPONENTS_ALL": "16-Arkanoid"
             }
         }
+    ],
+    "workflowPresets": [
+        {
+            "name": "vs18-PixelAdventure",
+            "displayName": "15-PixelAdventure (VS 2026)",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "vs18"
+                },
+                {
+                    "type": "build",
+                    "name": "vs18-release"
+                },
+                {
+                    "type": "package",
+                    "name": "vs18-PixelAdventure"
+                }
+            ]
+        },
+        {
+            "name": "vs17-PixelAdventure",
+            "displayName": "15-PixelAdventure (VS 2022)",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "vs17"
+                },
+                {
+                    "type": "build",
+                    "name": "vs17-release"
+                },
+                {
+                    "type": "package",
+                    "name": "vs17-PixelAdventure"
+                }
+            ]
+        }
     ]
 }
