@@ -21,6 +21,7 @@ int main()
     Image         texture { "assets/textures/Smiley.png" };
     Rasterizer    rasterizer;
     PrimitiveType primitiveType    = PrimitiveType::Triangle;
+    SamplerState  sampler { AddressMode::Clamp, Color::Black, true };
     Font          font             = Font { 30 };
     Text          clockwise        = Text( font, "Clockwise", Color::Black );
     Text          counterClockwise = Text( font, "Counter\nclockwise", Color::Black );
@@ -85,7 +86,7 @@ int main()
                 const Vertex2D v1 = { { 350, 450 }, { 1.0f, 1.0f } };
                 const Vertex2D v2 = { { 50, 450 }, { 0.0f, 1.0f } };
 
-                rasterizer.drawTriangle( v0, v1, v2, texture );
+                rasterizer.drawTriangle( v0, v1, v2, texture, sampler );
             }
             {
                 // Draw a counter-clockwise triangle on the right.
@@ -93,7 +94,7 @@ int main()
                 const Vertex2D v1 = { { 450, 450 }, { 1.0f, 1.0f } };
                 const Vertex2D v2 = { { 750, 450 }, { 0.0f, 1.0f } };
 
-                rasterizer.drawTriangle( v0, v1, v2, texture );
+                rasterizer.drawTriangle( v0, v1, v2, texture, sampler );
             }
         }
         break;
@@ -106,7 +107,7 @@ int main()
                 const Vertex2D v2 = { { 350, 450 }, { 1.0f, 1.0f } };
                 const Vertex2D v3 = { { 50, 450 }, { 0.0f, 1.0f } };
 
-                rasterizer.drawQuad( v0, v1, v2, v3, texture );
+                rasterizer.drawQuad( v0, v1, v2, v3, texture, sampler );
             }
             {
                 // Draw a counter-clockwise quad on the right.
@@ -115,7 +116,7 @@ int main()
                 const Vertex2D v2 = { { 750, 450 }, { 1.0f, 1.0f } };
                 const Vertex2D v3 = { { 750, 150 }, { 1.0f, 0.0f } };
 
-                rasterizer.drawQuad( v0, v1, v2, v3, texture );
+                rasterizer.drawQuad( v0, v1, v2, v3, texture, sampler );
             }
         }
         break;

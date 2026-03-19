@@ -402,7 +402,7 @@ void Rasterizer::drawTriangle( Vertex2D v0, Vertex2D v1, Vertex2D v2, const Imag
             if ( e.inside() )
             {
                 const glm::vec3  bc       = e.barycentric();
-                const glm::ivec2 texCoord = glm::clamp( math::interpolate( v0.texCoord, v1.texCoord, v2.texCoord, bc ), minTexCoord, maxTexCoord );
+                const glm::vec2 texCoord = glm::clamp( math::interpolate( v0.texCoord, v1.texCoord, v2.texCoord, bc ), minTexCoord, maxTexCoord );
                 const Color      color    = interpolate( v0.color, v1.color, v2.color, bc );
                 const Color      srcColor = texture.sample( texCoord.x, texCoord.y, samplerState ) * color;
                 image->plot<false>( p.x, p.y, srcColor, blendMode );
