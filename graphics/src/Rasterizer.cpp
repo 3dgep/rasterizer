@@ -22,21 +22,36 @@ struct Edge2D
     glm::ivec3 dY;    // Y deltas.
     glm::ivec3 w0;    // Starting weights per row.
     glm::ivec3 w;     // Current weight.
-    float      area;  // Area of the triangle (used to compute the barycentric coordinates).
+    float      invArea;  // Reciprocal of the area of the triangle (used to compute the barycentric coordinates).
 
     Edge2D( const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2, const glm::ivec2& p )
     : dX { p2.x - p1.x, p0.x - p2.x, p1.x - p0.x }
     , dY { p1.y - p2.y, p2.y - p0.y, p0.y - p1.y }
     {
-        area = static_cast<float>( orient2D( p0, p1, p2 ) );
+        invArea     = 1.0f / static_cast<float>( orient2D( p0, p1, p2 ) );
+        int sign = invArea < 0.0f ? -1 : 1;  // Determine the sign of the area to handle back-facing triangles.
 
-        int bias0 = isTopLeft( p1, p2 ) ? 0 : -1;
-        int bias1 = isTopLeft( p2, p0 ) ? 0 : -1;
-        int bias2 = isTopLeft( p0, p1 ) ? 0 : -1;
+        invArea *= static_cast<float>(sign);  // Make invArea positive for consistent weight calculations.
+        dX *= sign;
+        dY *= sign;
 
-        w0.x = orient2D( p1, p2, p ) + bias0;
-        w0.y = orient2D( p2, p0, p ) + bias1;
-        w0.z = orient2D( p0, p1, p ) + bias2;
+        int bias0, bias1, bias2;
+        if ( sign > 0 )
+        {
+            bias0 = isTopLeft( p1, p2 ) ? 0 : -1;
+            bias1 = isTopLeft( p2, p0 ) ? 0 : -1;
+            bias2 = isTopLeft( p0, p1 ) ? 0 : -1;
+        }
+        else
+        {
+            bias0 = isTopLeft( p2, p1 ) ? 0 : -1;
+            bias1 = isTopLeft( p0, p2 ) ? 0 : -1;
+            bias2 = isTopLeft( p1, p0 ) ? 0 : -1;
+        }
+
+        w0.x = orient2D( p1, p2, p ) * sign + bias0;
+        w0.y = orient2D( p2, p0, p ) * sign + bias1;
+        w0.z = orient2D( p0, p1, p ) * sign + bias2;
 
         // If using pixel centers, add half-pixel offset (0.5, 0.5)
         // orient2D(a, b, p) = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)
@@ -64,8 +79,8 @@ struct Edge2D
 
     glm::vec3 barycentric() const
     {
-        float u = static_cast<float>( w.x ) / area;
-        float v = static_cast<float>( w.y ) / area;
+        float u = static_cast<float>( w.x ) * invArea;
+        float v = static_cast<float>( w.y ) * invArea;
 
         return { u, v, 1.0f - ( u + v ) };
     }
@@ -300,10 +315,6 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
             break;
         }
 
-        // Swap vertices if triangle is not counter-clockwise.
-        if ( !ccw )
-            std::swap( p1, p2 );
-
         auto aabb         = image->getAABB().clamped( AABB { state.viewport } );
         auto triangleAABB = AABB::fromTriangle( p0, p1, p2 );
 
@@ -368,10 +379,6 @@ void Rasterizer::drawTriangle( Vertex2D v0, Vertex2D v1, Vertex2D v2, const Imag
         break;
     }
 
-    // Swap vertices if triangle is not counter-clockwise.
-    if ( !ccw )
-        std::swap( v1, v2 );
-
     const BlendMode blendMode    = _blendMode.value_or( state.blendMode );
     auto            aabb         = image->getAABB().clamped( AABB { state.viewport } );
     auto            triangleAABB = AABB::fromTriangle( v0.position, v1.position, v2.position );
@@ -401,10 +408,10 @@ void Rasterizer::drawTriangle( Vertex2D v0, Vertex2D v1, Vertex2D v2, const Imag
         {
             if ( e.inside() )
             {
-                const glm::vec3  bc       = e.barycentric();
+                const glm::vec3 bc       = e.barycentric();
                 const glm::vec2 texCoord = glm::clamp( math::interpolate( v0.texCoord, v1.texCoord, v2.texCoord, bc ), minTexCoord, maxTexCoord );
-                const Color      color    = interpolate( v0.color, v1.color, v2.color, bc );
-                const Color      srcColor = texture.sample( texCoord.x, texCoord.y, samplerState ) * color;
+                const Color     color    = interpolate( v0.color, v1.color, v2.color, bc );
+                const Color     srcColor = texture.sample( texCoord.x, texCoord.y, samplerState ) * color;
                 image->plot<false>( p.x, p.y, srcColor, blendMode );
             }
 
@@ -467,13 +474,6 @@ void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ive
         case CullMode::None:
             break;
         }
-
-        // Swap vertices if triangles are not counter-clockwise.
-        if ( !ccw1 )
-            std::swap( p0, p1 );
-
-        if ( !ccw2 )
-            std::swap( p2, p3 );
 
         int minX = static_cast<int>( dstAABB.min.x );
         int minY = static_cast<int>( dstAABB.min.y );
@@ -545,13 +545,6 @@ void Rasterizer::drawQuad( Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3, c
     case CullMode::None:
         break;
     }
-
-    // Swap vertices if triangles are not counter-clockwise.
-    if ( !ccw1 )
-        std::swap( v0, v1 );
-
-    if ( !ccw2 )
-        std::swap( v2, v3 );
 
     BlendMode blendMode = _blendMode.value_or( state.blendMode );
     AABB      dstAABB   = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
