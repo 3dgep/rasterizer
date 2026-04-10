@@ -6,7 +6,7 @@
 
 using namespace sr;
 
-Button::Button( std::string_view text, Font font, const Color& color, const RectF& rect, std::function<void()> onClick )
+Button::Button( std::string_view text, std::shared_ptr<const Font> font, const Color& color, const RectF& rect, std::function<void()> onClick )
 : onClick { std::move( onClick ) }
 , buttonText { std::move( font ), text, color }
 {

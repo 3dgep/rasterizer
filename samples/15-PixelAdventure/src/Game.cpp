@@ -12,8 +12,8 @@ using namespace input;
 Game::Game( uint32_t screenWidth, uint32_t screenHeight )
 : image { screenWidth, screenHeight }
 , timer { physicsTick }
-, arial20 { "assets/fonts/arial.ttf", 20 }
-, arial24 { "assets/fonts/arial.ttf", 24 }
+, arial20 { std::make_shared<Font>( "assets/fonts/arial.ttf", 20.0f ) }
+, arial24 { std::make_shared<Font>( "assets/fonts/arial.ttf", 24.0f ) }
 {
     timer.setMaxTimeStep( 1.0 / 10.0 );  // Cap the maximum time step to prevent spiral of death.
 
@@ -149,7 +149,7 @@ void Game::update()
     if ( paused )
         return;
 
-    timer.tick( [&]( float elapsedTime ) {
+    timer.tick( [&]( double elapsedTime ) {
         currentBackground->update( elapsedTime );
 
         // Update the input state.
@@ -169,7 +169,7 @@ void Game::update()
             onRestartClicked();
         }
 
-        currentLevel.update( elapsedTime );
+        currentLevel.update( static_cast<float>( elapsedTime ) );
     } );
 
     // Check to see if the player died

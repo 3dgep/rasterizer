@@ -227,8 +227,8 @@ public:
     /// <param name="text">The text string to be drawn.</param>
     /// <param name="x">The x-coordinate where the text will be drawn.</param>
     /// <param name="y">The y-coordinate where the text will be drawn.</param>
-    void drawText( const Font& font, std::string_view text, int x, int y );
-    void drawText( const Font& font, std::wstring_view text, int x, int y );
+    void drawText( const std::shared_ptr<const Font>& font, std::string_view text, int x, int y );
+    void drawText( const std::shared_ptr<const Font>& font, std::wstring_view text, int x, int y );
 
 private:
     /// <summary>

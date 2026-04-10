@@ -26,8 +26,8 @@ public:
     };
 
     Text() = default;
-    explicit Text( const Font& font, std::string_view text = {}, const Color& color = Color::White );
-    explicit Text( const Font& font, std::wstring_view text = {}, const Color& color = Color::White );
+    explicit Text( std::shared_ptr<const Font> font, std::string_view text = {}, const Color& color = Color::White );
+    explicit Text( std::shared_ptr<const Font> font, std::wstring_view text = {}, const Color& color = Color::White );
     Text( const Text& ) = delete;
     Text( Text&& ) noexcept;
     ~Text();
@@ -99,14 +99,14 @@ public:
     /// Get the font used by the text object.
     /// </summary>
     /// <returns>The font used by the text object.</returns>
-    const Font& getFont() const;
+    std::shared_ptr<const Font> getFont() const;
 
     /// <summary>
     /// Sets the font used by the text object.
     /// </summary>
     /// <param name="font">A reference to the Font object to be used for rendering the text.</param>
     /// <returns>A reference to the modified Text object.</returns>
-    Text& setFont( const Font& font );
+    Text& setFont( std::shared_ptr<const Font> font );
 
     /// <summary>
     /// Get the position of the text object.
@@ -154,7 +154,7 @@ public:
     static TTF_TextEngine* TextEngine();
 
 private:
-    const Font* m_Font = nullptr;
+    std::shared_ptr<const Font> m_Font;
     TTF_Text*   m_Text = nullptr;
 };
 }  // namespace graphics

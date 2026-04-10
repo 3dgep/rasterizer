@@ -16,15 +16,15 @@ enum class PrimitiveType
 
 int main()
 {
-    Window        window( "Culling", 800, 600 );
-    Image         image { 800, 600 };
-    Image         texture { "assets/textures/Smiley.png" };
-    Rasterizer    rasterizer;
-    PrimitiveType primitiveType    = PrimitiveType::Triangle;
-    SamplerState  sampler { AddressMode::Clamp, Color::Black, true };
-    Font          font             = Font { 30 };
-    Text          clockwise        = Text( font, "Clockwise", Color::Black );
-    Text          counterClockwise = Text( font, "Counter\nclockwise", Color::Black );
+    Window                window( "Culling", 800, 600 );
+    Image                 image { 800, 600 };
+    Image                 texture { "assets/textures/Smiley.png" };
+    Rasterizer            rasterizer;
+    PrimitiveType         primitiveType = PrimitiveType::Triangle;
+    SamplerState          sampler { AddressMode::Clamp, Color::Black, true };
+    std::shared_ptr<Font> font             = std::make_shared<Font>( 30.0f );
+    Text                  clockwise        = Text( font, "Clockwise", Color::Black );
+    Text                  counterClockwise = Text( font, "Counter\nclockwise", Color::Black );
 
     Timer timer;
     Text  fpsText { Font::DefaultFont, "FPS: 0", Color::Black };

@@ -9,7 +9,6 @@
 #include <locale>
 #include <utility>
 
-
 using namespace sr::graphics;
 
 namespace
@@ -87,8 +86,8 @@ TTF_TextEngine* Text::TextEngine()
     return context.textEngine;
 }
 
-Text::Text( const Font& font, std::string_view text, const Color& color )
-: m_Font { &font }
+Text::Text( std::shared_ptr<const Font> font, std::string_view text, const Color& color )
+: m_Font { std::move(font) }
 {
     m_Text = TTF_CreateText( TextEngine(), m_Font->getTTF_Font(), text.data(), text.length() );
 
@@ -101,8 +100,8 @@ Text::Text( const Font& font, std::string_view text, const Color& color )
     setColor( color );
 }
 
-Text::Text( const Font& font, std::wstring_view text, const Color& color )
-: Text { font, wstringToUTF8( text ), color }
+Text::Text( std::shared_ptr<const Font> font, std::wstring_view text, const Color& color )
+: Text { std::move(font), wstringToUTF8( text ), color }
 {}
 
 Text::Text( Text&& other ) noexcept
@@ -200,9 +199,9 @@ Text::Direction Text::getDirection() const
     return translateDirection( TTF_GetTextDirection( m_Text ) );
 }
 
-Text& Text::setFont( const Font& font )
+Text& Text::setFont( std::shared_ptr<const Font> font )
 {
-    m_Font = &font;
+    m_Font = std::move(font);
 
     if ( !TTF_SetTextFont( m_Text, m_Font->getTTF_Font() ) )
     {
@@ -212,10 +211,9 @@ Text& Text::setFont( const Font& font )
     return *this;
 }
 
-const Font& Text::getFont() const
+std::shared_ptr<const Font> Text::getFont() const
 {
-    assert( m_Font != nullptr );
-    return *m_Font;
+    return m_Font;
 }
 
 Text& Text::setPosition( const glm::ivec2& pos )

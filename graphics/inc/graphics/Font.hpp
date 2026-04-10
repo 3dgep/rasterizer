@@ -63,7 +63,7 @@ public:
         ExtraBlack = 950
     };
 
-    static const Font DefaultFont;
+    static std::shared_ptr<const Font> DefaultFont;
 
     explicit Font( float size = 12.0f );
     explicit Font( const std::filesystem::path& fontFile, float size = 12.0f );

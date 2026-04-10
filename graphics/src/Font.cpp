@@ -174,7 +174,7 @@ struct SDL_ttf_context
 
 }  // namespace
 
-const Font Font::DefaultFont {};
+std::shared_ptr<const Font> Font::DefaultFont = std::make_shared<Font>();
 
 Font::Font( float size )
 {

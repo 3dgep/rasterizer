@@ -86,12 +86,12 @@ struct Edge2D
     }
 };
 
-void Rasterizer::drawText( const Font& font, std::string_view text, int x, int y )
+void Rasterizer::drawText( const std::shared_ptr<const Font>& font, std::string_view text, int x, int y )
 {
     drawText( Text { font, text, state.color }, x, y );
 }
 
-void Rasterizer::drawText( const Font& font, std::wstring_view text, int x, int y )
+void Rasterizer::drawText( const std::shared_ptr<const Font>& font, std::wstring_view text, int x, int y )
 {
     drawText( Text { font, text, state.color }, x, y );
 }
