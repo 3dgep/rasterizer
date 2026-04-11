@@ -15,8 +15,8 @@ int main()
     Image      image { 800, 600 };
     Rasterizer rasterizer;
     Timer      timer;
-    Text       fpsText { Font::DefaultFont, "FPS: 0" };
-    Text       mousePosText { Font::DefaultFont, "0, 0" };
+    Text       fpsText { "FPS: 0" };
+    Text       mousePosText { "0, 0" };
 
     // Setup the rasterizer's render target state.
     rasterizer.state.colorTarget = &image;
@@ -73,7 +73,7 @@ int main()
         image.clear( Color::Black );
 
         rasterizer.drawCircle( imagePos, 7 );
-        rasterizer.drawText( mousePosText, imagePos.x - mousePosText.getWidth() / 2, imagePos.y - mousePosText.getHeight() - 10 );
+        rasterizer.drawText( std::format( "({}, {})", static_cast<int>( imagePos.x ), static_cast<int>( imagePos.y ) ), imagePos.x - mousePosText.getFillWidth() / 2, imagePos.y - mousePosText.getFillHeight() - 10 );
 
         {
             auto r = rasterizer;
@@ -96,7 +96,7 @@ int main()
                 r.state.fillMode = FillMode::Solid;
                 r.drawCircle( p, 30 );
                 r.state.color = Color::White;
-                r.drawText( Font::DefaultFont, std::format( "#{}", t.id ), p.x - 10, p.y - 5);
+                r.drawText( std::format( "#{}", t.id ), p.x - 10, p.y - 5);
             }
         }
 

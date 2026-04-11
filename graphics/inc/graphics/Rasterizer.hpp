@@ -30,6 +30,7 @@ public:
     struct State
     {
         Color     color                 = Color::White;     ///< Blend color.
+        Color     outlineColor          = Color::Black;     ///< Outline color used for drawing text.
         FillMode  fillMode              = FillMode::Solid;  ///< Primitive filling mode (solid or wireframe).
         CullMode  cullMode              = CullMode::Back;   ///< Determines which triangles are not drawn.
         bool      frontCounterClockwise = true;             ///< If true, triangles are considered front-facing if their winding order is counter-clockwise.
@@ -42,7 +43,7 @@ public:
     /// Clear the color target.
     /// </summary>
     /// <param name="color">The color to clear the color target to. Default: Black.</param>
-    void clear( const Color& color = Color::Black );
+    void clear( std::optional<Color> color = {} );
 
     /// <summary>
     /// Draws a line from (x0, y0) to (x1, y1) using the current rasterizer state.<br>
@@ -213,12 +214,20 @@ public:
     }
 
     /// <summary>
+    /// Draws text at the specified screen coordinates.
+    /// </summary>
+    /// <param name="text">The text string to draw.</param>
+    /// <param name="x">The x-coordinate where the text will be drawn.</param>
+    /// <param name="y">The y-coordinate where the text will be drawn.</param>
+    void drawText( std::string_view text, int x, int y );
+
+    /// <summary>
     /// Draws the specified text at the given coordinates, if provided.
     /// </summary>
     /// <param name="text">The text object to be drawn.</param>
-    /// <param name="x">The x-coordinate where the text should be drawn.</param>
-    /// <param name="y">The y-coordinate where the text should be drawn.</param>
-    void drawText( const Text& text, int x = 0, int y = 0 );
+    /// <param name="x">The x-coordinate where the text will be drawn.</param>
+    /// <param name="y">The y-coordinate where the text will be drawn.</param>
+    void drawText( const Text& text, int x, int y );
 
     /// <summary>
     /// Draws the specified text at the given coordinates using the provided font.
@@ -227,8 +236,7 @@ public:
     /// <param name="text">The text string to be drawn.</param>
     /// <param name="x">The x-coordinate where the text will be drawn.</param>
     /// <param name="y">The y-coordinate where the text will be drawn.</param>
-    void drawText( const std::shared_ptr<const Font>& font, std::string_view text, int x, int y );
-    void drawText( const std::shared_ptr<const Font>& font, std::wstring_view text, int x, int y );
+    void drawText( const Font& font, std::string_view text, int x, int y );
 
 private:
     /// <summary>

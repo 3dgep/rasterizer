@@ -18,7 +18,7 @@ int main()
     Image       image { 800, 600 };
     Rasterizer  rasterizer;
     Timer       timer;
-    Text        fpsText { Font::DefaultFont, "FPS: 0" };
+    Text        fpsText { "FPS: 0" };
     Sprite      ball { "assets/textures/ball.png", BlendMode::AlphaDiscard };
     Transform2D transform { { image.getWidth() / 2, image.getHeight() / 2 } };
     transform.setAnchor( { ball.getWidth() / 2, ball.getHeight() / 2 } );

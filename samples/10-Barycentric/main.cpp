@@ -130,7 +130,7 @@ int main()
     Image      image { 800, 600 };
     Image      texture { "assets/textures/Smiley.png" };
     Rasterizer rasterizer;
-    Text       fpsText( Font::DefaultFont, "FPS: 0" );
+    Text       fpsText( "FPS: 0" );
     Timer      timer;
 
     Vertex2D initialVerts[] = {

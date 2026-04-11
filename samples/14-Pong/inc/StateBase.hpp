@@ -23,7 +23,7 @@ protected:
     Paddle m_P1Paddle;
     Paddle m_P2Paddle;
 
-    std::shared_ptr<sr::Font> m_ScoreFont;
+    sr::Font m_ScoreFont;
 
     sr::Text m_P1Score;
     sr::Text m_P2Score;

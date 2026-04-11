@@ -74,8 +74,8 @@ private:
     glm::vec2 mousePos;
 
     // Fonts.
-    std::shared_ptr<sr::graphics::Font> arial20;
-    std::shared_ptr<sr::graphics::Font> arial24;
+    sr::graphics::Font arial20;
+    sr::graphics::Font arial24;
 
     // Backgrounds
     using BackgroundList = std::vector<Background>;

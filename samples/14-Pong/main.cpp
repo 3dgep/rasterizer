@@ -20,7 +20,7 @@ int main()
     Game       game { image.getWidth(), image.getHeight() };
 
     Timer timer;
-    Text  fpsText { Font::DefaultFont, "FPS: 0" };
+    Text  fpsText { "FPS: 0" };
 
     rasterizer.state.colorTarget = &image;
 

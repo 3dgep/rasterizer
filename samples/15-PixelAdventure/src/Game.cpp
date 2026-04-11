@@ -12,8 +12,8 @@ using namespace input;
 Game::Game( uint32_t screenWidth, uint32_t screenHeight )
 : image { screenWidth, screenHeight }
 , timer { physicsTick }
-, arial20 { std::make_shared<Font>( "assets/fonts/arial.ttf", 20.0f ) }
-, arial24 { std::make_shared<Font>( "assets/fonts/arial.ttf", 24.0f ) }
+, arial20 { "assets/fonts/arial.ttf", 20.0f }
+, arial24 { "assets/fonts/arial.ttf", 24.0f }
 {
     timer.setMaxTimeStep( 1.0 / 10.0 );  // Cap the maximum time step to prevent spiral of death.
 

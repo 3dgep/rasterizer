@@ -18,6 +18,7 @@ set( INC_FILES
     inc/graphics/TileMap.hpp
     inc/graphics/Vertex.hpp
 	inc/graphics/Window.hpp
+    inc/SDL_ttf_context.hpp
     inc/hash.hpp
     inc/stb_easy_font.h
     inc/stb_image.h
@@ -40,6 +41,7 @@ set( SRC_FILES
     src/Text.cpp
     src/TileMap.cpp
 	src/Window.cpp
+    src/SDL_ttf_context.cpp
     src/stb_image.cpp
     src/stb_image_write.cpp
     src/stb_truetype.cpp

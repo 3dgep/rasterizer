@@ -31,7 +31,7 @@ int main()
     Image      image { SCREEN_WIDTH, SCREEN_HEIGHT };
     Rasterizer rasterizer;
     Timer      timer;
-    Text       fpsText( Font::DefaultFont, "FPS: 0" );
+    Text       fpsText( "FPS: 0" );
 
     // Setup the rasterizer's render target state.
     rasterizer.state.colorTarget = &image;

@@ -16,18 +16,18 @@ enum class PrimitiveType
 
 int main()
 {
-    Window                window( "Culling", 800, 600 );
-    Image                 image { 800, 600 };
-    Image                 texture { "assets/textures/Smiley.png" };
-    Rasterizer            rasterizer;
-    PrimitiveType         primitiveType = PrimitiveType::Triangle;
-    SamplerState          sampler { AddressMode::Clamp, Color::Black, true };
-    std::shared_ptr<Font> font             = std::make_shared<Font>( 30.0f );
-    Text                  clockwise        = Text( font, "Clockwise", Color::Black );
-    Text                  counterClockwise = Text( font, "Counter\nclockwise", Color::Black );
+    Window        window( "Culling", 800, 600 );
+    Image         image { 800, 600 };
+    Image         texture { "assets/textures/Smiley.png" };
+    Rasterizer    rasterizer;
+    PrimitiveType primitiveType = PrimitiveType::Triangle;
+    SamplerState  sampler { AddressMode::Clamp, Color::Black, true };
+    Font          font             = Font( 30.0f );
+    Text          clockwise        = Text( font, "Clockwise", Color::Black );
+    Text          counterClockwise = Text( font, "Counter\nclockwise", Color::Black );
 
     Timer timer;
-    Text  fpsText { Font::DefaultFont, "FPS: 0", Color::Black };
+    Text  fpsText { "FPS: 0" };
 
     // Setup the rasterizer's render target state.
     rasterizer.state.colorTarget = &image;
@@ -123,9 +123,9 @@ int main()
         }
 
         // "Clockwise" on the left.
-        rasterizer.drawText( clockwise, 50, 75 );
+        rasterizer.drawText( "Clockwise", 50, 75 );
         // "Counter-clockwise" on the right.
-        rasterizer.drawText( counterClockwise, 450, 60 );
+        rasterizer.drawText( "Counter\nClockwise", 450, 60 );
 
         if ( timer.totalSeconds() > 1.0 )
         {

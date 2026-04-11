@@ -475,5 +475,5 @@ void GameState::drawPlay( sr::graphics::Rasterizer& rasterizer )
 void GameState::drawGameOver( sr::graphics::Rasterizer& rasterizer )
 {
     // Draw "Game Over" in the center of the screen.
-    rasterizer.drawText( m_GameOverText, ( m_ScreenWidth - m_GameOverText.getWidth() ) / 2, ( m_ScreenHeight - m_GameOverText.getHeight() ) / 2 );
+    rasterizer.drawText( m_GameOverText, ( m_ScreenWidth - m_GameOverText.getFillWidth() ) / 2, ( m_ScreenHeight - m_GameOverText.getFillHeight() ) / 2 );
 }

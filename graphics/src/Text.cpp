@@ -1,24 +1,15 @@
-#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING // This silences the deprecation warnings in the <codecvt> file. I'm not sure how to provide string conversion in a platform independent way.
-
 #include <graphics/Text.hpp>
+#include <SDL_ttf_context.hpp>
 
 #include <SDL3_ttf/SDL_ttf.h>
 
-#include <codecvt>
 #include <iostream>
-#include <locale>
 #include <utility>
 
 using namespace sr::graphics;
 
 namespace
 {
-std::string wstringToUTF8( std::wstring_view str )
-{
-    static std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
-    return conv.to_bytes( str.data(), str.data() + str.size() );
-}
-
 TTF_Direction translateDirection( Text::Direction direction )
 {
     switch ( direction )
@@ -56,75 +47,62 @@ Text::Direction translateDirection( TTF_Direction direction )
     return Text::Direction::Invalid;
 }
 
-struct SDL_ttf_context
-{
-    SDL_ttf_context()
-    {
-        if ( !TTF_Init() )
-        {
-            SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL_ttf: %s", SDL_GetError() );
-            throw std::runtime_error( SDL_GetError() );
-        }
-
-        textEngine = TTF_CreateSurfaceTextEngine();
-    }
-
-    ~SDL_ttf_context()
-    {
-        TTF_DestroySurfaceTextEngine( textEngine );
-        TTF_Quit();
-    }
-
-    TTF_TextEngine* textEngine = nullptr;
-};
-
 }  // namespace
 
-TTF_TextEngine* Text::TextEngine()
+void Text::TextDeleter::operator()( TTF_Text* text ) const
 {
-    static SDL_ttf_context context;
-    return context.textEngine;
+    TTF_DestroyText( text );
 }
 
-Text::Text( std::shared_ptr<const Font> font, std::string_view text, const Color& color )
-: m_Font { std::move(font) }
-{
-    m_Text = TTF_CreateText( TextEngine(), m_Font->getTTF_Font(), text.data(), text.length() );
+Text::Text( std::string_view text, const Color& fillColor, const Color& outlineColor )
+: Text( Font::Default, text, fillColor, outlineColor )
+{}
 
-    if ( !m_Text )
+Text::Text( const Font& font, std::string_view text, const Color& fillColor, const Color& outlineColor )
+: m_Font { font }
+{
+    context = SDL_ttf_context::get();
+
+    m_FillText.reset( TTF_CreateText( SDL_ttf_context::get()->textEngine, m_Font.getTTF_FillFont(), text.data(), text.length() ) );
+    m_OutlineText.reset( TTF_CreateText( SDL_ttf_context::get()->textEngine, m_Font.getTTF_OutlineFont(), text.data(), text.length() ) );
+
+    if ( !m_FillText )
     {
         std::cerr << "Failed to create Text: " << SDL_GetError();
         return;
     }
 
-    setColor( color );
+    setFillColor( fillColor );
+    setOutlineColor( outlineColor );
 }
 
-Text::Text( std::shared_ptr<const Font> font, std::wstring_view text, const Color& color )
-: Text { std::move(font), wstringToUTF8( text ), color }
+Text::Text(const Text& copy)
+: Text(copy.getFont(), copy.getText(), copy.getFillColor(), copy.getOutlineColor() )
 {}
 
-Text::Text( Text&& other ) noexcept
-{
-    m_Font = std::exchange( other.m_Font, nullptr );
-    m_Text = std::exchange( other.m_Text, nullptr );
-}
+Text::Text( Text&& ) noexcept            = default;
+Text::~Text()                            = default;
 
-Text::~Text()
-{
-    TTF_DestroyText( m_Text );
-}
-
-Text& Text::operator=( Text&& other ) noexcept
+Text& Text::operator=( const Text& other )
 {
     if ( &other == this )
         return *this;
 
-    m_Font = std::exchange( other.m_Font, nullptr );
-    m_Text = std::exchange( other.m_Text, nullptr );
+    context    = other.context;
+
+    auto& font = other.getFont();
+    auto  text = other.getText();
+
+    m_FillText.reset( TTF_CreateText( SDL_ttf_context::get()->textEngine, font.getTTF_FillFont(), text.data(), text.size() ) );
+    m_OutlineText.reset( TTF_CreateText( SDL_ttf_context::get()->textEngine, font.getTTF_OutlineFont(), text.data(), text.size() ) );
+
+    setFillColor( other.getFillColor() );
+    setOutlineColor( other.getOutlineColor() );
 
     return *this;
 }
+
+Text& Text::operator=( Text&& ) noexcept = default;
 
 Text& Text::operator=( std::string_view string )
 {
@@ -138,7 +116,7 @@ Text& Text::operator+=( std::string_view string )
 
 Text& Text::setText( std::string_view string )
 {
-    if ( !TTF_SetTextString( m_Text, string.data(), string.length() ) )
+    if ( !TTF_SetTextString( m_FillText.get(), string.data(), string.length() ) || !TTF_SetTextString( m_OutlineText.get(), string.data(), string.length() ) )
     {
         std::cerr << "Failed to set text string: " << SDL_GetError() << std::endl;
     }
@@ -148,14 +126,14 @@ Text& Text::setText( std::string_view string )
 
 std::string_view Text::getText() const
 {
-    if ( m_Text )
-        return m_Text->text;
+    if ( m_FillText )
+        return m_FillText->text;
     return {};
 }
 
 Text& Text::appendString( std::string_view string )
 {
-    if ( !TTF_AppendTextString( m_Text, string.data(), string.length() ) )
+    if ( !TTF_AppendTextString( m_FillText.get(), string.data(), string.length() ) || !TTF_AppendTextString( m_OutlineText.get(), string.data(), string.length() ) )
     {
         std::cerr << "Failed to append string to text: " << SDL_GetError() << std::endl;
     }
@@ -163,10 +141,10 @@ Text& Text::appendString( std::string_view string )
     return *this;
 }
 
-Color Text::getColor() const
+Color Text::getFillColor() const
 {
     Uint8 r = 0, g = 0, b = 0, a = 0;
-    if ( !TTF_GetTextColor( m_Text, &r, &g, &b, &a ) )
+    if ( !TTF_GetTextColor( m_FillText.get(), &r, &g, &b, &a ) )
     {
         std::cerr << "Failed to get text color: " << SDL_GetError() << std::endl;
     }
@@ -174,9 +152,9 @@ Color Text::getColor() const
     return { r, g, b, a };
 }
 
-Text& Text::setColor( const Color& color )
+Text& Text::setFillColor( const Color& color )
 {
-    if ( !TTF_SetTextColor( m_Text, color.channels.r, color.channels.g, color.channels.b, color.channels.a ) )
+    if ( !TTF_SetTextColor( m_FillText.get(), color.channels.r, color.channels.g, color.channels.b, color.channels.a ) )
     {
         std::cerr << "Failed to set text color: " << SDL_GetError() << std::endl;
     }
@@ -184,9 +162,30 @@ Text& Text::setColor( const Color& color )
     return *this;
 }
 
+Text& Text::setOutlineColor( const Color& color )
+{
+    if ( !TTF_SetTextColor( m_OutlineText.get(), color.channels.r, color.channels.g, color.channels.b, color.channels.a ) )
+    {
+        std::cerr << "Failed to set text color: " << SDL_GetError() << std::endl;
+    }
+
+    return *this;
+}
+
+Color Text::getOutlineColor() const
+{
+    Uint8 r = 0, g = 0, b = 0, a = 0;
+    if ( !TTF_GetTextColor( m_OutlineText.get(), &r, &g, &b, &a ) )
+    {
+        std::cerr << "Failed to get text color: " << SDL_GetError() << std::endl;
+    }
+
+    return { r, g, b, a };
+}
+
 Text& Text::setDirection( Direction direction )
 {
-    if ( !TTF_SetTextDirection( m_Text, translateDirection( direction ) ) )
+    if ( !TTF_SetTextDirection( m_FillText.get(), translateDirection( direction ) ) || !TTF_SetTextDirection( m_OutlineText.get(), translateDirection( direction ) ) )
     {
         std::cerr << "Failed to set text direction: " << SDL_GetError() << std::endl;
     }
@@ -196,14 +195,14 @@ Text& Text::setDirection( Direction direction )
 
 Text::Direction Text::getDirection() const
 {
-    return translateDirection( TTF_GetTextDirection( m_Text ) );
+    return translateDirection( TTF_GetTextDirection( m_FillText.get() ) );
 }
 
-Text& Text::setFont( std::shared_ptr<const Font> font )
+Text& Text::setFont( const Font& font )
 {
-    m_Font = std::move(font);
+    m_Font = font;
 
-    if ( !TTF_SetTextFont( m_Text, m_Font->getTTF_Font() ) )
+    if ( !TTF_SetTextFont( m_FillText.get(), m_Font.getTTF_FillFont() ) || !TTF_SetTextFont( m_OutlineText.get(), m_Font.getTTF_OutlineFont() ) )
     {
         std::cerr << "Failed to set text font: " << SDL_GetError() << std::endl;
     }
@@ -211,14 +210,14 @@ Text& Text::setFont( std::shared_ptr<const Font> font )
     return *this;
 }
 
-std::shared_ptr<const Font> Text::getFont() const
+const Font& Text::getFont() const
 {
     return m_Font;
 }
 
 Text& Text::setPosition( const glm::ivec2& pos )
 {
-    if ( !TTF_SetTextPosition( m_Text, pos.x, pos.y ) )
+    if ( !TTF_SetTextPosition( m_FillText.get(), pos.x, pos.y ) || !TTF_SetTextPosition( m_OutlineText.get(), pos.x, pos.y ) )
     {
         std::cerr << "Failed to set text position: " << SDL_GetError() << std::endl;
     }
@@ -229,7 +228,7 @@ Text& Text::setPosition( const glm::ivec2& pos )
 glm::ivec2 Text::getPosition() const
 {
     glm::ivec2 pos { -1 };
-    if ( !TTF_GetTextPosition( m_Text, &pos.x, &pos.y ) )
+    if ( !TTF_GetTextPosition( m_FillText.get(), &pos.x, &pos.y ) )
     {
         std::cerr << "Failed to get text position: " << SDL_GetError() << std::endl;
     }
@@ -237,10 +236,10 @@ glm::ivec2 Text::getPosition() const
     return pos;
 }
 
-glm::ivec2 Text::getSize() const
+glm::ivec2 Text::getFillSize() const
 {
     glm::ivec2 size { -1 };
-    if ( !TTF_GetTextSize( m_Text, &size.x, &size.y ) )
+    if ( !TTF_GetTextSize( m_FillText.get(), &size.x, &size.y ) )
     {
         std::cerr << "Failed to get text size: " << SDL_GetError() << std::endl;
     }
@@ -248,19 +247,40 @@ glm::ivec2 Text::getSize() const
     return size;
 }
 
-int Text::getWidth() const
+glm::ivec2 Text::getOutlineSize() const
 {
-    return getSize().x;
+    glm::ivec2 size { -1 };
+    if ( !TTF_GetTextSize( m_OutlineText.get(), &size.x, &size.y ) )
+    {
+        std::cerr << "Failed to get text size: " << SDL_GetError() << std::endl;
+    }
+
+    return size;
 }
 
-int Text::getHeight() const
+int Text::getFillWidth() const
 {
-    return getSize().y;
+    return getFillSize().x;
+}
+
+int Text::getOutlineWidth() const
+{
+    return getOutlineSize().x;
+}
+
+int Text::getFillHeight() const
+{
+    return getFillSize().y;
+}
+
+int Text::getOutlineHeight() const
+{
+    return getOutlineSize().y;
 }
 
 Text& Text::setWrapWidth( int width )
 {
-    if ( !TTF_SetTextWrapWidth( m_Text, width ) )
+    if ( !TTF_SetTextWrapWidth( m_FillText.get(), width ) || !TTF_SetTextWrapWidth( m_OutlineText.get(), width ) )
     {
         std::cerr << "Failed to set text wrap width: " << SDL_GetError() << std::endl;
     }
@@ -271,7 +291,7 @@ Text& Text::setWrapWidth( int width )
 int Text::getWrapWidth() const
 {
     int wrapWidth = -1;
-    if ( !TTF_GetTextWrapWidth( m_Text, &wrapWidth ) )
+    if ( !TTF_GetTextWrapWidth( m_FillText.get(), &wrapWidth ) )
     {
         std::cerr << "Failed to get text wrap width: " << SDL_GetError() << std::endl;
     }

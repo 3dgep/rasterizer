@@ -6,9 +6,9 @@
 
 using namespace sr;
 
-Button::Button( std::string_view text, std::shared_ptr<const Font> font, const Color& color, const RectF& rect, std::function<void()> onClick )
+Button::Button( std::string_view text, const Font& font, const Color& color, const RectF& rect, std::function<void()> onClick )
 : onClick { std::move( onClick ) }
-, buttonText { std::move( font ), text, color }
+, buttonText { font , text, color }
 {
     setRect( rect );
 }
@@ -67,7 +67,7 @@ void Button::draw( Rasterizer& rasterizer )
 
     // Draw the button text.
     // Center the text on the button.
-    const auto size = buttonText.getSize();
+    const auto size = buttonText.getFillSize();
     const auto pos  = glm::vec2 { getAABB().center() } - glm::vec2 { size.x, -size.y } / 2.0f;
     rasterizer.drawText( buttonText, static_cast<int>( pos.x ), static_cast<int>( pos.y + ( state == State::Pressed ? 5.0f : 0.0f ) ) );
 

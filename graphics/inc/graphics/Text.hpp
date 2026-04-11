@@ -3,11 +3,10 @@
 #include "Color.hpp"
 #include "Font.hpp"
 
-#include <SDL3_ttf/SDL_ttf.h>
 #include <iostream>
 
+struct SDL_ttf_context;
 struct TTF_Text;
-struct TTF_TextEngine;
 
 namespace sr
 {
@@ -26,13 +25,13 @@ public:
     };
 
     Text() = default;
-    explicit Text( std::shared_ptr<const Font> font, std::string_view text = {}, const Color& color = Color::White );
-    explicit Text( std::shared_ptr<const Font> font, std::wstring_view text = {}, const Color& color = Color::White );
-    Text( const Text& ) = delete;
+    explicit Text( std::string_view text, const Color& fillColor = Color::White, const Color& outlineColor = Color::Black );
+    explicit Text( const Font& font, std::string_view text = {}, const Color& fillColor = Color::White, const Color& outlineColor = Color::Black );
+    Text( const Text& );
     Text( Text&& ) noexcept;
     ~Text();
 
-    Text& operator=( const Text& ) = delete;
+    Text& operator=( const Text& );
     Text& operator=( Text&& ) noexcept;
 
     /// <summary>
@@ -73,14 +72,27 @@ public:
     /// Get the color of the text object.
     /// </summary>
     /// <returns>The color of the text object.</returns>
-    Color getColor() const;
+    Color getFillColor() const;
 
     /// <summary>
-    /// Sets the color of the text object.
+    /// Sets the fill color of the text object.
     /// </summary>
     /// <param name="color">The color to apply to the text.</param>
     /// <returns>A reference to the modified Text object.</returns>
-    Text& setColor( const Color& color );
+    Text& setFillColor( const Color& color );
+
+    /// <summary>
+    /// Sets the outline color of the text.
+    /// </summary>
+    /// <param name="color">The outline color to set.</param>
+    /// <returns>A reference to the text object for method chaining.</returns>
+    Text& setOutlineColor( const Color& color );
+
+    /// <summary>
+    /// Gets the outline color of the text.
+    /// </summary>
+    /// <returns>The outline color.</returns>
+    Color getOutlineColor() const;
 
     /// <summary>
     /// Set the direction to be used for text shaping a text object.
@@ -99,14 +111,14 @@ public:
     /// Get the font used by the text object.
     /// </summary>
     /// <returns>The font used by the text object.</returns>
-    std::shared_ptr<const Font> getFont() const;
+    const Font& getFont() const;
 
     /// <summary>
     /// Sets the font used by the text object.
     /// </summary>
     /// <param name="font">A reference to the Font object to be used for rendering the text.</param>
     /// <returns>A reference to the modified Text object.</returns>
-    Text& setFont( std::shared_ptr<const Font> font );
+    Text& setFont( const Font& font );
 
     /// <summary>
     /// Get the position of the text object.
@@ -125,11 +137,14 @@ public:
     /// Get the size of the text (in pixels).
     /// </summary>
     /// <returns>The width & height of the rendered Text object (in pixels).</returns>
-    glm::ivec2 getSize() const;
+    glm::ivec2 getFillSize() const;
+    glm::ivec2 getOutlineSize() const;
 
-    int getWidth() const;
+    int getFillWidth() const;
+    int getOutlineWidth() const;
 
-    int getHeight() const;
+    int getFillHeight() const;
+    int getOutlineHeight() const;
 
     /// <summary>
     /// Get the wrap width of the Text object.
@@ -145,17 +160,28 @@ public:
     Text& setWrapWidth( int width );
 
     // For internal use.
-    TTF_Text* getTTF_Text() const
+    TTF_Text* getTTF_FillText() const
     {
-        return m_Text;
+        return m_FillText.get();
     }
 
-    // Get a pointer to the text engine used for rendering text to a surface.
-    static TTF_TextEngine* TextEngine();
+    TTF_Text* getTTF_OutlineText() const
+    {
+        return m_OutlineText.get();
+    }
 
 private:
-    std::shared_ptr<const Font> m_Font;
-    TTF_Text*   m_Text = nullptr;
+    struct TextDeleter
+    {
+        void operator()( TTF_Text* ) const;
+    };
+    using TextPtr = std::unique_ptr<TTF_Text, TextDeleter>;
+    Font    m_Font;
+
+    TextPtr m_FillText;
+    TextPtr m_OutlineText;
+
+    std::shared_ptr<SDL_ttf_context> context;
 };
 }  // namespace graphics
 }  // namespace sr

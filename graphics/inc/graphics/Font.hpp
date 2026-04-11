@@ -1,8 +1,11 @@
 #pragma once
 
+#include <SDL_ttf_context.hpp>
+
 #include <glm/vec2.hpp>
 
 #include <filesystem>
+#include <memory>  // for std::unique_ptr
 
 struct TTF_Font;
 
@@ -10,6 +13,7 @@ namespace sr
 {
 inline namespace graphics
 {
+
 class Font
 {
 public:
@@ -63,7 +67,7 @@ public:
         ExtraBlack = 950
     };
 
-    static std::shared_ptr<const Font> DefaultFont;
+    static const Font Default;
 
     explicit Font( float size = 12.0f );
     explicit Font( const std::filesystem::path& fontFile, float size = 12.0f );
@@ -291,16 +295,30 @@ public:
     glm::ivec2 getStringSize( std::string_view text, int wrapWidth = 0 ) const;
 
     // For internal use.
-    TTF_Font* getTTF_Font() const
+    TTF_Font* getTTF_FillFont() const
     {
-        return m_Font;
+        return m_FillFont.get();
+    }
+
+    TTF_Font* getTTF_OutlineFont() const
+    {
+        return m_OutlineFont.get();
     }
 
     // For internal use.
-    Font( TTF_Font* font );
+    Font( TTF_Font* fillFont, TTF_Font* outlineFont );
 
 private:
-    TTF_Font* m_Font = nullptr;
+    struct FontDeleter
+    {
+        void operator()( TTF_Font* ) const;
+    };
+    using FontPtr = std::unique_ptr<TTF_Font, FontDeleter>;
+
+    FontPtr m_FillFont;
+    FontPtr m_OutlineFont;
+
+    std::shared_ptr<SDL_ttf_context> context;
 };
 }  // namespace graphics
 }  // namespace sr

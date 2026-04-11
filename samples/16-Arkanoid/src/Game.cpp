@@ -18,10 +18,10 @@ using namespace input;
 
 Game::Game( uint32_t screenWidth, uint32_t screenHeight )
 : image { screenWidth, screenHeight }
-, arcadeN { std::make_shared<Font>("assets/fonts/ARCADE_N.ttf", 8.0f ) }
+, arcadeN { "assets/fonts/ARCADE_N.ttf", 8.0f }
 {
     rasterizer.state.colorTarget = &image;
-    arcadeN->setHinting( Font::Hinting::Mono ); // Better for small fonts.
+    arcadeN.setHinting( Font::Hinting::Mono ); // Better for small fonts.
 
     // Input that controls adding coins.
     Input::addButtonDownCallback( "Coin", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
@@ -185,7 +185,7 @@ int Game::getHighScore() const noexcept
     return std::max( highScores.getHighScore(), std::max( score1, score2 ) );
 }
 
-std::shared_ptr<const Font> Game::getFont() const noexcept
+const Font& Game::getFont() const noexcept
 {
     return arcadeN;
 }

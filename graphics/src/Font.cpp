@@ -11,6 +11,7 @@ using namespace sr::graphics;
 
 namespace
 {
+
 TTF_Direction translateDirection( Font::Direction direction )
 {
     switch ( direction )
@@ -155,101 +156,86 @@ TTF_HorizontalAlignment translateAlignment( Font::HorizontalAlignment alignment 
     return TTF_HORIZONTAL_ALIGN_INVALID;
 }
 
-struct SDL_ttf_context
-{
-    SDL_ttf_context()
-    {
-        if ( !TTF_Init() )
-        {
-            SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL_ttf: %s", SDL_GetError() );
-            throw std::runtime_error( SDL_GetError() );
-        }
-    }
-
-    ~SDL_ttf_context()
-    {
-        TTF_Quit();
-    }
-};
-
 }  // namespace
 
-std::shared_ptr<const Font> Font::DefaultFont = std::make_shared<Font>();
+const Font Font::Default {};
+
+void Font::FontDeleter::operator()( TTF_Font* font ) const
+{
+    std::cout << "FontDeleter::operator()" << std::endl;
+    TTF_CloseFont( font );
+}
 
 Font::Font( float size )
 {
-    static SDL_ttf_context context; // Ensure the TTF library has been initialized.
+    context              = SDL_ttf_context::get();
+    SDL_IOStream* stream = SDL_IOFromConstMem( PressStart2P, std::size( PressStart2P ) );
 
-    m_Font = TTF_OpenFontIO( SDL_IOFromConstMem( PressStart2P, std::size( PressStart2P ) ), true, size );
-    if ( !m_Font )
+    m_FillFont.reset( TTF_OpenFontIO( stream, false, size ) );
+
+    if ( !m_FillFont )
     {
         std::cerr << "Failed to create default font: " << SDL_GetError() << std::endl;
         return;
     }
+
+    m_OutlineFont.reset( TTF_CopyFont( m_FillFont.get() ) );
+    setOutline( 2 );
 }
 
 Font::Font( const std::filesystem::path& fontFile, float size )
 {
-    static SDL_ttf_context context;  // Ensure the TTF library has been initialized.
+    context = SDL_ttf_context::get();
 
-    m_Font = TTF_OpenFont( fontFile.string().c_str(), size );
-    if ( !m_Font )
+    m_FillFont.reset( TTF_OpenFont( fontFile.string().c_str(), size ) );
+
+    if ( !m_FillFont )
     {
         std::cerr << "Failed to load font: " << fontFile << std::endl;
+        return;
     }
+
+    m_OutlineFont.reset( TTF_CopyFont( m_FillFont.get() ) );
 }
 
 Font::Font( const Font& other )
 {
-    m_Font = TTF_CopyFont( other.m_Font );
+    context = other.context;
+    m_FillFont.reset( TTF_CopyFont( other.m_FillFont.get() ) );
+    m_OutlineFont.reset( TTF_CopyFont( other.m_OutlineFont.get() ) );
 }
 
-Font::Font( Font&& other ) noexcept
-{
-    m_Font = std::exchange( other.m_Font, nullptr );
-}
+Font::Font( Font&& other ) noexcept = default;
 
 Font& Font::operator=( const Font& other )
 {
     if ( &other == this )
         return *this;
 
-    if ( m_Font )
-        TTF_CloseFont( m_Font );
-
-    m_Font = TTF_CopyFont( other.m_Font );
-
-    return *this;
-}
-
-Font& Font::operator=( Font&& other ) noexcept
-{
-    if ( &other == this )
-        return *this;
-
-    m_Font = std::exchange( other.m_Font, nullptr );
+    context = other.context;
+    m_FillFont.reset( TTF_CopyFont( other.m_FillFont.get() ) );
+    m_OutlineFont.reset( TTF_CopyFont( other.m_OutlineFont.get() ) );
 
     return *this;
 }
 
-Font::~Font()
-{
-    TTF_CloseFont( m_Font );
-}
+Font& Font::operator=( Font&& other ) noexcept = default;
+
+Font::~Font() = default;
 
 int Font::getAscent() const
 {
-    return TTF_GetFontAscent( m_Font );
+    return TTF_GetFontAscent( m_FillFont.get() );
 }
 
 int Font::getDecent() const
 {
-    return TTF_GetFontDescent( m_Font );
+    return TTF_GetFontDescent( m_FillFont.get() );
 }
 
 Font& Font::setDirection( Direction direction )
 {
-    if ( !TTF_SetFontDirection( m_Font, translateDirection( direction ) ) )
+    if ( !TTF_SetFontDirection( m_FillFont.get(), translateDirection( direction ) ) )
     {
         std::cerr << "Failed to set font direction: " << SDL_GetError() << std::endl;
     }
@@ -259,13 +245,13 @@ Font& Font::setDirection( Direction direction )
 
 Font::Direction Font::getDirection() const
 {
-    return translateDirection( TTF_GetFontDirection( m_Font ) );
+    return translateDirection( TTF_GetFontDirection( m_FillFont.get() ) );
 }
 
 int Font::getHorizontalDPI() const
 {
     int hdpi = 0;
-    if ( !TTF_GetFontDPI( m_Font, &hdpi, nullptr ) )
+    if ( !TTF_GetFontDPI( m_FillFont.get(), &hdpi, nullptr ) )
     {
         std::cerr << "Failed to get font DPI: " << SDL_GetError() << std::endl;
     }
@@ -276,7 +262,7 @@ int Font::getHorizontalDPI() const
 int Font::getVerticalDPI() const
 {
     int vdpi = 0;
-    if ( !TTF_GetFontDPI( m_Font, nullptr, &vdpi ) )
+    if ( !TTF_GetFontDPI( m_FillFont.get(), nullptr, &vdpi ) )
     {
         std::cerr << "Failed to get font DPI: " << SDL_GetError() << std::endl;
     }
@@ -286,7 +272,7 @@ int Font::getVerticalDPI() const
 
 Font& Font::setSizeDPI( float size, int hdpi, int vdpi )
 {
-    if ( !TTF_SetFontSizeDPI( m_Font, size, hdpi, vdpi ) )
+    if ( !TTF_SetFontSizeDPI( m_FillFont.get(), size, hdpi, vdpi ) )
     {
         std::cerr << "Failed to set font size & DPI: " << SDL_GetError() << std::endl;
     }
@@ -296,22 +282,22 @@ Font& Font::setSizeDPI( float size, int hdpi, int vdpi )
 
 std::string Font::getFamilyName() const
 {
-    return TTF_GetFontFamilyName( m_Font );
+    return TTF_GetFontFamilyName( m_FillFont.get() );
 }
 
 int Font::getHeight() const
 {
-    return TTF_GetFontHeight( m_Font );
+    return TTF_GetFontHeight( m_FillFont.get() );
 }
 
 float Font::getSize() const
 {
-    return TTF_GetFontSize( m_Font );
+    return TTF_GetFontSize( m_FillFont.get() );
 }
 
 Font& Font::setSize( float size )
 {
-    if ( !TTF_SetFontSize( m_Font, size ) )
+    if ( !TTF_SetFontSize( m_FillFont.get(), size ) || !TTF_SetFontSize( m_OutlineFont.get(), size ) )
     {
         std::cerr << "Failed to set the font size: " << SDL_GetError() << std::endl;
     }
@@ -321,48 +307,51 @@ Font& Font::setSize( float size )
 
 Font::Hinting Font::getHinting() const
 {
-    return translateHinting( TTF_GetFontHinting( m_Font ) );
+    return translateHinting( TTF_GetFontHinting( m_FillFont.get() ) );
 }
 
 Font& Font::setHinting( Hinting hinting )
 {
-    TTF_SetFontHinting( m_Font, translateHinting( hinting ) );
+    TTF_SetFontHinting( m_FillFont.get(), translateHinting( hinting ) );
+    TTF_SetFontHinting( m_OutlineFont.get(), translateHinting( hinting ) );
 
     return *this;
 }
 
 bool Font::isKerning() const
 {
-    return TTF_GetFontKerning( m_Font );
+    return TTF_GetFontKerning( m_FillFont.get() );
 }
 
 Font& Font::setKerning( bool enabled )
 {
-    TTF_SetFontKerning( m_Font, enabled );
+    TTF_SetFontKerning( m_FillFont.get(), enabled );
+    TTF_SetFontKerning( m_OutlineFont.get(), enabled );
 
     return *this;
 }
 
 int Font::getLineSpacing() const
 {
-    return TTF_GetFontLineSkip( m_Font );
+    return TTF_GetFontLineSkip( m_FillFont.get() );
 }
 
 Font& Font::setLineSpacing( int spacing )
 {
-    TTF_SetFontLineSkip( m_Font, spacing );
+    TTF_SetFontLineSkip( m_FillFont.get(), spacing );
+    TTF_SetFontLineSkip( m_OutlineFont.get(), spacing );
 
     return *this;
 }
 
 int Font::getCharSpacing() const
 {
-    return TTF_GetFontCharSpacing( m_Font );
+    return TTF_GetFontCharSpacing( m_FillFont.get() );
 }
 
 Font& Font::setCharSpacing( int spacing )
 {
-    if ( !TTF_SetFontCharSpacing( m_Font, spacing ) )
+    if ( !TTF_SetFontCharSpacing( m_FillFont.get(), spacing ) || !TTF_SetFontCharSpacing( m_OutlineFont.get(), spacing ) )
     {
         std::cerr << "Failed to set font char spacing: " << SDL_GetError() << std::endl;
     }
@@ -372,12 +361,12 @@ Font& Font::setCharSpacing( int spacing )
 
 bool Font::isSDF() const
 {
-    return TTF_GetFontSDF( m_Font );
+    return TTF_GetFontSDF( m_FillFont.get() );
 }
 
 Font& Font::setSDF( bool enabled )
 {
-    if ( !TTF_SetFontSDF( m_Font, enabled ) )
+    if ( !TTF_SetFontSDF( m_FillFont.get(), enabled ) || !TTF_SetFontSDF( m_OutlineFont.get(), enabled ) )
     {
         std::cerr << "Failed to set font SDF rendering: " << SDL_GetError() << std::endl;
     }
@@ -387,34 +376,35 @@ Font& Font::setSDF( bool enabled )
 
 bool Font::isScalable() const
 {
-    return TTF_FontIsScalable( m_Font );
+    return TTF_FontIsScalable( m_FillFont.get() );
 }
 
 bool Font::isFixedWidth() const
 {
-    return TTF_FontIsFixedWidth( m_Font );
+    return TTF_FontIsFixedWidth( m_FillFont.get() );
 }
 
 Font::Style Font::getStyle() const
 {
-    return translateStyle( TTF_GetFontStyle( m_Font ) );
+    return translateStyle( TTF_GetFontStyle( m_FillFont.get() ) );
 }
 
 Font& Font::setStyle( Style style )
 {
-    TTF_SetFontStyle( m_Font, translateStyle( style ) );
+    TTF_SetFontStyle( m_FillFont.get(), translateStyle( style ) );
+    TTF_SetFontStyle( m_OutlineFont.get(), translateStyle( style ) );
 
     return *this;
 }
 
 int Font::getOutline() const
 {
-    return TTF_GetFontOutline( m_Font );
+    return TTF_GetFontOutline( m_OutlineFont.get() );
 }
 
 Font& Font::setOutline( int outline )
 {
-    if (!TTF_SetFontOutline( m_Font, outline ))
+    if ( !TTF_SetFontOutline( m_OutlineFont.get(), outline ) )
     {
         std::cerr << "Failed to set font outline: " << SDL_GetError() << std::endl;
     }
@@ -424,17 +414,18 @@ Font& Font::setOutline( int outline )
 
 Font::Weight Font::getWeight() const
 {
-    return static_cast<Weight>( TTF_GetFontWeight( m_Font ) );
+    return static_cast<Weight>( TTF_GetFontWeight( m_FillFont.get() ) );
 }
 
 Font::HorizontalAlignment Font::getWrapAlignment() const
 {
-    return translateAlignment( TTF_GetFontWrapAlignment( m_Font ) );
+    return translateAlignment( TTF_GetFontWrapAlignment( m_FillFont.get() ) );
 }
 
 Font& Font::setWrapAlignment( HorizontalAlignment alignment )
 {
-    TTF_SetFontWrapAlignment( m_Font, translateAlignment( alignment ) );
+    TTF_SetFontWrapAlignment( m_FillFont.get(), translateAlignment( alignment ) );
+    TTF_SetFontWrapAlignment( m_OutlineFont.get(), translateAlignment( alignment ) );
 
     return *this;
 }
@@ -442,7 +433,7 @@ Font& Font::setWrapAlignment( HorizontalAlignment alignment )
 glm::ivec2 Font::getStringSize( std::string_view text, int wrapWidth ) const
 {
     glm::ivec2 size { 0 };
-    if (!TTF_GetStringSizeWrapped( m_Font, text.data(), text.size(), wrapWidth, &size.x, &size.y ))
+    if ( !TTF_GetStringSizeWrapped( m_OutlineFont.get(), text.data(), text.size(), wrapWidth, &size.x, &size.y ) )
     {
         std::cerr << "Failed to calculate string size: " << SDL_GetError() << std::endl;
     }
@@ -450,6 +441,7 @@ glm::ivec2 Font::getStringSize( std::string_view text, int wrapWidth ) const
     return size;
 }
 
-Font::Font( TTF_Font* font )
-: m_Font { font }
+Font::Font( TTF_Font* fillFont, TTF_Font* outlineFont )
+: m_FillFont { fillFont }
+, m_OutlineFont { outlineFont }
 {}

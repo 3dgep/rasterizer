@@ -34,12 +34,12 @@ std::vector<AABB> generateRandomAABBs( uint32_t n = 1 )
 
 int main()
 {
-    Window     window( "19-AABBOverlap", SCREEN_WIDTH, SCREEN_HEIGHT );
-    Image      image { SCREEN_WIDTH, SCREEN_HEIGHT };
-    Rasterizer rasterizer;
-    Timer      timer;
-    Text       fpsText { Font::DefaultFont, "FPS: 0" };
-    glm::vec2  mousePos;
+    Window      window( "19-AABBOverlap", SCREEN_WIDTH, SCREEN_HEIGHT );
+    Image       image { SCREEN_WIDTH, SCREEN_HEIGHT };
+    Rasterizer  rasterizer;
+    Timer       timer;
+    Text        fpsText { "FPS: 0" };
+    glm::vec2   mousePos;
 
     // Setup the rasterizer's render target state.
     rasterizer.state.colorTarget = &image;

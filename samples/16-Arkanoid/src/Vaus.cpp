@@ -169,8 +169,8 @@ void Vaus::draw( Rasterizer& rasterizer )
         r.drawAABB( getAABB() );
 
         // Draw Vaus's current state.
-        Text stateText { font, stateToString[state] };
-        auto pos = transform.getPosition() - glm::vec2 { stateText.getWidth() / 2.0f, 20 };
+        Text stateText { *font, stateToString[state] };
+        auto pos = transform.getPosition() - glm::vec2 { stateText.getFillWidth() / 2.0f, 20 };
         r.drawText( stateText, pos.x, pos.y );
     }
 #endif

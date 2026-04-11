@@ -138,16 +138,16 @@ void MenuState::draw( sr::Rasterizer& rasterizer )
         break;
     }
 
-    sr::Text difficultyDisplay { sr::Font::DefaultFont, difficultyText };
-    int      textX = ( m_ScreenWidth - difficultyDisplay.getWidth() ) / 2;
+    sr::Text difficultyDisplay { difficultyText };
+    int      textX = ( m_ScreenWidth - difficultyDisplay.getFillWidth() ) / 2;
     int      textY = m_ScreenHeight - 40;
 
     rasterizer.state.color = Color::White;
     rasterizer.drawText( difficultyDisplay, textX, textY );
 
     // Draw instructions
-    static sr::Text instructions { sr::Font::DefaultFont, "LEFT/RIGHT: Change Mode  ENTER: Start" };
-    int             instrX = ( m_ScreenWidth - instructions.getWidth() ) / 2;
+    static sr::Text instructions { "LEFT/RIGHT: Change Mode  ENTER: Start" };
+    int             instrX = ( m_ScreenWidth - instructions.getFillWidth() ) / 2;
     int             instrY = m_ScreenHeight - 20;
 
     rasterizer.drawText( instructions, instrX, instrY );

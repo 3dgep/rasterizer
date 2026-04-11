@@ -24,7 +24,7 @@ int main()
     Rasterizer   rasterizer;
     Timer        timer;
     SamplerState samplerState { AddressMode::Wrap, Color::Black, true };
-    Text         fpsText { Font::DefaultFont, "FPS: 0" };
+    Text         fpsText { "FPS: 0" };
 
     window.setVSync( false );
 
@@ -149,9 +149,9 @@ int main()
             timer.reset();
         }
 
-        fpsText.setColor( Color::Black );
+        fpsText.setFillColor( Color::Black );
         rasterizer.drawText( fpsText, 12, 12 );
-        fpsText.setColor( Color::White );
+        fpsText.setFillColor( Color::White );
         rasterizer.drawText( fpsText, 10, 10 );
 
         window.clear( Color::Black );
