@@ -156,29 +156,7 @@ void Rasterizer::drawText( const Text& text, int x, int y )
     if ( !image )
         return;
 
-    SDL_Surface* surface = SDL_CreateSurfaceFrom( image->getWidth(), image->getHeight(), SDL_PIXELFORMAT_RGBA32, image->data(), image->getPitch() );
-    if ( !surface )
-    {
-        std::cerr << "Failed to create surface from image: " << SDL_GetError() << std::endl;
-        return;
-    }
-
-    int outline = text.getFont()->getOutline();
-
-    if ( outline > 0 )
-    {
-        if ( !TTF_DrawSurfaceText( text.getTTF_OutlineText(), x - outline * 2, y - outline * 2, surface ) )
-        {
-            std::cerr << "Failed to draw outline text to the surface: " << SDL_GetError() << std::endl;
-        }
-    }
-
-    if ( !TTF_DrawSurfaceText( text.getTTF_FillText(), x, y, surface ) )
-    {
-        std::cerr << "Failed to draw outline text to the surface: " << SDL_GetError() << std::endl;
-    }
-
-    SDL_DestroySurface( surface );
+    text.draw( *image, x, y );
 }
 
 // Source: Claud Sonnet 4 "Create a 2D Software Rasterizer in C++"

@@ -2,6 +2,7 @@
 
 #include "Color.hpp"
 #include "Font.hpp"
+#include "Image.hpp"
 
 #include <iostream>
 
@@ -82,17 +83,33 @@ public:
     Text& setFillColor( const Color& color );
 
     /// <summary>
+    /// Gets the outline color of the text.
+    /// </summary>
+    /// <returns>The outline color.</returns>
+    Color getOutlineColor() const;
+
+    /// <summary>
     /// Sets the outline color of the text.
     /// </summary>
     /// <param name="color">The outline color to set.</param>
     /// <returns>A reference to the text object for method chaining.</returns>
     Text& setOutlineColor( const Color& color );
 
-    /// <summary>
-    /// Gets the outline color of the text.
-    /// </summary>
-    /// <returns>The outline color.</returns>
-    Color getOutlineColor() const;
+    Color getShadowColor() const;
+
+    Text& setShadowColor( const Color& color );
+
+    const glm::ivec2& getShadowOffset() const;
+
+    Text& setShadowOffset( const glm::ivec2& offset );
+
+    Color getGlowColor() const;
+
+    Text& setGlowColor( const Color& color );
+
+    int getGlowRadius() const;
+
+    Text& setGlowRadius( int radius );
 
     /// <summary>
     /// Set the direction to be used for text shaping a text object.
@@ -164,18 +181,25 @@ public:
     /// <returns>A reference to the modified Text object.</returns>
     Text& setWrapWidth( int width );
 
-    // For internal use.
-    TTF_Text* getTTF_FillText() const
-    {
-        return m_FillText.get();
-    }
-
-    TTF_Text* getTTF_OutlineText() const
-    {
-        return m_OutlineText.get();
-    }
+    /// <summary>
+    /// Draws the Text at the specified position on the image.
+    /// </summary>
+    /// <param name="image">The image to draw on.</param>
+    /// <param name="x">The x-coordinate of the position.</param>
+    /// <param name="y">The y-coordinate of the position.</param>
+    void draw( Image& image, int x, int y ) const;
 
 private:
+    // Intentionally unscoped.
+    enum TextEffect
+    {
+        Fill,
+        Outline,
+        Shadow,
+        Glow,
+        NumEffects
+    };
+
     struct TextDeleter
     {
         void operator()( TTF_Text* ) const;
@@ -184,8 +208,15 @@ private:
 
     std::shared_ptr<const Font> m_Font;
 
-    TextPtr m_FillText;
-    TextPtr m_OutlineText;
+    TextPtr m_Text[NumEffects];
+
+    glm::ivec2 m_ShadowOffset { 0, 0 };
+    int        m_GlowRadius = 0;
+
+    static void       setColor( const TextPtr& t, const Color& c );
+    static Color      getColor( const TextPtr& t );
+    static glm::ivec2 getSize( const TextPtr& t );
+    static void       setWrapWidth( const TextPtr& t, int w );
 };
 }  // namespace graphics
 }  // namespace sr
