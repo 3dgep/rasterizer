@@ -111,41 +111,50 @@ int main()
         if ( ImGui::Begin( "Font Tweaks" ) )
         {
             static const char* styleItems[] = { "Normal", "Bold", "Italic", "Bold + Italic", "Underline", "Strikethrough" };
-
-            ImGui::SliderFloat( "Font Size", &fontSize, 12.0f, 120.0f, "%.1f" );
-            ImGui::Combo( "Font Style", &fontStyle, styleItems, IM_ARRAYSIZE( styleItems ) );
-            ImGui::ColorEdit4( "Fill Color", glm::value_ptr( fillColor ) );
-            ImGui::Checkbox( "Outline", &showOutline );
-            if ( showOutline )
+            ImGuiTreeNodeFlags flags        = ImGuiTreeNodeFlags_DefaultOpen;
+            if (ImGui::CollapsingHeader( "Font Properties", flags ) )
             {
-                ImGui::SliderInt( "Outline Size", &outlineSize, 0, 8 );
-                ImGui::ColorEdit4( "Outline Color", glm::value_ptr( outlineColor ) );
+                ImGui::SliderFloat( "Font Size", &fontSize, 12.0f, 120.0f, "%.1f" );
+                ImGui::Combo( "Font Style", &fontStyle, styleItems, IM_ARRAYSIZE( styleItems ) );
+                ImGui::ColorEdit4( "Fill Color", glm::value_ptr( fillColor ) );
+                ImGui::Checkbox( "Outline", &showOutline );
+                if ( showOutline )
+                {
+                    ImGui::SliderInt( "Outline Size", &outlineSize, 0, 8 );
+                    ImGui::ColorEdit4( "Outline Color", glm::value_ptr( outlineColor ) );
+                }
             }
-            ImGui::Checkbox( "Drop Shadow", &showShadow );
-            if ( showShadow )
+            if ( ImGui::CollapsingHeader( "Text Properties", flags ) )
             {
-                ImGui::SliderInt2( "Shadow Offset", &shadowOffset.x, -20, 20 );
-                ImGui::ColorEdit4( "Shadow Color", glm::value_ptr( shadowColor ) );
+                ImGui::Checkbox( "Drop Shadow", &showShadow );
+                if ( showShadow )
+                {
+                    ImGui::SliderInt2( "Shadow Offset", &shadowOffset.x, -20, 20 );
+                    ImGui::ColorEdit4( "Shadow Color", glm::value_ptr( shadowColor ) );
+                }
+                ImGui::Checkbox( "Outer Glow", &showGlow );
+                if ( showGlow )
+                {
+                    ImGui::SliderInt( "Glow Radius", &glowRadius, 1, 12 );
+                    ImGui::ColorEdit4( "Glow Color", glm::value_ptr( glowColor ) );
+                }
             }
-            ImGui::Checkbox( "Outer Glow", &showGlow );
-            if ( showGlow )
+            if ( ImGui::CollapsingHeader( "Others", flags ) )
             {
-                ImGui::SliderInt( "Glow Radius", &glowRadius, 1, 12 );
-                ImGui::ColorEdit4( "Glow Color", glm::value_ptr( glowColor ) );
+                ImGui::Checkbox( "Wave Motion", &showWave );
+                if ( showWave )
+                {
+                    ImGui::SliderFloat( "Wave Amplitude", &waveAmplitude, 0.0f, 24.0f, "%.1f" );
+                    ImGui::SliderFloat( "Wave Speed", &waveSpeed, 0.1f, 8.0f, "%.1f" );
+                }
+                ImGui::InputTextMultiline( "Example text", sampleText, 256 );
             }
-            ImGui::Checkbox( "Wave Motion", &showWave );
-            if ( showWave )
-            {
-                ImGui::SliderFloat( "Wave Amplitude", &waveAmplitude, 0.0f, 24.0f, "%.1f" );
-                ImGui::SliderFloat( "Wave Speed", &waveSpeed, 0.1f, 8.0f, "%.1f" );
-            }
-            ImGui::InputTextMultiline( "Example text", sampleText, 256 );
-            ImGui::Separator();
+            ImGui::SeparatorText( "Font Info" );
             ImGui::Text( "Default Font Family: %s", defaultFont->getFamilyName().c_str() );
             ImGui::Text( "Loaded Font Family: %s", loadedFont->getFamilyName().c_str() );
 
-            ImGui::End();
         }
+        ImGui::End();
 
         const Font::Style style = styleFromIndex( fontStyle );
 

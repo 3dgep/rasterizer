@@ -1,6 +1,6 @@
 cmake_minimum_required( VERSION 3.15.0...4.2.0 )
 
-set( TARGET_NAME 20-FontsAndText )
+set( TARGET_NAME 20-Text )
 
 set( SRC_FILES
     main.cpp

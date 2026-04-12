@@ -47,7 +47,7 @@ add_sample( 16-Arkanoid )
 add_sample( 17-Physics )
 add_sample( 18-Culling )
 add_sample( 19-AABBOverlap )
-add_sample( 20-FontsAndText )
+add_sample( 20-Text )
 
 # Set the startup project.
 set_directory_properties( PROPERTIES
