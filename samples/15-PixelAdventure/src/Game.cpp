@@ -1,5 +1,7 @@
 #include <Game.hpp>
 
+#include "graphics/ResourceManager.hpp"
+
 #include <graphics/Color.hpp>
 #include <input/Input.hpp>
 
@@ -12,9 +14,9 @@ using namespace input;
 Game::Game( uint32_t screenWidth, uint32_t screenHeight )
 : image { screenWidth, screenHeight }
 , timer { physicsTick }
-, arial20 { "assets/fonts/arial.ttf", 20.0f }
-, arial24 { "assets/fonts/arial.ttf", 24.0f }
+, arialFont { ResourceManager::loadFont( "assets/fonts/arial.ttf", 20.0f ) }
 {
+    arialFont->setOutline( 1 );
     timer.setMaxTimeStep( 1.0 / 10.0 );  // Cap the maximum time step to prevent spiral of death.
 
     rasterizer.state.colorTarget = &image;
@@ -225,11 +227,7 @@ void Game::update()
         std::string text = std::format( "({}, {})", x, y );
 
         // Copy rasterizer state
-        auto r        = rasterizer;
-        r.state.color = Color::Black;
-        r.drawText( arial20, text, x + 2, y + 2 );
-        r.state.color = Color::White;
-        r.drawText( arial20, text, x, y );
+        rasterizer.drawText( arialFont, text, x, y );
     }
 #endif
 
@@ -395,10 +393,10 @@ void Game::loadLevel( size_t levelId, size_t characterId )
     transitionState = TransitionState::Out;
 }
 
-void Game::drawFPS()
+void Game::drawFPS() const
 {
-    static Timer       timer;
-    static std::string fps = "FPS: 0";
+    static Timer timer;
+    static Text  fps { arialFont, "FPS: 0" };
 
     timer.tick();
     if ( timer.totalSeconds() > 1.0 )
@@ -407,9 +405,5 @@ void Game::drawFPS()
         timer.reset();
     }
 
-    auto r        = rasterizer;
-    r.state.color = Color::Black;
-    r.drawText( arial20, fps, 6, 6 );
-    r.state.color = Color::White;
-    r.drawText( arial20, fps, 4, 4 );
+    rasterizer.drawText( fps, 6, 6 );
 }

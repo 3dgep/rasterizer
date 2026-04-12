@@ -94,24 +94,24 @@ void Game::draw()
         auto r        = rasterizer;
         r.state.color = Color::Red;
         // Player 1
-        r.drawText( *arcadeN, "1UP", 26, 0 );
+        r.drawText( arcadeN, "1UP", 26, 0 );
         // Draw P1 score right-aligned.
         r.state.color = Color::White;
-        r.drawText( *arcadeN, std::format( "{:6d}", score1 ), 15, 8 );
+        r.drawText( arcadeN, std::format( "{:6d}", score1 ), 15, 8 );
 
         // High score
         r.state.color = Color::Red;
         int highScore = getHighScore();
-        r.drawText( *arcadeN, "HIGH SCORE", 73, 0 );
+        r.drawText( arcadeN, "HIGH SCORE", 73, 0 );
         r.state.color = Color::White;
-        r.drawText( *arcadeN, std::format( "{:6d}", highScore ), 87, 8 );
+        r.drawText( arcadeN, std::format( "{:6d}", highScore ), 87, 8 );
         if ( numPlayers > 1 )
         {
             r.state.color = Color::Red;
             // Player 2
-            r.drawText( *arcadeN, "2UP", 177, 7 );
+            r.drawText( arcadeN, "2UP", 177, 7 );
             // Draw P2 score right-aligned.
-            r.drawText( *arcadeN, std::format( "{:6d}", score2 ), 164, 8 );
+            r.drawText( arcadeN, std::format( "{:6d}", score2 ), 164, 8 );
         }
     }
 
@@ -211,7 +211,8 @@ void Game::startState( GameState _state ) {}
 void Game::drawFPS() const
 {
     static Timer       timer;
-    static std::string fps    = "FPS: 0";
+    static Text  fps { arcadeN, "FPS: 0" };
+    
 
     timer.tick();
     if ( timer.totalSeconds() > 1.0 )
@@ -220,9 +221,5 @@ void Game::drawFPS() const
         timer.reset();
     }
 
-    auto r        = rasterizer;
-    r.state.color = Color::Black;
-    r.drawText( *arcadeN, fps, 6, 6 );
-    r.state.color = Color::White;
-    r.drawText( *arcadeN, fps, 4, 4 );
+    rasterizer.drawText( fps, 6, 6 );
 }

@@ -47,7 +47,7 @@ public:
     void loadLevel( size_t levelId, size_t characterId );
 
 private:
-    void drawFPS();
+    void drawFPS() const;
 
     enum class TransitionState
     {
@@ -74,8 +74,7 @@ private:
     glm::vec2 mousePos;
 
     // Fonts.
-    sr::graphics::Font arial20;
-    sr::graphics::Font arial24;
+    std::shared_ptr<sr::Font> arialFont;
 
     // Backgrounds
     using BackgroundList = std::vector<Background>;

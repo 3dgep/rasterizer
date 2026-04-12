@@ -43,7 +43,7 @@ public:
     /// Clear the color target.
     /// </summary>
     /// <param name="color">The color to clear the color target to. Default: Black.</param>
-    void clear( std::optional<Color> color = {} );
+    void clear( std::optional<Color> color = {} ) const;
 
     /// <summary>
     /// Draws a line from (x0, y0) to (x1, y1) using the current rasterizer state.<br>
@@ -57,7 +57,7 @@ public:
     /// <param name="y0">The y-coordinate of the starting point.</param>
     /// <param name="x1">The x-coordinate of the ending point.</param>
     /// <param name="y1">The y-coordinate of the ending point.</param>
-    void drawLine( int x0, int y0, int x1, int y1 );
+    void drawLine( int x0, int y0, int x1, int y1 ) const;
 
     /// <summary>
     /// Draws a line from (x0, y0) to (x1, y1) using the current rasterizer state.<br>
@@ -71,7 +71,7 @@ public:
     /// <param name="y0">The y-coordinate of the starting point.</param>
     /// <param name="x1">The x-coordinate of the ending point.</param>
     /// <param name="y1">The y-coordinate of the ending point.</param>
-    void drawLine( float x0, float y0, float x1, float y1 )
+    void drawLine( float x0, float y0, float x1, float y1 ) const
     {
         drawLine( static_cast<int>( x0 ), static_cast<int>( y0 ), static_cast<int>( x1 ), static_cast<int>( y1 ) );
     }
@@ -86,7 +86,7 @@ public:
     /// </summary>
     /// <param name="p0">The starting point of the line.</param>
     /// <param name="p1">The endpoint of the line.</param>
-    void drawLine( const glm::vec2& p0, const glm::vec2& p1 )
+    void drawLine( const glm::vec2& p0, const glm::vec2& p1 ) const
     {
         drawLine( p0.x, p0.y, p1.x, p1.y );
     }
@@ -101,7 +101,7 @@ public:
     /// </summary>
     /// <param name="p0">The starting point of the line.</param>
     /// <param name="p1">The endpoint of the line.</param>
-    void drawLine( const glm::ivec2& p0, const glm::ivec2& p1 )
+    void drawLine( const glm::ivec2& p0, const glm::ivec2& p1 ) const
     {
         drawLine( p0.x, p0.y, p1.x, p1.y );
     }
@@ -115,29 +115,29 @@ public:
     /// - viewport
     /// </summary>
     /// <param name="line">The line to draw.</param>
-    void drawLine( const math::Line& line )
+    void drawLine( const math::Line& line ) const
     {
         drawLine( line.p0.x, line.p0.y, line.p1.x, line.p1.y );
     }
 
-    void drawCircle( int x, int y, int r );
+    void drawCircle( int x, int y, int r ) const;
 
-    void drawCircle( const glm::ivec2& center, int radius )
+    void drawCircle( const glm::ivec2& center, int radius ) const
     {
         drawCircle( center.x, center.y, radius );
     }
 
-    void drawCircle( float x, float y, float r )
+    void drawCircle( float x, float y, float r ) const
     {
         drawCircle( static_cast<int>( x ), static_cast<int>( y ), static_cast<int>( r ) );
     }
 
-    void drawCircle( const Circle& circle )
+    void drawCircle( const Circle& circle ) const
     {
         drawCircle( circle.center.x, circle.center.y, circle.radius );
     }
 
-    void drawCircle( const Sphere& sphere )
+    void drawCircle( const Sphere& sphere ) const
     {
         drawCircle( sphere.center.x, sphere.center.y, sphere.radius );
     }
@@ -154,13 +154,13 @@ public:
     /// <param name="p0">The first triangle coordinate (in screen coordinates).</param>
     /// <param name="p1">The second triangle coordinate (in screen coordinates).</param>
     /// <param name="p2">The third triangle coordinate (in screen coordinates).</param>
-    void drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 );
+    void drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 ) const;
 
-    void drawTriangle( Vertex2D v0, Vertex2D v1, Vertex2D v2, const Image& texture, const SamplerState& samplerState = SamplerState {}, std::optional<BlendMode> blendMode = {} );
+    void drawTriangle( Vertex2D v0, Vertex2D v1, Vertex2D v2, const Image& texture, const SamplerState& samplerState = SamplerState {}, std::optional<BlendMode> blendMode = {} ) const;
 
-    void drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 );
+    void drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 ) const;
 
-    void drawQuad( Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3, const Image& texture, const SamplerState& samplerState = SamplerState {}, std::optional<BlendMode> blendMode = {} );
+    void drawQuad( Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3, const Image& texture, const SamplerState& samplerState = SamplerState {}, std::optional<BlendMode> blendMode = {} ) const;
 
     /// <summary>
     /// Draws an axis-aligned bounding box (AABB).
@@ -171,10 +171,10 @@ public:
     /// - viewport
     /// </summary>
     /// <param name="aabb">The axis-aligned bounding box to draw.</param>
-    void drawAABB( math::AABB aabb );
+    void drawAABB( math::AABB aabb ) const;
 
     template<typename T>
-    void drawRectangle( const math::Rect<T>& rect )
+    void drawRectangle( const math::Rect<T>& rect ) const
     {
         drawAABB( math::AABB::fromRect( rect ) );
     }
@@ -185,7 +185,7 @@ public:
     /// <param name="image">The image to be drawn.</param>
     /// <param name="x">The x-coordinate where the image will be drawn.</param>
     /// <param name="y">The y-coordinate where the image will be drawn.</param>
-    void drawImage( const Image& image, int x, int y );
+    void drawImage( const Image& image, int x, int y ) const;
 
     /// <summary>
     /// Draws an image onto a destination area, optionally specifying source and destination rectangles.
@@ -193,22 +193,22 @@ public:
     /// <param name="image">The image to be drawn.</param>
     /// <param name="srcRect">Optional. The source rectangle within the image to draw. If not specified, the entire image is used.</param>
     /// <param name="dstRect">Optional. The destination rectangle on the target surface where the image will be drawn. If not specified, the image is drawn at its default position and size.</param>
-    void drawImage( const Image& image, std::optional<sr::math::RectI> srcRect = {}, std::optional<sr::math::RectI> dstRect = {} );
+    void drawImage( const Image& image, std::optional<sr::math::RectI> srcRect = {}, std::optional<sr::math::RectI> dstRect = {} ) const;
 
-    void drawSprite( const Sprite& sprite, int x, int y );
+    void drawSprite( const Sprite& sprite, int x, int y ) const;
 
-    void drawSprite( const Sprite& sprite, const glm::mat3& transform );
+    void drawSprite( const Sprite& sprite, const glm::mat3& transform ) const;
 
-    void drawSprite( const Sprite& sprite, const math::Transform2D& transform )
+    void drawSprite( const Sprite& sprite, const math::Transform2D& transform ) const
     {
         drawSprite( sprite, transform.getMatrix() );
     }
 
-    void drawTileMap( const TileMap& tileMap, int x = 0, int y = 0 );
+    void drawTileMap( const TileMap& tileMap, int x = 0, int y = 0 ) const;
 
-    void drawTileMap( const TileMap& tileMap, const glm::mat3& transform );
+    void drawTileMap( const TileMap& tileMap, const glm::mat3& transform ) const;
 
-    void drawTileMap( const TileMap& tileMap, const math::Transform2D& transform )
+    void drawTileMap( const TileMap& tileMap, const math::Transform2D& transform ) const
     {
         drawTileMap( tileMap, transform.getMatrix() );
     }
@@ -219,7 +219,7 @@ public:
     /// <param name="text">The text string to draw.</param>
     /// <param name="x">The x-coordinate where the text will be drawn.</param>
     /// <param name="y">The y-coordinate where the text will be drawn.</param>
-    void drawText( std::string_view text, int x, int y );
+    void drawText( std::string_view text, int x, int y ) const;
 
     /// <summary>
     /// Draws the specified text at the given coordinates, if provided.
@@ -227,7 +227,7 @@ public:
     /// <param name="text">The text object to be drawn.</param>
     /// <param name="x">The x-coordinate where the text will be drawn.</param>
     /// <param name="y">The y-coordinate where the text will be drawn.</param>
-    void drawText( const Text& text, int x, int y );
+    void drawText( const Text& text, int x, int y ) const;
 
     /// <summary>
     /// Draws the specified text at the given coordinates using the provided font.
@@ -236,7 +236,7 @@ public:
     /// <param name="text">The text string to be drawn.</param>
     /// <param name="x">The x-coordinate where the text will be drawn.</param>
     /// <param name="y">The y-coordinate where the text will be drawn.</param>
-    void drawText( const Font& font, std::string_view text, int x, int y );
+    void drawText( std::shared_ptr<const Font> font, std::string_view text, int x, int y ) const;
 
 private:
     /// <summary>
@@ -246,7 +246,7 @@ private:
     /// <param name="y0">The y-coordinate of the starting point.</param>
     /// <param name="x1">The x-coordinate of the ending point.</param>
     /// <param name="y1">The y-coordinate of the ending point.</param>
-    void drawLineLow( int x0, int y0, int x1, int y1 );
+    void drawLineLow( int x0, int y0, int x1, int y1 ) const;
 
     /// <summary>
     /// Draws a line between two points using an algorithm optimized for lines with a steep slope (|dy| > |dx|).
@@ -255,7 +255,7 @@ private:
     /// <param name="y0">The y-coordinate of the starting point.</param>
     /// <param name="x1">The x-coordinate of the ending point.</param>
     /// <param name="y1">The y-coordinate of the ending point.</param>
-    void drawLineHigh( int x0, int y0, int x1, int y1 );
+    void drawLineHigh( int x0, int y0, int x1, int y1 ) const;
 };
 
 }  // namespace graphics

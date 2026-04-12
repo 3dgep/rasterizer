@@ -89,10 +89,10 @@ struct Edge2D
     }
 };
 
-void Rasterizer::drawText( const Font& font, std::string_view str, int x, int y )
+void Rasterizer::drawText( std::shared_ptr<const Font> font, std::string_view str, int x, int y ) const
 {
-#if 0
-    return drawText( Text { font, str, state.color, state.outlineColor }, x, y );
+#if 1
+    return drawText( Text { std::move(font), str, state.color, state.outlineColor }, x, y );
 #else
     Image* image = state.colorTarget;
 
@@ -144,12 +144,12 @@ void Rasterizer::drawText( const Font& font, std::string_view str, int x, int y 
 #endif
 }
 
-void Rasterizer::drawText( std::string_view text, int x, int y )
+void Rasterizer::drawText( std::string_view text, int x, int y ) const
 {
-    drawText( *ResourceManager::loadFont(), text, x, y );
+    drawText( ResourceManager::loadFont(), text, x, y );
 }
 
-void Rasterizer::drawText( const Text& text, int x, int y )
+void Rasterizer::drawText( const Text& text, int x, int y ) const
 {
     Image* image = state.colorTarget;
 
@@ -160,7 +160,7 @@ void Rasterizer::drawText( const Text& text, int x, int y )
 }
 
 // Source: Claud Sonnet 4 "Create a 2D Software Rasterizer in C++"
-void Rasterizer::drawLineLow( int x0, int y0, int x1, int y1 )
+void Rasterizer::drawLineLow( int x0, int y0, int x1, int y1 ) const
 {
     Image*    image     = state.colorTarget;
     BlendMode blendMode = state.blendMode;
@@ -191,7 +191,7 @@ void Rasterizer::drawLineLow( int x0, int y0, int x1, int y1 )
     }
 }
 
-void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 )
+void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 ) const
 {
     Image*    image     = state.colorTarget;
     BlendMode blendMode = state.blendMode;
@@ -223,14 +223,13 @@ void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 )
     }
 }
 
-void Rasterizer::clear( std::optional<Color> color )
+void Rasterizer::clear( std::optional<Color> color ) const
 {
-    Image* image = state.colorTarget;
-    if ( image )
+    if ( Image* image = state.colorTarget )
         image->clear( color.value_or( state.color ) );
 }
 
-void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
+void Rasterizer::drawLine( int x0, int y0, int x1, int y1 ) const
 {
     Image* image = state.colorTarget;
 
@@ -268,7 +267,7 @@ void Rasterizer::drawLine( int x0, int y0, int x1, int y1 )
 }
 
 // Source: Grok (Aug 27, 2025): What is the most efficient way to draw a circle in a 2D software rasterizer?
-void Rasterizer::drawCircle( int cx, int cy, int r )
+void Rasterizer::drawCircle( int cx, int cy, int r ) const
 {
     Image* image = state.colorTarget;
 
@@ -324,7 +323,7 @@ void Rasterizer::drawCircle( int cx, int cy, int r )
     }
 }
 
-void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
+void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 ) const
 {
     Image* image = state.colorTarget;
 
@@ -398,7 +397,7 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 )
     }
 }
 
-void Rasterizer::drawTriangle( Vertex2D v0, Vertex2D v1, Vertex2D v2, const Image& texture, const SamplerState& samplerState, std::optional<BlendMode> _blendMode )
+void Rasterizer::drawTriangle( Vertex2D v0, Vertex2D v1, Vertex2D v2, const Image& texture, const SamplerState& samplerState, std::optional<BlendMode> _blendMode ) const
 {
     Image* image = state.colorTarget;
 
@@ -470,7 +469,7 @@ void Rasterizer::drawTriangle( Vertex2D v0, Vertex2D v1, Vertex2D v2, const Imag
     }
 }
 
-void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 )
+void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ivec2 p3 ) const
 {
     Image* image = state.colorTarget;
 
@@ -559,7 +558,7 @@ void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ive
     }
 }
 
-void Rasterizer::drawQuad( Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3, const Image& texture, const SamplerState& samplerState, std::optional<BlendMode> _blendMode )
+void Rasterizer::drawQuad( Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3, const Image& texture, const SamplerState& samplerState, std::optional<BlendMode> _blendMode ) const
 {
     Image* dstImage = state.colorTarget;
 
@@ -669,7 +668,7 @@ void Rasterizer::drawQuad( Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3, c
     }
 }
 
-void Rasterizer::drawAABB( math::AABB aabb )
+void Rasterizer::drawAABB( math::AABB aabb ) const
 {
     Image*   image    = state.colorTarget;
     Viewport viewport = state.viewport;
@@ -704,7 +703,7 @@ void Rasterizer::drawAABB( math::AABB aabb )
     }
 }
 
-void Rasterizer::drawImage( const Image& srcImage, int x, int y )
+void Rasterizer::drawImage( const Image& srcImage, int x, int y ) const
 {
     Image* dstImage = state.colorTarget;
     if ( !dstImage )
@@ -744,7 +743,7 @@ void Rasterizer::drawImage( const Image& srcImage, int x, int y )
     }
 }
 
-void Rasterizer::drawImage( const Image& srcImage, std::optional<sr::math::RectI> srcRect, std::optional<sr::math::RectI> dstRect )
+void Rasterizer::drawImage( const Image& srcImage, std::optional<sr::math::RectI> srcRect, std::optional<sr::math::RectI> dstRect ) const
 {
     Image* dstImage = state.colorTarget;
     if ( !dstImage )
@@ -812,7 +811,7 @@ void Rasterizer::drawImage( const Image& srcImage, std::optional<sr::math::RectI
     }
 }
 
-void Rasterizer::drawSprite( const Sprite& sprite, int _x, int _y )
+void Rasterizer::drawSprite( const Sprite& sprite, int _x, int _y ) const
 {
     const Image* srcImage = sprite.getImage().get();
     Image*       dstImage = state.colorTarget;
@@ -863,7 +862,7 @@ void Rasterizer::drawSprite( const Sprite& sprite, int _x, int _y )
     }
 }
 
-void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
+void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform ) const
 {
     const Image* srcImage = sprite.getImage().get();
     Image*       dstImage = state.colorTarget;
@@ -906,7 +905,7 @@ void Rasterizer::drawSprite( const Sprite& sprite, const glm::mat3& transform )
     drawQuad( verts[0], verts[1], verts[2], verts[3], *srcImage, SamplerState {}, sprite.getBlendMode() );
 }
 
-void Rasterizer::drawTileMap( const TileMap& tileMap, int x, int y )
+void Rasterizer::drawTileMap( const TileMap& tileMap, int x, int y ) const
 {
     // int tileX        = 0;
     // int tileY        = 0;
@@ -944,7 +943,7 @@ void Rasterizer::drawTileMap( const TileMap& tileMap, int x, int y )
     } );
 }
 
-void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform )
+void Rasterizer::drawTileMap( const TileMap& tileMap, const glm::mat3& transform ) const
 {
     // If the top-left 2x2 area of the matrix is identity, then there is no
     // scale or rotation. In this case, just use the fast path to draw the sprite.

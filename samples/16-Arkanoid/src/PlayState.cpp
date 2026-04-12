@@ -146,9 +146,9 @@ void PlayState::drawText( Rasterizer& rasterizer, std::string_view text, int x, 
 
     auto r        = rasterizer;
     r.state.color = Color::Black;
-    r.drawText( *font, text, x + 1, y + 1 );
+    r.drawText( font, text, x + 1, y + 1 );
     r.state.color = Color::White;
-    r.drawText( *font, text, x, y );
+    r.drawText( font, text, x, y );
 }
 
 void PlayState::draw( Rasterizer& rasterizer )

@@ -172,8 +172,6 @@ void Player::draw( Rasterizer& rasterizer ) const noexcept
 #ifndef NDEBUG
     // Draw the current state of the player.
     auto r               = rasterizer;
-    r.state.color        = Color::White;
-    r.state.outlineColor = Color::Black;
     auto pos             = transform.getPosition() - glm::vec2 { 12, 50 };
     r.drawText( debugText, static_cast<int>( pos.x ), static_cast<int>( pos.y ) );
 
