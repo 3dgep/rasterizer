@@ -1,3 +1,5 @@
+#include "graphics/ResourceManager.hpp"
+
 #include <Timer.hpp>
 
 #include <graphics/Image.hpp>
@@ -35,15 +37,19 @@ Font::Style styleFromIndex( int styleIndex )
     }
 }
 
-void drawTextWithEffects( Rasterizer& rasterizer, Font& font, std::string_view text, int x, int y, const Color& fillColor, const Color& outlineColor, bool drawOutline, int outlineSize,
-                          bool drawShadow, const glm::ivec2& shadowOffset, const Color& shadowColor, bool drawGlow, int glowRadius, const Color& glowColor, bool drawWave,
+void drawTextWithEffects( Rasterizer& rasterizer, const Text& text, int x, int y, bool drawShadow, const glm::ivec2& shadowOffset, const Color& shadowColor, bool drawGlow, int glowRadius, const Color& glowColor, bool drawWave,
                           float waveAmplitude, float wavePhase, int simulatedWeight )
 {
-    font.setOutline( drawOutline ? outlineSize : 0 );
-
     auto r = rasterizer;
 
     const int waveOffsetY = drawWave ? static_cast<int>( std::round( std::sin( wavePhase ) * waveAmplitude ) ) : 0;
+
+    if ( drawShadow )
+    {
+        r.state.outlineColor = shadowColor;
+        r.state.color        = shadowColor;
+        r.drawText( text, x + shadowOffset.x, y + shadowOffset.y + waveOffsetY );
+    }
 
     if ( drawGlow && glowRadius > 0 )
     {
@@ -59,26 +65,16 @@ void drawTextWithEffects( Rasterizer& rasterizer, Font& font, std::string_view t
 
                 if ( ( ox * ox + oy * oy ) <= ( glowRadius * glowRadius ) )
                 {
-                    r.drawText( font, text, x + ox, y + oy + waveOffsetY );
+                    r.drawText( text, x + ox, y + oy + waveOffsetY );
                 }
             }
         }
     }
 
-    if ( drawShadow )
-    {
-        r.state.outlineColor = shadowColor;
-        r.state.color        = shadowColor;
-        r.drawText( font, text, x + shadowOffset.x, y + shadowOffset.y + waveOffsetY );
-    }
-
-    r.state.outlineColor = outlineColor;
-    r.state.color        = fillColor;
-
     for ( int pass = 0; pass < std::max( 1, simulatedWeight ); ++pass )
     {
         const int offset = pass - ( simulatedWeight - 1 ) / 2;
-        r.drawText( font, text, x + offset, y + waveOffsetY );
+        r.drawText( text, x + offset, y + waveOffsetY );
     }
 }
 }  // namespace
@@ -94,21 +90,24 @@ int main()
     Timer      timer;
     Text       fpsText { "FPS: 0" };
 
-    Font defaultFont { 48.0f };
-    Font loadedFont { "assets/fonts/ARCADE_N.ttf", 48.0f };
+    std::shared_ptr<Font> defaultFont = ResourceManager::loadFont( 48.0f );
+    std::shared_ptr<Font> loadedFont  = ResourceManager::loadFont( "assets/fonts/arial.ttf", 48.0f );
 
-    float fontSize      = 48.0f;
-    int   fontStyle     = 0;
-    int   outlineSize   = 2;
-    int   glowRadius    = 3;
-    int   fontWeight    = 1;
-    bool  showOutline   = true;
-    bool  showShadow    = true;
-    bool  showGlow      = true;
-    bool  showWave      = true;
-    float waveAmplitude = 6.0f;
-    float waveSpeed     = 2.0f;
-    float animationTime = 0.0f;
+    Text defaultText( defaultFont, "Default Font: The quick brown fox" );
+    Text loadedText( loadedFont, "Loaded Font: 0123456789 !@#$%" );
+
+    float      fontSize      = 48.0f;
+    int        fontStyle     = 0;
+    int        outlineSize   = 2;
+    int        glowRadius    = 3;
+    int        fontWeight    = 1;
+    bool       showOutline   = true;
+    bool       showShadow    = false;
+    bool       showGlow      = false;
+    bool       showWave      = false;
+    float      waveAmplitude = 6.0f;
+    float      waveSpeed     = 2.0f;
+    float      animationTime = 0.0f;
     glm::ivec2 shadowOffset { 4, 4 };
 
     glm::vec4 defaultFill  = { 1.0f, 0.95f, 0.20f, 1.0f };
@@ -176,27 +175,27 @@ int main()
             ImGui::ColorEdit4( "Glow Color", glm::value_ptr( glowColor ) );
 
             ImGui::Text( "Loaded Font: assets/fonts/ARCADE_N.ttf" );
-            ImGui::Text( "Default Font Family: %s", defaultFont.getFamilyName().c_str() );
-            ImGui::Text( "Loaded Font Family: %s", loadedFont.getFamilyName().c_str() );
+            ImGui::Text( "Default Font Family: %s", defaultFont->getFamilyName().c_str() );
+            ImGui::Text( "Loaded Font Family: %s", loadedFont->getFamilyName().c_str() );
 
             ImGui::End();
         }
 
         const Font::Style style = styleFromIndex( fontStyle );
-        defaultFont.setSize( fontSize ).setStyle( style );
-        loadedFont.setSize( fontSize ).setStyle( style );
+        defaultFont->setSize( fontSize ).setStyle( style ).setOutline( showOutline ? outlineSize : 0 );
+        loadedFont->setSize( fontSize ).setStyle( style ).setOutline( showOutline ? outlineSize : 0 );
+        defaultText.setFillColor( Color::fromFloats( defaultFill ) ).setOutlineColor( Color::fromFloats( outlineColor ) );
+        loadedText.setFillColor( Color::fromFloats( loadedFill) ).setOutlineColor( Color::fromFloats( outlineColor ) );
 
         image.clear( Color::fromHTML( "#111827" ) );
 
         animationTime += static_cast<float>( timer.elapsedSeconds() );
         const float phase = animationTime * waveSpeed;
 
-        drawTextWithEffects( rasterizer, defaultFont, "Default Font: The quick brown fox", 84, 180, Color::fromFloats( defaultFill ), Color::fromFloats( outlineColor ), showOutline,
-                             outlineSize, showShadow, shadowOffset, Color::fromFloats( shadowColor ), showGlow, glowRadius, Color::fromFloats( glowColor ), showWave, waveAmplitude, phase,
+        drawTextWithEffects( rasterizer, defaultText, 84, 180, showShadow, shadowOffset, Color::fromFloats( shadowColor ), showGlow, glowRadius, Color::fromFloats( glowColor ), showWave, waveAmplitude, phase,
                              fontWeight );
 
-        drawTextWithEffects( rasterizer, loadedFont, "Loaded Font: 0123456789 !@#$%", 84, 320, Color::fromFloats( loadedFill ), Color::fromFloats( outlineColor ), showOutline, outlineSize,
-                             showShadow, shadowOffset, Color::fromFloats( shadowColor ), showGlow, glowRadius, Color::fromFloats( glowColor ), showWave, waveAmplitude, phase + 0.75f,
+        drawTextWithEffects( rasterizer, loadedText, 84, 320, showShadow, shadowOffset, Color::fromFloats( shadowColor ), showGlow, glowRadius, Color::fromFloats( glowColor ), showWave, waveAmplitude, phase + 0.75f,
                              fontWeight );
 
         if ( timer.totalSeconds() > 1.0 )

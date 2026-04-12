@@ -1,7 +1,7 @@
 #include <Game.hpp>
-#include <PowerUp.hpp>
 #include <ParseRects.hpp>
 #include <PlayState.hpp>
+#include <PowerUp.hpp>
 
 #include <Timer.hpp>
 
@@ -67,12 +67,12 @@ PlayState::PlayState( Game& game )
 
     // Input that controls shooting.
     Input::addButtonDownCallback( "Fire", []( std::span<const GamepadStateTracker> gamepadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
-        bool a = false;
+        bool a            = false;
         bool rightTrigger = false;
 
         for ( auto& gamepadState: gamepadStates )
         {
-            a = a || gamepadState.a == ButtonState::Held;
+            a            = a || gamepadState.a == ButtonState::Held;
             rightTrigger = gamepadState.rightTrigger == ButtonState::Held;
         }
 
@@ -142,13 +142,13 @@ void PlayState::update( float deltaTime )
 
 void PlayState::drawText( Rasterizer& rasterizer, std::string_view text, int x, int y )
 {
-    const auto& font = game.getFont();
+    auto font = game.getFont();
 
-    auto r = rasterizer;
+    auto r        = rasterizer;
     r.state.color = Color::Black;
-    r.drawText( font, text, x + 1, y + 1 );
+    r.drawText( *font, text, x + 1, y + 1 );
     r.state.color = Color::White;
-    r.drawText( font, text, x, y );
+    r.drawText( *font, text, x, y );
 }
 
 void PlayState::draw( Rasterizer& rasterizer )

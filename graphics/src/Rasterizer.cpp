@@ -1,10 +1,12 @@
+#include <SDL_ttf_context.hpp>
 #include <graphics/Rasterizer.hpp>
 #include <graphics/Vertex.hpp>
-#include <SDL_ttf_context.hpp>
 
 #include <SDL3_ttf/SDL_ttf.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
+#include "graphics/ResourceManager.hpp"
+
 #include <glm/gtx/matrix_query.hpp>  // glm::isIdentity.
 
 #include <algorithm>
@@ -92,16 +94,22 @@ void Rasterizer::drawText( const Font& font, std::string_view str, int x, int y 
 #if 0
     return drawText( Text { font, str, state.color, state.outlineColor }, x, y );
 #else
-    Image* image   = state.colorTarget;
-    int    outline = font.getOutline();
+    Image* image = state.colorTarget;
 
     if ( !image )
         return;
 
     SDL_Surface* surface = SDL_CreateSurfaceFrom( image->getWidth(), image->getHeight(), SDL_PIXELFORMAT_RGBA32, image->data(), image->getPitch() );
+    if ( !surface )
+    {
+        std::cerr << "Failed to create surface from image: " << SDL_GetError() << std::endl;
+        return;
+    }
+
+    int outline = font.getOutline();
     if ( outline > 0 )
     {
-        TTF_Text* text = TTF_CreateText( SDL_ttf_context::get()->textEngine, font.getTTF_OutlineFont(), str.data(), str.size() );
+        TTF_Text* text = TTF_CreateText( SDL_ttf_context::textEngine(), font.getTTF_OutlineFont(), str.data(), str.size() );
         if ( !text )
         {
             std::cerr << "Failed to create outline text." << SDL_GetError() << std::endl;
@@ -109,7 +117,7 @@ void Rasterizer::drawText( const Font& font, std::string_view str, int x, int y 
         else
         {
             TTF_SetTextColor( text, state.outlineColor.channels.r, state.outlineColor.channels.g, state.outlineColor.channels.b, state.outlineColor.channels.a );
-            if ( !TTF_DrawSurfaceText( text, x, y, surface ) )
+            if ( !TTF_DrawSurfaceText( text, x - outline * 2, y - outline * 2, surface ) )
             {
                 std::cerr << "Failed to draw outline text to the surface: " << SDL_GetError() << std::endl;
             }
@@ -117,7 +125,7 @@ void Rasterizer::drawText( const Font& font, std::string_view str, int x, int y 
         }
     }
     {
-        TTF_Text* text = TTF_CreateText( SDL_ttf_context::get()->textEngine, font.getTTF_FillFont(), str.data(), str.size() );
+        TTF_Text* text = TTF_CreateText( SDL_ttf_context::textEngine(), font.getTTF_FillFont(), str.data(), str.size() );
         if ( !text )
         {
             std::cerr << "Failed to create fill text." << SDL_GetError() << std::endl;
@@ -125,7 +133,7 @@ void Rasterizer::drawText( const Font& font, std::string_view str, int x, int y 
         else
         {
             TTF_SetTextColor( text, state.color.channels.r, state.color.channels.g, state.color.channels.b, state.color.channels.a );
-            if ( !TTF_DrawSurfaceText( text, x + outline * 2, y + outline * 2, surface ) )
+            if ( !TTF_DrawSurfaceText( text, x, y, surface ) )
             {
                 std::cerr << "Failed to draw fill text to the surface: " << SDL_GetError() << std::endl;
             }
@@ -138,31 +146,34 @@ void Rasterizer::drawText( const Font& font, std::string_view str, int x, int y 
 
 void Rasterizer::drawText( std::string_view text, int x, int y )
 {
-    drawText( Font::Default, text, x, y );
+    drawText( *ResourceManager::loadFont(), text, x, y );
 }
 
 void Rasterizer::drawText( const Text& text, int x, int y )
 {
     Image* image = state.colorTarget;
-    int    outline = text.getFont().getOutline();
 
     if ( !image )
         return;
 
     SDL_Surface* surface = SDL_CreateSurfaceFrom( image->getWidth(), image->getHeight(), SDL_PIXELFORMAT_RGBA32, image->data(), image->getPitch() );
+    if ( !surface )
+    {
+        std::cerr << "Failed to create surface from image: " << SDL_GetError() << std::endl;
+        return;
+    }
+
+    int outline = text.getFont()->getOutline();
+
     if ( outline > 0 )
     {
-        if ( !TTF_DrawSurfaceText( text.getTTF_OutlineText(), x, y, surface ) )
+        if ( !TTF_DrawSurfaceText( text.getTTF_OutlineText(), x - outline * 2, y - outline * 2, surface ) )
         {
             std::cerr << "Failed to draw outline text to the surface: " << SDL_GetError() << std::endl;
         }
     }
 
-    auto fillSize    = text.getFillSize();
-    auto outlineSize = text.getOutlineSize();
-    auto offset      = ( outlineSize - fillSize ) / 2;
-
-    if ( !TTF_DrawSurfaceText( text.getTTF_FillText(), x + offset.x, y + offset.y, surface ) )
+    if ( !TTF_DrawSurfaceText( text.getTTF_FillText(), x, y, surface ) )
     {
         std::cerr << "Failed to draw outline text to the surface: " << SDL_GetError() << std::endl;
     }

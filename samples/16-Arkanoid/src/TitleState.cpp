@@ -42,26 +42,26 @@ void TitleState::draw( Rasterizer& rasterizer )
 
     rasterizer.drawSprite( arkanoidSprite, 16, 51 );
 
-    int         coins = game.getCoins();
-    const auto& font  = game.getFont();
+    int  coins = game.getCoins();
+    auto font  = game.getFont();
 
     if ( coins > 0 )
     {
-        rasterizer.drawText( font, "PUSH", 97, 120 );
+        rasterizer.drawText( *font, "PUSH", 97, 120 );
         if ( coins < 2 )
         {
-            rasterizer.drawText( font, "ONLY 1 PLAYER BUTTON", 33, 144 );
+            rasterizer.drawText( *font, "ONLY 1 PLAYER BUTTON", 33, 144 );
         }
         else
         {
-            rasterizer.drawText( font, "1 OR 2 PLAYER BUTTON", 34, 144 );
+            rasterizer.drawText( *font, "1 OR 2 PLAYER BUTTON", 34, 144 );
         }
     }
 
     rasterizer.drawSprite( taitoSprite, 64, 179 );
-    rasterizer.drawText( font, "© 1986 TAITO CORP JAPAN", 16, 208 );
-    rasterizer.drawText( font, "ALL RIGHTS RESERVED", 33, 222 );
-    rasterizer.drawText( font, std::format( "CREDIT{:3d}", coins ), 145, 255 );
+    rasterizer.drawText( *font, "© 1986 TAITO CORP JAPAN", 16, 208 );
+    rasterizer.drawText( *font, "ALL RIGHTS RESERVED", 33, 222 );
+    rasterizer.drawText( *font, std::format( "CREDIT{:3d}", coins ), 145, 255 );
 }
 
 void TitleState::processEvent( const SDL_Event& _event )

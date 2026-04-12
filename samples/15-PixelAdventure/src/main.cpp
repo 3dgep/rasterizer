@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include "graphics/ResourceManager.hpp"
 
 #include <graphics/Window.hpp>
 

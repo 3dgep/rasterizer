@@ -26,7 +26,7 @@ public:
 
     Text() = default;
     explicit Text( std::string_view text, const Color& fillColor = Color::White, const Color& outlineColor = Color::Black );
-    explicit Text( const Font& font, std::string_view text = {}, const Color& fillColor = Color::White, const Color& outlineColor = Color::Black );
+    explicit Text( std::shared_ptr<const Font> font, std::string_view text = {}, const Color& fillColor = Color::White, const Color& outlineColor = Color::Black );
     Text( const Text& );
     Text( Text&& ) noexcept;
     ~Text();
@@ -111,14 +111,14 @@ public:
     /// Get the font used by the text object.
     /// </summary>
     /// <returns>The font used by the text object.</returns>
-    const Font& getFont() const;
+    std::shared_ptr<const Font> getFont() const;
 
     /// <summary>
     /// Sets the font used by the text object.
     /// </summary>
     /// <param name="font">A reference to the Font object to be used for rendering the text.</param>
     /// <returns>A reference to the modified Text object.</returns>
-    Text& setFont( const Font& font );
+    Text& setFont( std::shared_ptr<const Font> font );
 
     /// <summary>
     /// Get the position of the text object.
@@ -138,6 +138,11 @@ public:
     /// </summary>
     /// <returns>The width & height of the rendered Text object (in pixels).</returns>
     glm::ivec2 getFillSize() const;
+
+    /// <summary>
+    /// Gets the size of the text with the outline stroke.
+    /// </summary>
+    /// <returns>A 2D integer vector representing the size of the text with the outline stroke (in Pixels).</returns>
     glm::ivec2 getOutlineSize() const;
 
     int getFillWidth() const;
@@ -176,12 +181,11 @@ private:
         void operator()( TTF_Text* ) const;
     };
     using TextPtr = std::unique_ptr<TTF_Text, TextDeleter>;
-    Font    m_Font;
+
+    std::shared_ptr<const Font> m_Font;
 
     TextPtr m_FillText;
     TextPtr m_OutlineText;
-
-    std::shared_ptr<SDL_ttf_context> context;
 };
 }  // namespace graphics
 }  // namespace sr

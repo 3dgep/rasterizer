@@ -151,19 +151,19 @@ void HighScoreState::update( float deltaTime )
 
 void HighScoreState::draw( Rasterizer& rasterizer )
 {
-    const auto& font = game.getFont();
+    auto font = game.getFont();
 
     auto r = rasterizer;
     r.clear( Color::Black );
 
     r.state.color = Color::Red;
-    r.drawText( font, "ENTER YOUR INITIALS !", 31, 79 );
+    r.drawText( *font, "ENTER YOUR INITIALS !", 31, 79 );
     r.state.color = Color::Yellow;
-    r.drawText( font, "SCORE ROUND   NAME", 40, 104 );
+    r.drawText( *font, "SCORE ROUND   NAME", 40, 104 );
     r.state.color = Color::White;
-    r.drawText( font, std::format( "{:8d}", highScore.score ), 20, 120 );
+    r.drawText( *font, std::format( "{:8d}", highScore.score ), 20, 120 );
     r.state.color = Color::Yellow;
-    r.drawText( font, std::format( "{:>3}", highScore.round ), 95, 120 );
+    r.drawText( *font, std::format( "{:>3}", highScore.round ), 95, 120 );
 
     for ( int i = 0; i < 3; ++i )
     {
@@ -173,7 +173,7 @@ void HighScoreState::draw( Rasterizer& rasterizer )
         {
             r.state.color = std::sin( timer * PI * 12.0f ) > 0.0f ? Color::Red : Color::White;
         }
-        r.drawText( font, std::format( "{}", highScore.name[i] ), 144 + i * 7, 120 );
+        r.drawText( *font, std::format( "{}", highScore.name[i] ), 144 + i * 7, 120 );
     }
 }
 

@@ -77,5 +77,5 @@ void IntroState::draw( sr::graphics::Rasterizer& rasterizer )
     else
         rasterizer.drawSprite( shipDestroyedAnimation, 9, 153 );
 
-    rasterizer.drawText( game.getFont(), lines[line].substr( 0, character ), 8, 30 );
+    rasterizer.drawText( *game.getFont(), lines[line].substr( 0, character ), 8, 30 );
 }

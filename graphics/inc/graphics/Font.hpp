@@ -8,6 +8,7 @@
 #include <memory>  // for std::unique_ptr
 
 struct TTF_Font;
+struct SDL_IOStream;
 
 namespace sr
 {
@@ -66,8 +67,6 @@ public:
         Black      = 900,
         ExtraBlack = 950
     };
-
-    static const Font Default;
 
     explicit Font( float size = 12.0f );
     explicit Font( const std::filesystem::path& fontFile, float size = 12.0f );
@@ -317,8 +316,6 @@ private:
 
     FontPtr m_FillFont;
     FontPtr m_OutlineFont;
-
-    std::shared_ptr<SDL_ttf_context> context;
 };
 }  // namespace graphics
 }  // namespace sr

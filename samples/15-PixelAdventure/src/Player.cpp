@@ -34,15 +34,15 @@ const float Player::coyoteTime = 0.1f;
 const float Player::jumpBuffer = 0.1f;
 
 // A map to convert the player state to a string (for debugging).
-std::map<Player::State, Text> stateToString = {
-    { Player::State::Idle, Text { "Idle" } },
-    { Player::State::Run, Text { "Run" } },
-    { Player::State::Jump, Text { "Jump" } },
-    { Player::State::Hit, Text { "Hit" } },
-    { Player::State::DoubleJump, Text { "Double Jump" } },
-    { Player::State::Falling, Text { "Falling" } },
-    { Player::State::LeftWallJump, Text { "Left Wall Jump" } },
-    { Player::State::RightWallJump, Text { "Right Wall Jump" } }
+std::map<Player::State, std::string> stateToString = {
+    { Player::State::Idle, "Idle" },
+    { Player::State::Run, "Run" },
+    { Player::State::Jump, "Jump" },
+    { Player::State::Hit, "Hit" },
+    { Player::State::DoubleJump, "Double Jump" },
+    { Player::State::Falling, "Falling" },
+    { Player::State::LeftWallJump, "Left Wall Jump" },
+    { Player::State::RightWallJump, "Right Wall Jump" }
 };
 
 std::shared_ptr<Character> createCharacter( const std::filesystem::path& basePath )
@@ -171,14 +171,14 @@ void Player::draw( Rasterizer& rasterizer ) const noexcept
 
 #ifndef NDEBUG
     // Draw the current state of the player.
-    auto r        = rasterizer;
-    r.state.color = Color::White;
+    auto r               = rasterizer;
+    r.state.color        = Color::White;
     r.state.outlineColor = Color::Black;
-    auto pos      = transform.getPosition() - glm::vec2 { 12, 50 };
-    r.drawText( stateToString[state], static_cast<int>( pos.x ), static_cast<int>( pos.y ) );
+    auto pos             = transform.getPosition() - glm::vec2 { 12, 50 };
+    r.drawText( debugText, static_cast<int>( pos.x ), static_cast<int>( pos.y ) );
 
     // Draw the AABB of the player
-    r.state.color = Color::Red;
+    r.state.color     = Color::Red;
     r.state.blendMode = BlendMode::Disable;
     r.state.fillMode  = FillMode::WireFrame;
     r.drawAABB( getAABB() );
@@ -192,6 +192,9 @@ void Player::setState( State newState )
         endState( state, newState );
         startState( state, newState );
         state = newState;
+#ifndef NDEBUG
+        debugText = stateToString[state];
+#endif
     }
 }
 

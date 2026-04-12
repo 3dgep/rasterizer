@@ -1,6 +1,7 @@
 #include "SDL_ttf_context.hpp"
 
-#include <iostream>
+#include <graphics/ResourceManager.hpp>
+
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include <stdexcept>
@@ -13,18 +14,26 @@ SDL_ttf_context::SDL_ttf_context()
         throw std::runtime_error( SDL_GetError() );
     }
 
-    textEngine = TTF_CreateSurfaceTextEngine();
+    m_TextEngine = TTF_CreateSurfaceTextEngine();
 }
 
 SDL_ttf_context::~SDL_ttf_context()
 {
-    std::cout << "~SDL_ttf_context" << std::endl;
-    TTF_DestroySurfaceTextEngine( textEngine );
+    // Make sure the fonts in the resource manager are cleared before
+    // shutting down the TTF font library.
+    sr::ResourceManager::clearFonts();
+
+    TTF_DestroySurfaceTextEngine( m_TextEngine );
     TTF_Quit();
 }
 
-std::shared_ptr<SDL_ttf_context> SDL_ttf_context::get()
+SDL_ttf_context& SDL_ttf_context::get()
 {
-    static std::shared_ptr<SDL_ttf_context> context = std::make_shared<SDL_ttf_context>();
+    static SDL_ttf_context context;
     return context;
+}
+
+TTF_TextEngine* SDL_ttf_context::textEngine()
+{
+    return get().m_TextEngine;
 }

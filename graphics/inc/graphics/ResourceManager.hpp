@@ -21,6 +21,8 @@ namespace ResourceManager
 /// <returns>The loaded image as a shared pointer, or null if the image couldn't be loaded.</returns>
 std::shared_ptr<Image> loadImage( const std::filesystem::path& filePath );
 
+void clearImages();
+
 /// <summary>
 /// Load a sprite sheet from a file path.
 /// </summary>
@@ -49,6 +51,17 @@ std::shared_ptr<SpriteSheet> loadSpriteSheet( const std::filesystem::path& fileP
 /// <param name="size">The desired font size. Defaults to 12.0 if not specified.</param>
 /// <returns>A std::shared_ptr to the loaded Font object.</returns>
 std::shared_ptr<Font> loadFont( const std::filesystem::path& filePath, float size = 12.0f );
+
+/// <summary>
+/// Loads a font with the specified size.
+/// </summary>
+/// <param name="size">The size of the font to load. Defaults to 12.0f if not specified.</param>
+/// <returns>A shared pointer to the loaded Font object.</returns>
+std::shared_ptr<Font> loadFont( float size = 12.0f );
+
+void clearFonts();
+
+void clear();
 
 }  // namespace ResourceManager
 }  // namespace graphics

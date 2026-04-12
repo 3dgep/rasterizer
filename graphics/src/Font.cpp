@@ -158,20 +158,19 @@ TTF_HorizontalAlignment translateAlignment( Font::HorizontalAlignment alignment 
 
 }  // namespace
 
-const Font Font::Default {};
-
 void Font::FontDeleter::operator()( TTF_Font* font ) const
 {
-    std::cout << "FontDeleter::operator()" << std::endl;
     TTF_CloseFont( font );
 }
 
 Font::Font( float size )
 {
-    context              = SDL_ttf_context::get();
-    SDL_IOStream* stream = SDL_IOFromConstMem( PressStart2P, std::size( PressStart2P ) );
+    [[maybe_unused]]
+    static SDL_ttf_context& context = SDL_ttf_context::get();
 
-    m_FillFont.reset( TTF_OpenFontIO( stream, false, size ) );
+    SDL_IOStream* stream = SDL_IOFromConstMem( PressStart2P, std::size( PressStart2P ) );
+    m_FillFont.reset( TTF_OpenFontIO( stream, true, size ) );
+    // m_OutlineFont.reset( TTF_OpenFontIO( stream, true, size ) );
 
     if ( !m_FillFont )
     {
@@ -180,12 +179,12 @@ Font::Font( float size )
     }
 
     m_OutlineFont.reset( TTF_CopyFont( m_FillFont.get() ) );
-    setOutline( 2 );
 }
 
 Font::Font( const std::filesystem::path& fontFile, float size )
 {
-    context = SDL_ttf_context::get();
+    [[maybe_unused]]
+    static SDL_ttf_context& context = SDL_ttf_context::get();
 
     m_FillFont.reset( TTF_OpenFont( fontFile.string().c_str(), size ) );
 
@@ -200,28 +199,43 @@ Font::Font( const std::filesystem::path& fontFile, float size )
 
 Font::Font( const Font& other )
 {
-    context = other.context;
     m_FillFont.reset( TTF_CopyFont( other.m_FillFont.get() ) );
     m_OutlineFont.reset( TTF_CopyFont( other.m_OutlineFont.get() ) );
 }
 
-Font::Font( Font&& other ) noexcept = default;
+Font::Font( Font&& other ) noexcept
+{
+    m_FillFont    = std::exchange( other.m_FillFont, nullptr );
+    m_OutlineFont = std::exchange( other.m_OutlineFont, nullptr );
+}
 
 Font& Font::operator=( const Font& other )
 {
     if ( &other == this )
         return *this;
 
-    context = other.context;
     m_FillFont.reset( TTF_CopyFont( other.m_FillFont.get() ) );
     m_OutlineFont.reset( TTF_CopyFont( other.m_OutlineFont.get() ) );
 
     return *this;
 }
 
-Font& Font::operator=( Font&& other ) noexcept = default;
+Font& Font::operator=( Font&& other ) noexcept
+{
+    if ( &other == this )
+        return *this;
 
-Font::~Font() = default;
+    m_FillFont    = std::exchange( other.m_FillFont, nullptr );
+    m_OutlineFont = std::exchange( other.m_OutlineFont, nullptr );
+
+    return *this;
+}
+
+Font::~Font()
+{
+    TTF_CloseFont( m_OutlineFont.release() );
+    TTF_CloseFont( m_FillFont.release() );
+}
 
 int Font::getAscent() const
 {

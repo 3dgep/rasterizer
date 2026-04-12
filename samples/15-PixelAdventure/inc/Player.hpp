@@ -200,4 +200,8 @@ private:
 
     // Player's current velocity.
     glm::vec2 velocity { 0 };
+
+#ifndef NDEBUG
+    sr::Text debugText { "Idle" };
+#endif
 };

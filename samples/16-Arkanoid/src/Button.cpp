@@ -6,9 +6,9 @@
 
 using namespace sr;
 
-Button::Button( std::string_view text, const Font& font, const Color& color, const RectF& rect, std::function<void()> onClick )
+Button::Button( std::string_view text, std::shared_ptr<const Font> font, const Color& color, const RectF& rect, std::function<void()> onClick )
 : onClick { std::move( onClick ) }
-, buttonText { font , text, color }
+, buttonText { std::move( font ), text, color }
 {
     setRect( rect );
 }
@@ -72,8 +72,8 @@ void Button::draw( Rasterizer& rasterizer )
     rasterizer.drawText( buttonText, static_cast<int>( pos.x ), static_cast<int>( pos.y + ( state == State::Pressed ? 5.0f : 0.0f ) ) );
 
 #ifndef NDEBUG
-    auto r = rasterizer;
-    r.state.color = Color::Red;
+    auto r           = rasterizer;
+    r.state.color    = Color::Red;
     r.state.fillMode = FillMode::WireFrame;
     r.drawAABB( getAABB() );
 #endif

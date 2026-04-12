@@ -31,7 +31,7 @@ public:
     /// <param name="color">The color of the button text. Default: White.</param>
     /// <param name="rect">The rectangle that represents the button's position on screen. Default: 0</param>
     /// <param name="onClick">The callback function to invoke when the button is clicked. Default: none</param>
-    Button( std::string_view text, const sr::graphics::Font& font, const sr::graphics::Color& color = sr::graphics::Color::White, const sr::math::RectF& rect = sr::math::RectF {}, std::function<void()> onClick = {} );
+    Button( std::string_view text, std::shared_ptr<const sr::Font> font, const sr::graphics::Color& color = sr::graphics::Color::White, const sr::math::RectF& rect = sr::math::RectF {}, std::function<void()> onClick = {} );
 
     void setSprite( State state, const sr::graphics::Sprite& sprite );
 

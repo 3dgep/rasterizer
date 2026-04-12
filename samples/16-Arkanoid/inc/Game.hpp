@@ -89,7 +89,7 @@ public:
     /// Get the one font used by the game.
     /// </summary>
     /// <returns></returns>
-    const sr::graphics::Font& getFont() const noexcept;
+    std::shared_ptr<const sr::Font> getFont() const noexcept;
 
 private:
     void endState( GameState state );
@@ -105,7 +105,7 @@ private:
     sr::graphics::Rasterizer rasterizer;
 
     // Fonts.
-    sr::graphics::Font arcadeN;
+    std::shared_ptr<sr::Font> arcadeN;
 
     int numPlayers = 1;
     int coins      = 0;

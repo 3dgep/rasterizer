@@ -1,4 +1,7 @@
 #include <graphics/Text.hpp>
+
+#include "graphics/ResourceManager.hpp"
+
 #include <SDL_ttf_context.hpp>
 
 #include <SDL3_ttf/SDL_ttf.h>
@@ -55,16 +58,14 @@ void Text::TextDeleter::operator()( TTF_Text* text ) const
 }
 
 Text::Text( std::string_view text, const Color& fillColor, const Color& outlineColor )
-: Text( Font::Default, text, fillColor, outlineColor )
+: Text( ResourceManager::loadFont(), text, fillColor, outlineColor )
 {}
 
-Text::Text( const Font& font, std::string_view text, const Color& fillColor, const Color& outlineColor )
-: m_Font { font }
+Text::Text( std::shared_ptr<const Font> font, std::string_view text, const Color& fillColor, const Color& outlineColor )
+: m_Font { std::move(font) }
 {
-    context = SDL_ttf_context::get();
-
-    m_FillText.reset( TTF_CreateText( SDL_ttf_context::get()->textEngine, m_Font.getTTF_FillFont(), text.data(), text.length() ) );
-    m_OutlineText.reset( TTF_CreateText( SDL_ttf_context::get()->textEngine, m_Font.getTTF_OutlineFont(), text.data(), text.length() ) );
+    m_FillText.reset( TTF_CreateText( SDL_ttf_context::textEngine(), m_Font->getTTF_FillFont(), text.data(), text.length() ) );
+    m_OutlineText.reset( TTF_CreateText( SDL_ttf_context::textEngine(), m_Font->getTTF_OutlineFont(), text.data(), text.length() ) );
 
     if ( !m_FillText )
     {
@@ -88,13 +89,11 @@ Text& Text::operator=( const Text& other )
     if ( &other == this )
         return *this;
 
-    context    = other.context;
-
-    auto& font = other.getFont();
+    auto font = other.getFont();
     auto  text = other.getText();
 
-    m_FillText.reset( TTF_CreateText( SDL_ttf_context::get()->textEngine, font.getTTF_FillFont(), text.data(), text.size() ) );
-    m_OutlineText.reset( TTF_CreateText( SDL_ttf_context::get()->textEngine, font.getTTF_OutlineFont(), text.data(), text.size() ) );
+    m_FillText.reset( TTF_CreateText( SDL_ttf_context::textEngine(), font->getTTF_FillFont(), text.data(), text.size() ) );
+    m_OutlineText.reset( TTF_CreateText( SDL_ttf_context::textEngine(), font->getTTF_OutlineFont(), text.data(), text.size() ) );
 
     setFillColor( other.getFillColor() );
     setOutlineColor( other.getOutlineColor() );
@@ -198,11 +197,11 @@ Text::Direction Text::getDirection() const
     return translateDirection( TTF_GetTextDirection( m_FillText.get() ) );
 }
 
-Text& Text::setFont( const Font& font )
+Text& Text::setFont( std::shared_ptr<const Font> font )
 {
-    m_Font = font;
+    m_Font = std::move(font);
 
-    if ( !TTF_SetTextFont( m_FillText.get(), m_Font.getTTF_FillFont() ) || !TTF_SetTextFont( m_OutlineText.get(), m_Font.getTTF_OutlineFont() ) )
+    if ( !TTF_SetTextFont( m_FillText.get(), m_Font->getTTF_FillFont() ) || !TTF_SetTextFont( m_OutlineText.get(), m_Font->getTTF_OutlineFont() ) )
     {
         std::cerr << "Failed to set text font: " << SDL_GetError() << std::endl;
     }
@@ -210,7 +209,7 @@ Text& Text::setFont( const Font& font )
     return *this;
 }
 
-const Font& Text::getFont() const
+std::shared_ptr<const Font> Text::getFont() const
 {
     return m_Font;
 }

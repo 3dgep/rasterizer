@@ -33,29 +33,43 @@ struct std::hash<FontKey>
 
 namespace
 {
-
 // Image store.
-std::unordered_map<std::filesystem::path, std::shared_ptr<Image>> g_ImageMap;
+using ImageMap = std::unordered_map<std::filesystem::path, std::shared_ptr<Image>>;
+ImageMap& im()
+{
+    static ImageMap map;
+    return map;
+}
 
 // Font store.
-std::unordered_map<FontKey, std::shared_ptr<Font>> g_FontMap;
+using FontMap = std::unordered_map<FontKey, std::shared_ptr<Font>>;
 
+// Font map
+FontMap& fm()
+{
+    static FontMap map;
+    return map;
+}
 }  // namespace
 
 std::shared_ptr<Image> ResourceManager::loadImage( const std::filesystem::path& filePath )
 {
-    const auto iter = g_ImageMap.find( filePath );
+    auto& imageMap = im();
 
-    if ( iter == g_ImageMap.end() )
+    const auto iter = imageMap.find( filePath );
+    if ( iter == imageMap.end() )
     {
         auto image = std::make_shared<Image>( filePath );
-
-        g_ImageMap.insert( { filePath, image } );
-
+        imageMap.insert( { filePath, image } );
         return image;
     }
 
     return iter->second;
+}
+
+void ResourceManager::clearImages()
+{
+    im().clear();
 }
 
 std::shared_ptr<SpriteSheet> ResourceManager::loadSpriteSheet( const std::filesystem::path& filePath, std::optional<int> spriteWidth, std::optional<int> spriteHeight, int padding, int margin, const BlendMode& blendMode )
@@ -73,15 +87,44 @@ std::shared_ptr<SpriteSheet> ResourceManager::loadSpriteSheet( const std::filesy
 std::shared_ptr<Font> ResourceManager::loadFont( const std::filesystem::path& filePath, float size )
 {
     FontKey    key { filePath, size };
-    const auto iter = g_FontMap.find( key );
+    auto&      fontMap = fm();
+    const auto iter    = fontMap.find( key );
 
-    if (iter == g_FontMap.end())
+    if ( iter == fontMap.end() )
     {
-        auto font = std::make_shared<Font>( filePath, size );
-        g_FontMap[key] = font;
+        auto font    = std::make_shared<Font>( filePath, size );
+        fontMap[key] = font;
 
         return font;
     }
 
     return iter->second;
+}
+
+std::shared_ptr<Font> ResourceManager::loadFont( float size )
+{
+    FontKey    key { "__default__", size };
+    auto&      fontMap = fm();
+    const auto iter    = fontMap.find( key );
+
+    if ( iter == fontMap.end() )
+    {
+        auto font    = std::make_shared<Font>( size );
+        fontMap[key] = font;
+
+        return font;
+    }
+
+    return iter->second;
+}
+
+void ResourceManager::clearFonts()
+{
+    fm().clear();
+}
+
+void ResourceManager::clear()
+{
+    clearImages();
+    clearFonts();
 }

@@ -1,5 +1,6 @@
 #include "Game.hpp"
 #include "Sound.hpp"
+#include "graphics/ResourceManager.hpp"
 
 #include <Timer.hpp>
 

@@ -2,6 +2,9 @@
 #include "IntroState.hpp"
 
 #include <Game.hpp>
+
+#include "graphics/ResourceManager.hpp"
+
 #include <GameOverState.hpp>
 #include <HighScoreState.hpp>
 #include <PlayState.hpp>
@@ -18,10 +21,10 @@ using namespace input;
 
 Game::Game( uint32_t screenWidth, uint32_t screenHeight )
 : image { screenWidth, screenHeight }
-, arcadeN { "assets/fonts/ARCADE_N.ttf", 8.0f }
+, arcadeN { ResourceManager::loadFont( "assets/fonts/ARCADE_N.ttf", 8.0f ) }
 {
     rasterizer.state.colorTarget = &image;
-    arcadeN.setHinting( Font::Hinting::Mono ); // Better for small fonts.
+    arcadeN->setHinting( Font::Hinting::Mono ); // Better for small fonts.
 
     // Input that controls adding coins.
     Input::addButtonDownCallback( "Coin", []( std::span<const GamepadStateTracker> gamePadStates, const KeyboardStateTracker& keyboardState, const MouseStateTracker& mouseState ) {
@@ -91,24 +94,24 @@ void Game::draw()
         auto r        = rasterizer;
         r.state.color = Color::Red;
         // Player 1
-        r.drawText( arcadeN, "1UP", 26, 0 );
+        r.drawText( *arcadeN, "1UP", 26, 0 );
         // Draw P1 score right-aligned.
         r.state.color = Color::White;
-        r.drawText( arcadeN, std::format( "{:6d}", score1 ), 15, 8 );
+        r.drawText( *arcadeN, std::format( "{:6d}", score1 ), 15, 8 );
 
         // High score
         r.state.color = Color::Red;
         int highScore = getHighScore();
-        r.drawText( arcadeN, "HIGH SCORE", 73, 0 );
+        r.drawText( *arcadeN, "HIGH SCORE", 73, 0 );
         r.state.color = Color::White;
-        r.drawText( arcadeN, std::format( "{:6d}", highScore ), 87, 8 );
+        r.drawText( *arcadeN, std::format( "{:6d}", highScore ), 87, 8 );
         if ( numPlayers > 1 )
         {
             r.state.color = Color::Red;
             // Player 2
-            r.drawText( arcadeN, "2UP", 177, 7 );
+            r.drawText( *arcadeN, "2UP", 177, 7 );
             // Draw P2 score right-aligned.
-            r.drawText( arcadeN, std::format( "{:6d}", score2 ), 164, 8 );
+            r.drawText( *arcadeN, std::format( "{:6d}", score2 ), 164, 8 );
         }
     }
 
@@ -185,7 +188,7 @@ int Game::getHighScore() const noexcept
     return std::max( highScores.getHighScore(), std::max( score1, score2 ) );
 }
 
-const Font& Game::getFont() const noexcept
+std::shared_ptr<const Font> Game::getFont() const noexcept
 {
     return arcadeN;
 }
@@ -219,7 +222,7 @@ void Game::drawFPS() const
 
     auto r        = rasterizer;
     r.state.color = Color::Black;
-    r.drawText( arcadeN, fps, 6, 6 );
+    r.drawText( *arcadeN, fps, 6, 6 );
     r.state.color = Color::White;
-    r.drawText( arcadeN, fps, 4, 4 );
+    r.drawText( *arcadeN, fps, 4, 4 );
 }

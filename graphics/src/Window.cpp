@@ -1,5 +1,7 @@
 #include <graphics/Window.hpp>
 
+#include "graphics/ResourceManager.hpp"
+
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3_ttf/SDL_ttf.h>
@@ -26,6 +28,7 @@ struct SDL_Context
 
     ~SDL_Context()
     {
+        ResourceManager::clear(); // Clear resources before SDL quits.
         SDL_Quit();
     }
 };

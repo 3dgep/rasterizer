@@ -1,6 +1,8 @@
 #include <Scores.hpp>
 #include <StateBase.hpp>
 
+#include "graphics/ResourceManager.hpp"
+
 #include <format>
 
 using namespace sr::graphics;
@@ -11,7 +13,7 @@ StateBase::StateBase( int screenWidth, int screenHeight )
 , m_Ball { { screenWidth / 2, screenHeight / 2 }, { 0, 0 } }
 , m_P1Paddle { { 3 * screenWidth / 20, screenHeight / 2 } }
 , m_P2Paddle { { 17 * screenWidth / 20, screenHeight / 2 } }
-, m_ScoreFont { "assets/fonts/pong-score-extended/pong-score-extended.otf", 20.0f }
+, m_ScoreFont { ResourceManager::loadFont( "assets/fonts/pong-score-extended/pong-score-extended.otf", 20.0f ) }
 , m_P1Score { m_ScoreFont, std::format( "{}", Scores::getP1Score() ) }
 , m_P2Score { m_ScoreFont, std::format( "{}", Scores::getP2Score() ) }
 {}

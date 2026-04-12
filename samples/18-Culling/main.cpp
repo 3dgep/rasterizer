@@ -1,3 +1,5 @@
+#include "graphics/ResourceManager.hpp"
+
 #include <Timer.hpp>
 
 #include <graphics/Image.hpp>
@@ -22,7 +24,7 @@ int main()
     Rasterizer    rasterizer;
     PrimitiveType primitiveType = PrimitiveType::Triangle;
     SamplerState  sampler { AddressMode::Clamp, Color::Black, true };
-    Font          font             = Font( 30.0f );
+    auto          font             = ResourceManager::loadFont( 30.0f );
     Text          clockwise        = Text( font, "Clockwise", Color::Black );
     Text          counterClockwise = Text( font, "Counter\nclockwise", Color::Black );
 
