@@ -447,8 +447,8 @@ Text& Text::setWrapWidth( int width )
 
 Task Text::updateCachedSurface() const
 {
-    int        padding  = std::max( m_Font->getOutline(), m_GlowRadius );
-    glm::ivec2 textSize = getFillSize() + ( padding * 2 );
+    int        padding  = std::max( { m_Font->getOutline(), m_GlowRadius, std::abs( m_ShadowOffset.x ), std::abs( m_ShadowOffset.y ) } );
+    glm::ivec2 textSize = glm::clamp( getFillSize() + ( padding * 2 ), { 1, 1 }, { 8192, 8192 } );
 
     SurfacePtr surface { SDL_CreateSurface( textSize.x, textSize.y, SDL_PIXELFORMAT_RGBA32 ) };
     // Clear the surface with the font's fill color to avoid the "transparent black" halo effect.
@@ -469,22 +469,38 @@ Task Text::updateCachedSurface() const
     }
 
     // Draw the glow.
-    for ( int dy = -m_GlowRadius; dy <= m_GlowRadius; ++dy )
+    if ( m_GlowRadius > 0 )
     {
-        for ( int dx = -m_GlowRadius; dx <= m_GlowRadius; ++dx )
+        // Render the glow text once to a temporary surface.
+        glm::ivec2 glowSize = getSize( m_Text[Glow] );
+        SurfacePtr glowText { SDL_CreateSurface( glowSize.x, glowSize.y, SDL_PIXELFORMAT_RGBA32 ) };
+        Color      glowClear = getGlowColor();
+        glowClear.channels.a = 0;
+        SDL_FillSurfaceRect( glowText.get(), nullptr, glowClear.rgba );
+        if ( !TTF_DrawSurfaceText( m_Text[Glow].get(), 0, 0, glowText.get() ) )
         {
-            if ( dx == 0 && dy == 0 )
-                continue;
+            std::cerr << "Failed to draw glow text to temporary surface: " << SDL_GetError() << std::endl;
+        }
 
-            if ( ( dx * dx + dy * dy ) <= ( m_GlowRadius * m_GlowRadius ) )
+        // Blit the glow text at each offset onto the surface.
+        for ( int dy = -m_GlowRadius; dy <= m_GlowRadius; ++dy )
+        {
+            for ( int dx = -m_GlowRadius; dx <= m_GlowRadius; ++dx )
             {
-                if ( !TTF_DrawSurfaceText( m_Text[Glow].get(), dx + padding, dy + padding, surface.get() ) )
+                if ( dx == 0 && dy == 0 )
+                    continue;
+
+                if ( ( dx * dx + dy * dy ) <= ( m_GlowRadius * m_GlowRadius ) )
                 {
-                    std::cerr << "Failed to draw text outer glow to the surface: " << SDL_GetError() << std::endl;
+                    SDL_Rect dst { dx + padding, dy + padding, glowText->w, glowText->h };
+                    if ( !SDL_BlitSurface( glowText.get(), nullptr, surface.get(), &dst ) )
+                    {
+                        std::cerr << "Failed to blit glow text to surface: " << SDL_GetError() << std::endl;
+                    }
                 }
             }
+            co_yield nullptr;
         }
-        co_yield nullptr;
     }
 
     // Draw the outline.
