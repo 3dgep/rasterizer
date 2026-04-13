@@ -1,5 +1,6 @@
 #include <graphics/Text.hpp>
 
+#include "graphics/Rasterizer.hpp"
 #include "graphics/ResourceManager.hpp"
 
 #include <SDL_ttf_context.hpp>
@@ -56,6 +57,11 @@ Text::Direction translateDirection( TTF_Direction direction )
 void Text::TextDeleter::operator()( TTF_Text* text ) const
 {
     TTF_DestroyText( text );
+}
+
+void Text::SurfaceDeleter::operator()( SDL_Surface* surface ) const
+{
+    SDL_DestroySurface( surface );
 }
 
 void Text::setColor( const TextPtr& t, const Color& c )
@@ -172,24 +178,28 @@ Text& Text::operator+=( std::string_view string )
     return appendString( string );
 }
 
+std::string_view Text::getText() const
+{
+    if ( m_Text[Fill] && m_Text[Fill]->text )
+        return m_Text[Fill]->text;
+    return {};
+}
+
 Text& Text::setText( std::string_view string )
 {
-    for ( const auto& t: m_Text )
+    if ( string != getText() )
     {
-        if ( !TTF_SetTextString( t.get(), string.data(), string.length() ) )
+        for ( const auto& t: m_Text )
         {
-            std::cerr << "Failed to set text string: " << SDL_GetError() << std::endl;
+            if ( !TTF_SetTextString( t.get(), string.data(), string.length() ) )
+            {
+                std::cerr << "Failed to set text string: " << SDL_GetError() << std::endl;
+            }
         }
+        m_IsDirty = true;
     }
 
     return *this;
-}
-
-std::string_view Text::getText() const
-{
-    if ( m_Text[Fill] )
-        return m_Text[Fill]->text;
-    return {};
 }
 
 Text& Text::appendString( std::string_view string )
@@ -202,6 +212,8 @@ Text& Text::appendString( std::string_view string )
         }
     }
 
+    m_IsDirty = true;
+
     return *this;
 }
 
@@ -212,13 +224,26 @@ Color Text::getFillColor() const
 
 Text& Text::setFillColor( const Color& color )
 {
-    setColor( m_Text[Fill], color );
+    if ( getFillColor() != color )
+    {
+        setColor( m_Text[Fill], color );
+        m_IsDirty = true;
+    }
     return *this;
+}
+
+Color Text::getOutlineColor() const
+{
+    return getColor( m_Text[Outline] );
 }
 
 Text& Text::setOutlineColor( const Color& color )
 {
-    setColor( m_Text[Outline], color );
+    if ( getOutlineColor() != color )
+    {
+        setColor( m_Text[Outline], color );
+        m_IsDirty = true;
+    }
     return *this;
 }
 
@@ -229,7 +254,11 @@ Color Text::getShadowColor() const
 
 Text& Text::setShadowColor( const Color& color )
 {
-    setColor( m_Text[Shadow], color );
+    if ( getShadowColor() != color )
+    {
+        setColor( m_Text[Shadow], color );
+        m_IsDirty = true;
+    }
     return *this;
 }
 
@@ -240,7 +269,11 @@ const glm::ivec2& Text::getShadowOffset() const
 
 Text& Text::setShadowOffset( const glm::ivec2& offset )
 {
-    m_ShadowOffset = offset;
+    if ( m_ShadowOffset != offset )
+    {
+        m_ShadowOffset = offset;
+        m_IsDirty      = true;
+    }
     return *this;
 }
 
@@ -251,7 +284,11 @@ Color Text::getGlowColor() const
 
 Text& Text::setGlowColor( const Color& color )
 {
-    setColor( m_Text[Glow], color );
+    if ( getGlowColor() != color )
+    {
+        setColor( m_Text[Glow], color );
+        m_IsDirty = true;
+    }
     return *this;
 }
 
@@ -262,25 +299,11 @@ int Text::getGlowRadius() const
 
 Text& Text::setGlowRadius( int radius )
 {
-    m_GlowRadius = radius;
-    return *this;
-}
-
-Color Text::getOutlineColor() const
-{
-    return getColor( m_Text[Outline] );
-}
-
-Text& Text::setDirection( Direction direction )
-{
-    for ( const auto& t: m_Text )
+    if ( m_GlowRadius != radius )
     {
-        if ( !TTF_SetTextDirection( t.get(), translateDirection( direction ) ) )
-        {
-            std::cerr << "Failed to set text direction: " << SDL_GetError() << std::endl;
-        }
+        m_GlowRadius = radius;
+        m_IsDirty    = true;
     }
-
     return *this;
 }
 
@@ -289,22 +312,44 @@ Text::Direction Text::getDirection() const
     return translateDirection( TTF_GetTextDirection( m_Text[Fill].get() ) );
 }
 
+Text& Text::setDirection( Direction direction )
+{
+    if ( getDirection() != direction )
+    {
+        for ( const auto& t: m_Text )
+        {
+            if ( !TTF_SetTextDirection( t.get(), translateDirection( direction ) ) )
+            {
+                std::cerr << "Failed to set text direction: " << SDL_GetError() << std::endl;
+            }
+        }
+        m_IsDirty = true;
+    }
+    return *this;
+}
+
 Text& Text::setFont( std::shared_ptr<const Font> font )
 {
-    m_Font = std::move( font );
-
-    auto setTextFont = []( TTF_Text* t, TTF_Font* f ) {
-        if ( !TTF_SetTextFont( t, f ) )
-        {
-            std::cerr << "Failed to set text font: " << SDL_GetError() << std::endl;
-        }
-    };
-
-    for ( TextEffect e: { Fill, Shadow, Glow } )
+    if ( m_Font != font )
     {
-        setTextFont( m_Text[e].get(), m_Font->getTTF_FillFont() );
+
+        m_Font = std::move( font );
+
+        auto setTextFont = []( TTF_Text* t, TTF_Font* f ) {
+            if ( !TTF_SetTextFont( t, f ) )
+            {
+                std::cerr << "Failed to set text font: " << SDL_GetError() << std::endl;
+            }
+        };
+
+        for ( TextEffect e: { Fill, Shadow, Glow } )
+        {
+            setTextFont( m_Text[e].get(), m_Font->getTTF_FillFont() );
+        }
+        setTextFont( m_Text[Outline].get(), m_Font->getTTF_OutlineFont() );
+
+        m_IsDirty = true;
     }
-    setTextFont( m_Text[Outline].get(), m_Font->getTTF_OutlineFont() );
 
     return *this;
 }
@@ -312,19 +357,6 @@ Text& Text::setFont( std::shared_ptr<const Font> font )
 std::shared_ptr<const Font> Text::getFont() const
 {
     return m_Font;
-}
-
-Text& Text::setPosition( const glm::ivec2& pos )
-{
-    for ( auto& t: m_Text )
-    {
-        if ( !TTF_SetTextPosition( t.get(), pos.x, pos.y ) )
-        {
-            std::cerr << "Failed to set text position: " << SDL_GetError() << std::endl;
-        }
-    }
-
-    return *this;
 }
 
 glm::ivec2 Text::getPosition() const
@@ -336,6 +368,23 @@ glm::ivec2 Text::getPosition() const
     }
 
     return pos;
+}
+
+Text& Text::setPosition( const glm::ivec2& pos )
+{
+    if ( getPosition() != pos )
+    {
+        for ( auto& t: m_Text )
+        {
+            if ( !TTF_SetTextPosition( t.get(), pos.x, pos.y ) )
+            {
+                std::cerr << "Failed to set text position: " << SDL_GetError() << std::endl;
+            }
+        }
+        m_IsDirty = true;
+    }
+
+    return *this;
 }
 
 glm::ivec2 Text::getFillSize() const
@@ -368,14 +417,30 @@ int Text::getOutlineHeight() const
     return getOutlineSize().y;
 }
 
+int Text::getWrapWidth() const
+{
+    int wrapWidth = -1;
+    if ( !TTF_GetTextWrapWidth( m_Text[Fill].get(), &wrapWidth ) )
+    {
+        std::cerr << "Failed to get text wrap width: " << SDL_GetError() << std::endl;
+    }
+
+    return wrapWidth;
+}
+
 Text& Text::setWrapWidth( int width )
 {
-    int outline = m_Font ? m_Font->getOutline() : 0;
+    if ( getWrapWidth() != width )
+    {
+        int outline = m_Font ? m_Font->getOutline() : 0;
 
-    setWrapWidth( m_Text[Fill], width );
-    setWrapWidth( m_Text[Outline], width + outline * 2 );
-    setWrapWidth( m_Text[Shadow], width );
-    setWrapWidth( m_Text[Glow], width );
+        setWrapWidth( m_Text[Fill], width );
+        setWrapWidth( m_Text[Outline], width + outline * 2 );
+        setWrapWidth( m_Text[Shadow], width );
+        setWrapWidth( m_Text[Glow], width );
+
+        m_IsDirty = true;
+    }
 
     return *this;
 }
@@ -386,66 +451,79 @@ void Text::draw( Image& image, int x, int y ) const
         return;
 
     // Create a surface from the image.
-    SDL_Surface* surface = SDL_CreateSurfaceFrom( image.getWidth(), image.getHeight(), SDL_PIXELFORMAT_RGBA32, image.data(), image.getPitch() );
+    SurfacePtr surface = SurfacePtr { SDL_CreateSurfaceFrom( image.getWidth(), image.getHeight(), SDL_PIXELFORMAT_RGBA32, image.data(), image.getPitch() ) };
     if ( !surface )
     {
         std::cerr << "Failed to create surface from image: " << SDL_GetError() << std::endl;
         return;
     }
 
-    // Draw the drop shadow.
-    if ( std::abs( m_ShadowOffset.x ) > 0 || std::abs( m_ShadowOffset.y ) > 0 )
-    {
-        if ( !TTF_DrawSurfaceText( m_Text[Shadow].get(), x + m_ShadowOffset.x, y + m_ShadowOffset.y, surface ) )
-        {
-            std::cerr << "Failed to draw text drop shadow to the surface: " << SDL_GetError() << std::endl;
-        }
-    }
+    // Calculate the padding needed for the outline and glow effects.
+    int padding = std::max( m_Font->getOutline(), m_GlowRadius );
 
-    // Draw the glow
-    for ( int dy = -m_GlowRadius; dy <= m_GlowRadius; ++dy )
+    static std::hash<Font> fontHasher;
+    size_t                 fontHash = fontHasher( *m_Font );
+    if ( m_IsDirty || m_FontHash != fontHash )
     {
-        for ( int dx = -m_GlowRadius; dx <= m_GlowRadius; ++dx )
-        {
-            if ( dx == 0 && dy == 0 )
-                continue;
+        m_FontHash          = fontHash;
+        glm::ivec2 textSize = getFillSize() + ( padding * 2 );
 
-            if ( ( dx * dx + dy * dy ) <= ( m_GlowRadius * m_GlowRadius ) )
+        m_CachedSurface.reset( SDL_CreateSurface( textSize.x, textSize.y, SDL_PIXELFORMAT_RGBA32 ) );
+        // Clear the cached surface with the font's fill color to avoid the "transparent black" halo effect
+        Color fillColor = getFillColor();
+        fillColor.channels.a = 0;  // Start with a fully transparent color to clear the surface.
+        SDL_FillSurfaceRect( m_CachedSurface.get(), nullptr, fillColor.rgba );
+
+        // Draw the drop shadow.
+        if ( std::abs( m_ShadowOffset.x ) > 0 || std::abs( m_ShadowOffset.y ) > 0 )
+        {
+            if ( !TTF_DrawSurfaceText( m_Text[Shadow].get(), m_ShadowOffset.x + padding, m_ShadowOffset.y + padding, m_CachedSurface.get() ) )
             {
-                if ( !TTF_DrawSurfaceText( m_Text[Glow].get(), x + dx, y + dy, surface ) )
+                std::cerr << "Failed to draw text drop shadow to the surface: " << SDL_GetError() << std::endl;
+            }
+        }
+
+        // Draw the glow
+        for ( int dy = -m_GlowRadius; dy <= m_GlowRadius; ++dy )
+        {
+            for ( int dx = -m_GlowRadius; dx <= m_GlowRadius; ++dx )
+            {
+                if ( dx == 0 && dy == 0 )
+                    continue;
+
+                if ( ( dx * dx + dy * dy ) <= ( m_GlowRadius * m_GlowRadius ) )
                 {
-                    std::cerr << "Failed to draw text outer glow to the surface: " << SDL_GetError() << std::endl;
+                    if ( !TTF_DrawSurfaceText( m_Text[Glow].get(), dx + padding, dy + padding, m_CachedSurface.get() ) )
+                    {
+                        std::cerr << "Failed to draw text outer glow to the surface: " << SDL_GetError() << std::endl;
+                    }
                 }
             }
         }
-    }
 
-    // Draw the outline.
-    int outline = m_Font->getOutline();
-    if ( outline > 0 )
-    {
-        if ( !TTF_DrawSurfaceText( m_Text[Outline].get(), x - outline * 2, y - outline * 2, surface ) )
+        // Draw the outline.
+        int outline = m_Font->getOutline();
+        if ( outline > 0 )
         {
-            std::cerr << "Failed to draw text outline to the surface: " << SDL_GetError() << std::endl;
+            if ( !TTF_DrawSurfaceText( m_Text[Outline].get(), -outline * 2 + padding, -outline * 2 + padding, m_CachedSurface.get() ) )
+            {
+                std::cerr << "Failed to draw text outline to the surface: " << SDL_GetError() << std::endl;
+            }
         }
+
+        // Draw the fill
+        if ( !TTF_DrawSurfaceText( m_Text[Fill].get(), padding, padding, m_CachedSurface.get() ) )
+        {
+            std::cerr << "Failed to draw text fill to the surface: " << SDL_GetError() << std::endl;
+        }
+
+        m_IsDirty = false;
     }
 
-    // Draw the fill
-    if ( !TTF_DrawSurfaceText( m_Text[Fill].get(), x, y, surface ) )
+    // Copy the cached surface to the image's surface.
+    SDL_Rect dstRect { x - padding, y - padding, m_CachedSurface->w, m_CachedSurface->h };
+    if ( !SDL_BlitSurface( m_CachedSurface.get(), nullptr, surface.get(), &dstRect ) )
     {
-        std::cerr << "Failed to draw text fill to the surface: " << SDL_GetError() << std::endl;
+        std::cerr << "Failed to blit cached surface to image surface: " << SDL_GetError() << std::endl;
     }
-
-    SDL_DestroySurface( surface );
-}
-
-int Text::getWrapWidth() const
-{
-    int wrapWidth = -1;
-    if ( !TTF_GetTextWrapWidth( m_Text[Fill].get(), &wrapWidth ) )
-    {
-        std::cerr << "Failed to get text wrap width: " << SDL_GetError() << std::endl;
-    }
-
-    return wrapWidth;
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SDL_ttf_context.hpp>
-
 #include <glm/vec2.hpp>
 
 #include <filesystem>
@@ -306,7 +304,6 @@ public:
 
     // For internal use.
     Font( TTF_Font* fillFont, TTF_Font* outlineFont );
-
 private:
     struct FontDeleter
     {
@@ -326,4 +323,11 @@ template<>
 struct enable_bitmask_operators<sr::Font::Style>
 {
     static constexpr bool enable = true;
+};
+
+// Provide a specialization of std::hash for Font so that it can be used as a key in unordered containers.
+template<>
+struct std::hash<sr::Font>
+{
+    std::size_t operator()( const sr::Font& font ) const noexcept;
 };

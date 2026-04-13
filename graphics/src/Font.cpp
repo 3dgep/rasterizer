@@ -1,5 +1,8 @@
 #include <graphics/Font.hpp>
 
+#include <SDL_ttf_context.hpp>
+#include <hash.hpp>
+
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include <iostream>
@@ -459,3 +462,13 @@ Font::Font( TTF_Font* fillFont, TTF_Font* outlineFont )
 : m_FillFont { fillFont }
 , m_OutlineFont { outlineFont }
 {}
+
+std::size_t std::hash<Font>::operator()( const sr::Font& font ) const noexcept
+{
+    std::size_t seed = 0;
+
+    hash_combine( seed, TTF_GetFontGeneration( font.getTTF_FillFont() ) );
+    hash_combine( seed, TTF_GetFontGeneration( font.getTTF_OutlineFont() ) );
+
+    return seed;
+}
