@@ -469,6 +469,10 @@ std::size_t std::hash<Font>::operator()( const sr::Font& font ) const noexcept
 
     hash_combine( seed, TTF_GetFontGeneration( font.getTTF_FillFont() ) );
     hash_combine( seed, TTF_GetFontGeneration( font.getTTF_OutlineFont() ) );
+    hash_combine( seed, font.getStyle() );
+    hash_combine( seed, font.getSize() );
+    hash_combine( seed, font.getOutline() );
+    hash_combine( seed, font.getHinting() );
 
     return seed;
 }
