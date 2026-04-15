@@ -3,6 +3,7 @@
 #include "Color.hpp"
 #include "Font.hpp"
 #include "Image.hpp"
+#include "Task.hpp"
 
 #include <iostream>
 
@@ -318,6 +319,12 @@ private:
     mutable size_t m_FontHash = 0;
     // Cached surface for the text. This is used to optimize rendering by avoiding redundant text rendering operations when the text content or properties haven't changed.
     mutable SurfacePtr m_CachedSurface;
+    mutable int        m_CachedPadding = 0;
+
+    // Coroutine that updates m_CachedSurface over several frames.
+    mutable Task m_UpdateTask;
+
+    Task updateCachedSurface() const;
 
     static void       setColor( const TextPtr& t, const Color& c );
     static Color      getColor( const TextPtr& t );

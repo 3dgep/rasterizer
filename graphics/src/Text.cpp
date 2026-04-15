@@ -445,45 +445,44 @@ Text& Text::setWrapWidth( int width )
     return *this;
 }
 
-void Text::draw( Image& image, int x, int y ) const
+Task Text::updateCachedSurface() const
 {
-    if ( !image || !m_Font )
-        return;
+    int        padding  = std::max( { m_Font->getOutline(), m_GlowRadius, std::abs( m_ShadowOffset.x ), std::abs( m_ShadowOffset.y ) } );
+    glm::ivec2 textSize = glm::clamp( getFillSize() + ( padding * 2 ), { 1, 1 }, { 8192, 8192 } );
 
-    // Create a surface from the image.
-    SurfacePtr surface = SurfacePtr { SDL_CreateSurfaceFrom( image.getWidth(), image.getHeight(), SDL_PIXELFORMAT_RGBA32, image.data(), image.getPitch() ) };
-    if ( !surface )
+    SurfacePtr surface { SDL_CreateSurface( textSize.x, textSize.y, SDL_PIXELFORMAT_RGBA32 ) };
+    // Clear the surface with the font's fill color to avoid the "transparent black" halo effect.
+    Color fillColor      = getFillColor();
+    fillColor.channels.a = 0;  // Start with a fully transparent color to clear the surface.
+    SDL_FillSurfaceRect( surface.get(), nullptr, fillColor.rgba );
+
+    co_yield nullptr;
+
+    // Draw the drop shadow.
+    if ( std::abs( m_ShadowOffset.x ) > 0 || std::abs( m_ShadowOffset.y ) > 0 )
     {
-        std::cerr << "Failed to create surface from image: " << SDL_GetError() << std::endl;
-        return;
+        if ( !TTF_DrawSurfaceText( m_Text[Shadow].get(), m_ShadowOffset.x + padding, m_ShadowOffset.y + padding, surface.get() ) )
+        {
+            std::cerr << "Failed to draw text drop shadow to the surface: " << SDL_GetError() << std::endl;
+        }
+        co_yield nullptr;
     }
 
-    // Calculate the padding needed for the outline and glow effects.
-    int padding = std::max( m_Font->getOutline(), m_GlowRadius );
-
-    static std::hash<Font> fontHasher;
-    size_t                 fontHash = fontHasher( *m_Font );
-    if ( m_IsDirty || m_FontHash != fontHash )
+    // Draw the glow.
+    if ( m_GlowRadius > 0 )
     {
-        m_FontHash          = fontHash;
-        glm::ivec2 textSize = getFillSize() + ( padding * 2 );
-
-        m_CachedSurface.reset( SDL_CreateSurface( textSize.x, textSize.y, SDL_PIXELFORMAT_RGBA32 ) );
-        // Clear the cached surface with the font's fill color to avoid the "transparent black" halo effect
-        Color fillColor = getFillColor();
-        fillColor.channels.a = 0;  // Start with a fully transparent color to clear the surface.
-        SDL_FillSurfaceRect( m_CachedSurface.get(), nullptr, fillColor.rgba );
-
-        // Draw the drop shadow.
-        if ( std::abs( m_ShadowOffset.x ) > 0 || std::abs( m_ShadowOffset.y ) > 0 )
+        // Render the glow text once to a temporary surface.
+        glm::ivec2 glowSize = getSize( m_Text[Glow] );
+        SurfacePtr glowText { SDL_CreateSurface( glowSize.x, glowSize.y, SDL_PIXELFORMAT_RGBA32 ) };
+        Color      glowClear = getGlowColor();
+        glowClear.channels.a = 0;
+        SDL_FillSurfaceRect( glowText.get(), nullptr, glowClear.rgba );
+        if ( !TTF_DrawSurfaceText( m_Text[Glow].get(), 0, 0, glowText.get() ) )
         {
-            if ( !TTF_DrawSurfaceText( m_Text[Shadow].get(), m_ShadowOffset.x + padding, m_ShadowOffset.y + padding, m_CachedSurface.get() ) )
-            {
-                std::cerr << "Failed to draw text drop shadow to the surface: " << SDL_GetError() << std::endl;
-            }
+            std::cerr << "Failed to draw glow text to temporary surface: " << SDL_GetError() << std::endl;
         }
 
-        // Draw the glow
+        // Blit the glow text at each offset onto the surface.
         for ( int dy = -m_GlowRadius; dy <= m_GlowRadius; ++dy )
         {
             for ( int dx = -m_GlowRadius; dx <= m_GlowRadius; ++dx )
@@ -493,37 +492,75 @@ void Text::draw( Image& image, int x, int y ) const
 
                 if ( ( dx * dx + dy * dy ) <= ( m_GlowRadius * m_GlowRadius ) )
                 {
-                    if ( !TTF_DrawSurfaceText( m_Text[Glow].get(), dx + padding, dy + padding, m_CachedSurface.get() ) )
+                    SDL_Rect dst { dx + padding, dy + padding, glowText->w, glowText->h };
+                    if ( !SDL_BlitSurface( glowText.get(), nullptr, surface.get(), &dst ) )
                     {
-                        std::cerr << "Failed to draw text outer glow to the surface: " << SDL_GetError() << std::endl;
+                        std::cerr << "Failed to blit glow text to surface: " << SDL_GetError() << std::endl;
                     }
                 }
             }
+            co_yield nullptr;
         }
-
-        // Draw the outline.
-        int outline = m_Font->getOutline();
-        if ( outline > 0 )
-        {
-            if ( !TTF_DrawSurfaceText( m_Text[Outline].get(), -outline * 2 + padding, -outline * 2 + padding, m_CachedSurface.get() ) )
-            {
-                std::cerr << "Failed to draw text outline to the surface: " << SDL_GetError() << std::endl;
-            }
-        }
-
-        // Draw the fill
-        if ( !TTF_DrawSurfaceText( m_Text[Fill].get(), padding, padding, m_CachedSurface.get() ) )
-        {
-            std::cerr << "Failed to draw text fill to the surface: " << SDL_GetError() << std::endl;
-        }
-
-        m_IsDirty = false;
     }
 
-    // Copy the cached surface to the image's surface.
-    SDL_Rect dstRect { x - padding, y - padding, m_CachedSurface->w, m_CachedSurface->h };
-    if ( !SDL_BlitSurface( m_CachedSurface.get(), nullptr, surface.get(), &dstRect ) )
+    // Draw the outline.
+    int outline = m_Font->getOutline();
+    if ( outline > 0 )
     {
-        std::cerr << "Failed to blit cached surface to image surface: " << SDL_GetError() << std::endl;
+        if ( !TTF_DrawSurfaceText( m_Text[Outline].get(), -outline * 2 + padding, -outline * 2 + padding, surface.get() ) )
+        {
+            std::cerr << "Failed to draw text outline to the surface: " << SDL_GetError() << std::endl;
+        }
+        co_yield nullptr;
+    }
+
+    // Draw the fill.
+    if ( !TTF_DrawSurfaceText( m_Text[Fill].get(), padding, padding, surface.get() ) )
+    {
+        std::cerr << "Failed to draw text fill to the surface: " << SDL_GetError() << std::endl;
+    }
+
+    // Swap the finished surface and padding into the cache.
+    m_CachedSurface = std::move( surface );
+    m_CachedPadding = padding;
+}
+
+void Text::draw( Image& image, int x, int y ) const
+{
+    if ( !image || !m_Font )
+        return;
+
+    static std::hash<Font> fontHasher;
+    size_t                 fontHash = fontHasher( *m_Font );
+    if ( m_IsDirty || m_FontHash != fontHash )
+    {
+        m_FontHash = fontHash;
+        m_IsDirty  = false;
+        // Start the coroutine to update the cached surface over multiple frames.
+        m_UpdateTask = updateCachedSurface();
+    }
+
+    // Resume the coroutine to do some work this frame.
+    if ( m_UpdateTask )
+    {
+        m_UpdateTask.resume();
+    }
+
+    if ( m_CachedSurface )
+    {
+        // Create a surface from the image.
+        SurfacePtr surface = SurfacePtr { SDL_CreateSurfaceFrom( image.getWidth(), image.getHeight(), SDL_PIXELFORMAT_RGBA32, image.data(), image.getPitch() ) };
+        if ( !surface )
+        {
+            std::cerr << "Failed to create surface from image: " << SDL_GetError() << std::endl;
+            return;
+        }
+
+        // Copy the cached surface to the image's surface.
+        SDL_Rect dstRect { x - m_CachedPadding, y - m_CachedPadding, m_CachedSurface->w, m_CachedSurface->h };
+        if ( !SDL_BlitSurface( m_CachedSurface.get(), nullptr, surface.get(), &dstRect ) )
+        {
+            std::cerr << "Failed to blit cached surface to image surface: " << SDL_GetError() << std::endl;
+        }
     }
 }
