@@ -5,6 +5,7 @@
 
 #include <SDL3_ttf/SDL_ttf.h>
 
+#include <algorithm>
 #include <iostream>
 #include <utility>
 
@@ -166,14 +167,13 @@ void Font::FontDeleter::operator()( TTF_Font* font ) const
     TTF_CloseFont( font );
 }
 
-Font::Font( float size )
+Font::Font( float size, bool outlineSupport )
 {
     [[maybe_unused]]
     static SDL_ttf_context& context = SDL_ttf_context::get();
 
     SDL_IOStream* stream = SDL_IOFromConstMem( PressStart2P, std::size( PressStart2P ) );
     m_FillFont.reset( TTF_OpenFontIO( stream, true, size ) );
-    // m_OutlineFont.reset( TTF_OpenFontIO( stream, true, size ) );
 
     if ( !m_FillFont )
     {
@@ -181,10 +181,11 @@ Font::Font( float size )
         return;
     }
 
-    m_OutlineFont.reset( TTF_CopyFont( m_FillFont.get() ) );
+    if ( outlineSupport )
+        m_OutlineFont.reset( TTF_CopyFont( m_FillFont.get() ) );
 }
 
-Font::Font( const std::filesystem::path& fontFile, float size )
+Font::Font( const std::filesystem::path& fontFile, float size, bool outlineSupport )
 {
     [[maybe_unused]]
     static SDL_ttf_context& context = SDL_ttf_context::get();
@@ -197,13 +198,17 @@ Font::Font( const std::filesystem::path& fontFile, float size )
         return;
     }
 
-    m_OutlineFont.reset( TTF_CopyFont( m_FillFont.get() ) );
+    if ( outlineSupport )
+        m_OutlineFont.reset( TTF_CopyFont( m_FillFont.get() ) );
 }
 
 Font::Font( const Font& other )
 {
     m_FillFont.reset( TTF_CopyFont( other.m_FillFont.get() ) );
-    m_OutlineFont.reset( TTF_CopyFont( other.m_OutlineFont.get() ) );
+    if ( other.m_OutlineFont )
+        m_OutlineFont.reset( TTF_CopyFont( other.m_OutlineFont.get() ) );
+
+    m_FallbackFonts = other.m_FallbackFonts;
 }
 
 Font::Font( Font&& other ) noexcept
@@ -218,7 +223,12 @@ Font& Font::operator=( const Font& other )
         return *this;
 
     m_FillFont.reset( TTF_CopyFont( other.m_FillFont.get() ) );
-    m_OutlineFont.reset( TTF_CopyFont( other.m_OutlineFont.get() ) );
+    if ( other.m_OutlineFont )
+        m_OutlineFont.reset( TTF_CopyFont( other.m_OutlineFont.get() ) );
+    else
+        m_OutlineFont.reset();
+
+    m_FallbackFonts = other.m_FallbackFonts;
 
     return *this;
 }
@@ -236,7 +246,8 @@ Font& Font::operator=( Font&& other ) noexcept
 
 Font::~Font()
 {
-    TTF_CloseFont( m_OutlineFont.release() );
+    if ( auto* p = m_OutlineFont.release() )
+        TTF_CloseFont( p );
     TTF_CloseFont( m_FillFont.release() );
 }
 
@@ -289,9 +300,14 @@ int Font::getVerticalDPI() const
 
 Font& Font::setSizeDPI( float size, int hdpi, int vdpi )
 {
-    if ( !TTF_SetFontSizeDPI( m_FillFont.get(), size, hdpi, vdpi ) )
+    if ( !TTF_SetFontSizeDPI( m_FillFont.get(), size, hdpi, vdpi ) || ( m_OutlineFont && !TTF_SetFontSizeDPI( m_OutlineFont.get(), size, hdpi, vdpi ) ) )
     {
         std::cerr << "Failed to set font size & DPI: " << SDL_GetError() << std::endl;
+    }
+
+    for ( const auto& fallback: m_FallbackFonts )
+    {
+        fallback->setSizeDPI( size, hdpi, vdpi );
     }
 
     return *this;
@@ -314,9 +330,14 @@ float Font::getSize() const
 
 Font& Font::setSize( float size )
 {
-    if ( !TTF_SetFontSize( m_FillFont.get(), size ) || !TTF_SetFontSize( m_OutlineFont.get(), size ) )
+    if ( !TTF_SetFontSize( m_FillFont.get(), size ) || ( m_OutlineFont && !TTF_SetFontSize( m_OutlineFont.get(), size ) ) )
     {
         std::cerr << "Failed to set the font size: " << SDL_GetError() << std::endl;
+    }
+
+    for ( const auto& fallback: m_FallbackFonts )
+    {
+        fallback->setSize( size );
     }
 
     return *this;
@@ -330,7 +351,13 @@ Font::Hinting Font::getHinting() const
 Font& Font::setHinting( Hinting hinting )
 {
     TTF_SetFontHinting( m_FillFont.get(), translateHinting( hinting ) );
-    TTF_SetFontHinting( m_OutlineFont.get(), translateHinting( hinting ) );
+    if ( m_OutlineFont )
+        TTF_SetFontHinting( m_OutlineFont.get(), translateHinting( hinting ) );
+
+    for ( const auto& fallback: m_FallbackFonts )
+    {
+        fallback->setHinting( hinting );
+    }
 
     return *this;
 }
@@ -343,7 +370,13 @@ bool Font::isKerning() const
 Font& Font::setKerning( bool enabled )
 {
     TTF_SetFontKerning( m_FillFont.get(), enabled );
-    TTF_SetFontKerning( m_OutlineFont.get(), enabled );
+    if ( m_OutlineFont )
+        TTF_SetFontKerning( m_OutlineFont.get(), enabled );
+
+    for ( const auto& fallback: m_FallbackFonts )
+    {
+        fallback->setKerning( enabled );
+    }
 
     return *this;
 }
@@ -356,7 +389,8 @@ int Font::getLineSpacing() const
 Font& Font::setLineSpacing( int spacing )
 {
     TTF_SetFontLineSkip( m_FillFont.get(), spacing );
-    TTF_SetFontLineSkip( m_OutlineFont.get(), spacing );
+    if ( m_OutlineFont )
+        TTF_SetFontLineSkip( m_OutlineFont.get(), spacing );
 
     return *this;
 }
@@ -368,9 +402,14 @@ int Font::getCharSpacing() const
 
 Font& Font::setCharSpacing( int spacing )
 {
-    if ( !TTF_SetFontCharSpacing( m_FillFont.get(), spacing ) || !TTF_SetFontCharSpacing( m_OutlineFont.get(), spacing ) )
+    if ( !TTF_SetFontCharSpacing( m_FillFont.get(), spacing ) || ( m_OutlineFont && !TTF_SetFontCharSpacing( m_OutlineFont.get(), spacing ) ) )
     {
         std::cerr << "Failed to set font char spacing: " << SDL_GetError() << std::endl;
+    }
+
+    for ( const auto& fallback: m_FallbackFonts )
+    {
+        fallback->setCharSpacing( spacing );
     }
 
     return *this;
@@ -383,9 +422,14 @@ bool Font::isSDF() const
 
 Font& Font::setSDF( bool enabled )
 {
-    if ( !TTF_SetFontSDF( m_FillFont.get(), enabled ) || !TTF_SetFontSDF( m_OutlineFont.get(), enabled ) )
+    if ( !TTF_SetFontSDF( m_FillFont.get(), enabled ) || ( m_OutlineFont && !TTF_SetFontSDF( m_OutlineFont.get(), enabled ) ) )
     {
         std::cerr << "Failed to set font SDF rendering: " << SDL_GetError() << std::endl;
+    }
+
+    for ( const auto& fallback: m_FallbackFonts )
+    {
+        fallback->setSDF( enabled );
     }
 
     return *this;
@@ -401,6 +445,11 @@ bool Font::isFixedWidth() const
     return TTF_FontIsFixedWidth( m_FillFont.get() );
 }
 
+bool Font::hasOutline() const
+{
+    return m_OutlineFont != nullptr;
+}
+
 Font::Style Font::getStyle() const
 {
     return translateStyle( TTF_GetFontStyle( m_FillFont.get() ) );
@@ -409,21 +458,32 @@ Font::Style Font::getStyle() const
 Font& Font::setStyle( Style style )
 {
     TTF_SetFontStyle( m_FillFont.get(), translateStyle( style ) );
-    TTF_SetFontStyle( m_OutlineFont.get(), translateStyle( style ) );
+    if ( m_OutlineFont )
+        TTF_SetFontStyle( m_OutlineFont.get(), translateStyle( style ) );
+
+    for ( const auto& fallback: m_FallbackFonts )
+    {
+        fallback->setStyle( style );
+    }
 
     return *this;
 }
 
 int Font::getOutline() const
 {
-    return TTF_GetFontOutline( m_OutlineFont.get() );
+    return m_OutlineFont ? TTF_GetFontOutline( m_OutlineFont.get() ) : 0;
 }
 
 Font& Font::setOutline( int outline )
 {
-    if ( !TTF_SetFontOutline( m_OutlineFont.get(), outline ) )
+    if ( m_OutlineFont && !TTF_SetFontOutline( m_OutlineFont.get(), outline ) )
     {
         std::cerr << "Failed to set font outline: " << SDL_GetError() << std::endl;
+    }
+
+    for ( const auto& fallback: m_FallbackFonts )
+    {
+        fallback->setOutline( outline );
     }
 
     return *this;
@@ -442,7 +502,8 @@ Font::HorizontalAlignment Font::getWrapAlignment() const
 Font& Font::setWrapAlignment( HorizontalAlignment alignment )
 {
     TTF_SetFontWrapAlignment( m_FillFont.get(), translateAlignment( alignment ) );
-    TTF_SetFontWrapAlignment( m_OutlineFont.get(), translateAlignment( alignment ) );
+    if ( m_OutlineFont )
+        TTF_SetFontWrapAlignment( m_OutlineFont.get(), translateAlignment( alignment ) );
 
     return *this;
 }
@@ -450,7 +511,8 @@ Font& Font::setWrapAlignment( HorizontalAlignment alignment )
 glm::ivec2 Font::getStringSize( std::string_view text, int wrapWidth ) const
 {
     glm::ivec2 size { 0 };
-    if ( !TTF_GetStringSizeWrapped( m_OutlineFont.get(), text.data(), text.size(), wrapWidth, &size.x, &size.y ) )
+    TTF_Font*  sizeFont = m_OutlineFont ? m_OutlineFont.get() : m_FillFont.get();
+    if ( !TTF_GetStringSizeWrapped( sizeFont, text.data(), text.size(), wrapWidth, &size.x, &size.y ) )
     {
         std::cerr << "Failed to calculate string size: " << SDL_GetError() << std::endl;
     }
@@ -458,7 +520,24 @@ glm::ivec2 Font::getStringSize( std::string_view text, int wrapWidth ) const
     return size;
 }
 
-bool Font::addFallbackFont( const std::shared_ptr<const Font>& fallback )
+bool Font::hasFallback( const std::shared_ptr<Font>& fallback ) const
+{
+    if ( !fallback )
+        return false;
+
+    if ( fallback.get() == this )
+        return true;
+
+    for ( const auto& f: m_FallbackFonts )
+    {
+        if ( f == fallback || f->hasFallback( fallback ) )
+            return true;
+    }
+
+    return false;
+}
+
+bool Font::addFallbackFont( const std::shared_ptr<Font>& fallback )
 {
     if ( !fallback )
     {
@@ -466,10 +545,15 @@ bool Font::addFallbackFont( const std::shared_ptr<const Font>& fallback )
         return false;
     }
 
-    if ( fallback.get() == this )
+    if ( hasFallback( fallback ) )
     {
-        std::cerr << "Failed to add fallback font: Cannot add self as fallback." << std::endl;
+        std::cerr << "Failed to add fallback font: Font is already in the fallback chain." << std::endl;
         return false;
+    }
+
+    if ( m_OutlineFont && !fallback->hasOutline() )
+    {
+        std::cerr << "Warning: Adding a fallback font without outline support to a font with outline support may cause text layout mismatch." << std::endl;
     }
 
     if ( !TTF_AddFallbackFont( m_FillFont.get(), fallback->getTTF_FillFont() ) )
@@ -478,17 +562,22 @@ bool Font::addFallbackFont( const std::shared_ptr<const Font>& fallback )
         return false;
     }
 
-    if ( !TTF_AddFallbackFont( m_OutlineFont.get(), fallback->getTTF_OutlineFont() ) )
+    if ( m_OutlineFont && fallback->hasOutline() )
     {
-        std::cerr << "Failed to add fallback font (outline): " << SDL_GetError() << std::endl;
-        TTF_RemoveFallbackFont( m_FillFont.get(), fallback->getTTF_FillFont() );
-        return false;
+        if ( !TTF_AddFallbackFont( m_OutlineFont.get(), fallback->getTTF_OutlineFont() ) )
+        {
+            std::cerr << "Failed to add fallback font (outline): " << SDL_GetError() << std::endl;
+            TTF_RemoveFallbackFont( m_FillFont.get(), fallback->getTTF_FillFont() );
+            return false;
+        }
     }
+
+    m_FallbackFonts.push_back( fallback );
 
     return true;
 }
 
-Font& Font::removeFallbackFont( const std::shared_ptr<const Font>& fallback )
+Font& Font::removeFallbackFont( const std::shared_ptr<Font>& fallback )
 {
     if ( !fallback )
     {
@@ -497,7 +586,13 @@ Font& Font::removeFallbackFont( const std::shared_ptr<const Font>& fallback )
     }
 
     TTF_RemoveFallbackFont( m_FillFont.get(), fallback->getTTF_FillFont() );
-    TTF_RemoveFallbackFont( m_OutlineFont.get(), fallback->getTTF_OutlineFont() );
+    if ( m_OutlineFont && fallback->hasOutline() )
+        TTF_RemoveFallbackFont( m_OutlineFont.get(), fallback->getTTF_OutlineFont() );
+
+    // Also remove matching fallback fonts.
+    std::erase_if( m_FallbackFonts, [&fallback]( const std::shared_ptr<Font>& f ) {
+        return f == fallback;
+    } );
 
     return *this;
 }
@@ -505,7 +600,10 @@ Font& Font::removeFallbackFont( const std::shared_ptr<const Font>& fallback )
 Font& Font::clearFallbackFonts()
 {
     TTF_ClearFallbackFonts( m_FillFont.get() );
-    TTF_ClearFallbackFonts( m_OutlineFont.get() );
+    if ( m_OutlineFont )
+        TTF_ClearFallbackFonts( m_OutlineFont.get() );
+
+    m_FallbackFonts.clear();
 
     return *this;
 }

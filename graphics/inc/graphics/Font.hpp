@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <memory>  // for std::unique_ptr
+#include <vector>
 
 struct TTF_Font;
 struct SDL_IOStream;
@@ -66,8 +67,8 @@ public:
         ExtraBlack = 950
     };
 
-    explicit Font( float size = 12.0f );
-    explicit Font( const std::filesystem::path& fontFile, float size = 12.0f );
+    explicit Font( float size = 12.0f, bool outlineSupport = true );
+    explicit Font( const std::filesystem::path& fontFile, float size = 12.0f, bool outlineSupport = true );
     Font( const Font& other );
     Font( Font&& other ) noexcept;
 
@@ -292,18 +293,24 @@ public:
     glm::ivec2 getStringSize( std::string_view text, int wrapWidth = 0 ) const;
 
     /// <summary>
+    /// Check if this font was created with outline support enabled.
+    /// </summary>
+    /// <returns>true if outline rendering is supported; otherwise false.</returns>
+    bool hasOutline() const;
+
+    /// <summary>
     /// Adds a fallback font used when this font does not contain a required glyph.
     /// </summary>
     /// <param name="fallback">The fallback font to add.</param>
     /// <returns>true if both fill and outline fallback chains were updated; otherwise false.</returns>
-    bool addFallbackFont( const std::shared_ptr<const Font>& fallback );
+    bool addFallbackFont( const std::shared_ptr<Font>& fallback );
 
     /// <summary>
     /// Removes a previously added fallback font.
     /// </summary>
     /// <param name="fallback">The fallback font to remove.</param>
     /// <returns>A reference to the modified font.</returns>
-    Font& removeFallbackFont( const std::shared_ptr<const Font>& fallback );
+    Font& removeFallbackFont( const std::shared_ptr<Font>& fallback );
 
     /// <summary>
     /// Removes all fallback fonts from this font.
@@ -331,6 +338,10 @@ private:
     };
     using FontPtr = std::unique_ptr<TTF_Font, FontDeleter>;
 
+    // Prevent adding the same fallback multiple times, and prevent cycles of fallback fonts.
+    bool hasFallback( const std::shared_ptr<Font>& fallback ) const;
+
+    std::vector<std::shared_ptr<Font>> m_FallbackFonts;
     FontPtr m_FillFont;
     FontPtr m_OutlineFont;
 };
