@@ -9,11 +9,10 @@ struct FontKey
 {
     std::filesystem::path fontFile;
     float                 size;
-    bool                  outlineSupport;
 
     bool operator==( const FontKey& other ) const
     {
-        return fontFile == other.fontFile && size == other.size && outlineSupport == other.outlineSupport;
+        return fontFile == other.fontFile && size == other.size;
     }
 };
 
@@ -27,7 +26,6 @@ struct std::hash<FontKey>
 
         hash_combine( seed, key.fontFile );
         hash_combine( seed, key.size );
-        hash_combine( seed, key.outlineSupport );
 
         return seed;
     }
@@ -86,15 +84,15 @@ std::shared_ptr<SpriteSheet> ResourceManager::loadSpriteSheet( const std::filesy
     return std::make_shared<SpriteSheet>( image, rects, blendMode );
 }
 
-std::shared_ptr<Font> ResourceManager::loadFont( const std::filesystem::path& filePath, float size, bool outlineSupport )
+std::shared_ptr<Font> ResourceManager::loadFont( const std::filesystem::path& filePath, float size )
 {
-    FontKey    key { filePath, size, outlineSupport };
+    FontKey    key { filePath, size };
     auto&      fontMap = fm();
     const auto iter    = fontMap.find( key );
 
     if ( iter == fontMap.end() )
     {
-        auto font    = std::make_shared<Font>( filePath, size, outlineSupport );
+        auto font    = std::make_shared<Font>( filePath, size );
         fontMap[key] = font;
 
         return font;
@@ -103,15 +101,15 @@ std::shared_ptr<Font> ResourceManager::loadFont( const std::filesystem::path& fi
     return iter->second;
 }
 
-std::shared_ptr<Font> ResourceManager::loadFont( float size, bool outlineSupport )
+std::shared_ptr<Font> ResourceManager::loadFont( float size )
 {
-    FontKey    key { "__default__", size, outlineSupport };
+    FontKey    key { "__default__", size };
     auto&      fontMap = fm();
     const auto iter    = fontMap.find( key );
 
     if ( iter == fontMap.end() )
     {
-        auto font    = std::make_shared<Font>( size, outlineSupport );
+        auto font    = std::make_shared<Font>( size );
         fontMap[key] = font;
 
         return font;

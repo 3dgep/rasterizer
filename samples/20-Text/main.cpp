@@ -49,7 +49,7 @@ int main()
     fpsFont->setOutline( 1 );
     std::shared_ptr<Font> defaultFont = ResourceManager::loadFont( 48.0f );
     std::shared_ptr<Font> loadedFont  = ResourceManager::loadFont( "assets/fonts/arial.ttf", 48.0f );
-    std::shared_ptr<Font> emojiFont   = ResourceManager::loadFont( "assets/fonts/NotoColorEmoji-Regular.ttf", 48.0f, false );
+    std::shared_ptr<Font> emojiFont   = ResourceManager::loadFont( "assets/fonts/NotoColorEmoji-Regular.ttf", 48.0f );
 
     Text fpsText { fpsFont, "FPS: 0" };
     Text defaultText( defaultFont );

@@ -67,8 +67,8 @@ public:
         ExtraBlack = 950
     };
 
-    explicit Font( float size = 12.0f, bool outlineSupport = true );
-    explicit Font( const std::filesystem::path& fontFile, float size = 12.0f, bool outlineSupport = true );
+    explicit Font( float size = 12.0f );
+    explicit Font( const std::filesystem::path& fontFile, float size = 12.0f );
     Font( const Font& other );
     Font( Font&& other ) noexcept;
 
@@ -291,12 +291,6 @@ public:
     /// <param name="wrapWidth">The maximum wrap width in pixels (or 0 to wrap on newline characters). Default is 0 to wrap on newline characters.</param>
     /// <returns>The width and height of the rendered string (in pixels).</returns>
     glm::ivec2 getStringSize( std::string_view text, int wrapWidth = 0 ) const;
-
-    /// <summary>
-    /// Check if this font was created with outline support enabled.
-    /// </summary>
-    /// <returns>true if outline rendering is supported; otherwise false.</returns>
-    bool hasOutline() const;
 
     /// <summary>
     /// Adds a fallback font used when this font does not contain a required glyph.

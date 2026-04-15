@@ -49,17 +49,15 @@ std::shared_ptr<SpriteSheet> loadSpriteSheet( const std::filesystem::path& fileP
 /// </summary>
 /// <param name="filePath">The path to the font file to load.</param>
 /// <param name="size">The desired font size. Defaults to 12.0 if not specified.</param>
-/// <param name="outlineSupport">When false, the font is created without outline support. Useful for color/emoji fonts. Defaults to true.</param>
 /// <returns>A std::shared_ptr to the loaded Font object.</returns>
-std::shared_ptr<Font> loadFont( const std::filesystem::path& filePath, float size = 12.0f, bool outlineSupport = true );
+std::shared_ptr<Font> loadFont( const std::filesystem::path& filePath, float size = 12.0f );
 
 /// <summary>
 /// Loads a font with the specified size.
 /// </summary>
 /// <param name="size">The size of the font to load. Defaults to 12.0f if not specified.</param>
-/// <param name="outlineSupport">When false, the font is created without outline support. Useful for color/emoji fonts. Defaults to true.</param>
 /// <returns>A shared pointer to the loaded Font object.</returns>
-std::shared_ptr<Font> loadFont( float size = 12.0f, bool outlineSupport = true );
+std::shared_ptr<Font> loadFont( float size = 12.0f );
 
 void clearFonts();
 
