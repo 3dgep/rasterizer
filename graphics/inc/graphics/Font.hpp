@@ -291,6 +291,26 @@ public:
     /// <returns>The width and height of the rendered string (in pixels).</returns>
     glm::ivec2 getStringSize( std::string_view text, int wrapWidth = 0 ) const;
 
+    /// <summary>
+    /// Adds a fallback font used when this font does not contain a required glyph.
+    /// </summary>
+    /// <param name="fallback">The fallback font to add.</param>
+    /// <returns>true if both fill and outline fallback chains were updated; otherwise false.</returns>
+    bool addFallbackFont( const std::shared_ptr<const Font>& fallback );
+
+    /// <summary>
+    /// Removes a previously added fallback font.
+    /// </summary>
+    /// <param name="fallback">The fallback font to remove.</param>
+    /// <returns>A reference to the modified font.</returns>
+    Font& removeFallbackFont( const std::shared_ptr<const Font>& fallback );
+
+    /// <summary>
+    /// Removes all fallback fonts from this font.
+    /// </summary>
+    /// <returns>A reference to the modified font.</returns>
+    Font& clearFallbackFonts();
+
     // For internal use.
     TTF_Font* getTTF_FillFont() const
     {

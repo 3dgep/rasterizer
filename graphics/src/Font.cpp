@@ -458,6 +458,58 @@ glm::ivec2 Font::getStringSize( std::string_view text, int wrapWidth ) const
     return size;
 }
 
+bool Font::addFallbackFont( const std::shared_ptr<const Font>& fallback )
+{
+    if ( !fallback )
+    {
+        std::cerr << "Failed to add fallback font: fallback is null." << std::endl;
+        return false;
+    }
+
+    if ( fallback.get() == this )
+    {
+        std::cerr << "Failed to add fallback font: Cannot add self as fallback." << std::endl;
+        return false;
+    }
+
+    if ( !TTF_AddFallbackFont( m_FillFont.get(), fallback->getTTF_FillFont() ) )
+    {
+        std::cerr << "Failed to add fallback font (fill): " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    if ( !TTF_AddFallbackFont( m_OutlineFont.get(), fallback->getTTF_OutlineFont() ) )
+    {
+        std::cerr << "Failed to add fallback font (outline): " << SDL_GetError() << std::endl;
+        TTF_RemoveFallbackFont( m_FillFont.get(), fallback->getTTF_FillFont() );
+        return false;
+    }
+
+    return true;
+}
+
+Font& Font::removeFallbackFont( const std::shared_ptr<const Font>& fallback )
+{
+    if ( !fallback )
+    {
+        std::cerr << "Failed to remove fallback font: fallback is null." << std::endl;
+        return *this;
+    }
+
+    TTF_RemoveFallbackFont( m_FillFont.get(), fallback->getTTF_FillFont() );
+    TTF_RemoveFallbackFont( m_OutlineFont.get(), fallback->getTTF_OutlineFont() );
+
+    return *this;
+}
+
+Font& Font::clearFallbackFonts()
+{
+    TTF_ClearFallbackFonts( m_FillFont.get() );
+    TTF_ClearFallbackFonts( m_OutlineFont.get() );
+
+    return *this;
+}
+
 Font::Font( TTF_Font* fillFont, TTF_Font* outlineFont )
 : m_FillFont { fillFont }
 , m_OutlineFont { outlineFont }
