@@ -152,7 +152,23 @@ void Image::save( const std::filesystem::path& file ) const
 
 void Image::clear( const Color& color ) noexcept
 {
-    std::fill_n( m_Pixels.get(), m_Width * m_Height, color );
+    const size_t count = static_cast<size_t>( m_Width ) * m_Height;
+    const uint8_t r = color.channels.r;
+
+    // Fast path: if all 4 color channels have the same value (e.g. White = {255,255,255,255}),
+    // memset is dramatically faster than element-wise fill.
+    if ( r == color.channels.g && r == color.channels.b && r == color.channels.a )
+    {
+        std::memset( m_Pixels.get(), r, count * sizeof( Color ) );
+    }
+    else
+    {
+        // General path: fill via uint32_t to help the compiler vectorize.
+        auto* dst = reinterpret_cast<uint32_t*>( m_Pixels.get() );
+        const uint32_t val = color.rgba;
+        for ( size_t i = 0; i < count; ++i )
+            dst[i] = val;
+    }
 }
 
 void Image::resize( uint32_t width, uint32_t height )
