@@ -51,19 +51,27 @@ int main()
                 break;
             case SDL_EVENT_MOUSE_WHEEL:
                 radius += event.wheel.y;
+                radius = radius < 0.0f ? 0.0f : radius;  // min raidus.
                 break;
             }
         }
 
         image.clear( Color::White );
 
-         rasterizer.state.color    = Color::Red;
-         rasterizer.state.fillMode = FillMode::Solid;
-         rasterizer.drawCircle( mousePos.x, mousePos.y, radius );
+        for (int x = -100; x <= 100; x++)
+        {
+            for (int y = -100; y <= 100; y++)
+            {
+                rasterizer.state.color    = Color::Red;
+                rasterizer.state.fillMode = FillMode::Solid;
+                rasterizer.drawCircle( mousePos.x + x * radius * 2, mousePos.y + y * radius * 2, radius );
 
-        rasterizer.state.color    = Color::Blue;
-        rasterizer.state.fillMode = FillMode::WireFrame;
-        rasterizer.drawCircle( mousePos.x, mousePos.y, radius );
+                rasterizer.state.color    = Color::Blue;
+                rasterizer.state.fillMode = FillMode::WireFrame;
+                rasterizer.drawCircle( mousePos.x + x * radius * 2, mousePos.y + y * radius * 2, radius );
+            }
+        }
+
 
         window.clear( Color::Black );
         window.present( image );

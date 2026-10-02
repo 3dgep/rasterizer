@@ -266,6 +266,96 @@ void Rasterizer::drawLine( int x0, int y0, int x1, int y1 ) const
     }
 }
 
+void Rasterizer::drawSpan(int x0, int x1, int y) const
+{
+    Image* image = state.colorTarget;
+
+    if ( !image )
+        return;
+
+    if ( x1 < x0 )  // span is empty
+        return;
+
+
+    // If blending is disabled, we can just copy the span directly to the destination pixels using std::fill.
+    if (!state.blendMode.blendEnable)
+    {
+        Color* row = image->getRow( y );
+        std::fill( row + x0, row + x1 + 1, state.color );
+    }
+    else
+    {
+        // Blending is enabled.
+        for ( int x = x0; x <= x1; ++x )
+            image->plot<false, true>( x, y, state.color, state.blendMode );
+    }
+}
+
+#if 1
+
+// Source: Opus 5 (October 2, 2026): Circle drawing algorithm for software rasterizer
+void Rasterizer::drawCircle(int cx, int cy, int r) const
+{
+    Image* image = state.colorTarget;
+
+    if ( !image || r <= 0 )
+        return;
+
+    // A stroke straddles the true radius, so a 1-pixel outline covers the
+    // band [r - 0.5, r + 0.5]. A solid circle is an outline with no hole.
+    const bool  outline    = state.fillMode == FillMode::WireFrame;
+    const float halfStroke = outline ? 0.5f : 0.0f;
+
+    const glm::vec2 center { static_cast<float>( cx ), static_cast<float>( cy ) };
+
+    const Circle outerCircle { center, static_cast<float>( r ) + halfStroke };
+    const Circle innerCircle { center, outline ? static_cast<float>( r ) - halfStroke : 0.0f };
+
+    // Only these rows and columns can be touched: the image, the clip
+    // rectangle, and the circle's bounding box, all intersected. If the
+    // result is empty there is nothing on screen, which is also how a tile
+    // that the circle misses rejects the whole draw.
+    const AABB clip   = image->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+    const AABB bounds = clip.clamped( AABB::fromCircle( outerCircle ) );
+
+    if ( !bounds.isValid() )
+        return;
+
+    // Round outward: an extra empty row slices to an empty span and costs
+    // one sqrt, but a missing row clips the shape.
+    const int minY = static_cast<int>( std::floor( bounds.min.y ) );
+    const int maxY = static_cast<int>( std::ceil( bounds.max.y ) );
+
+    const Span clipX { static_cast<int>( std::floor( bounds.min.x ) ),
+                       static_cast<int>( std::ceil( bounds.max.x ) ) };
+
+    for ( int y = minY; y <= maxY; ++y )
+    {
+        const Span outer = outerCircle.slice( y );
+
+        if ( outer.isEmpty() )
+            continue;
+
+        const Span hole = innerCircle.slice( y );
+
+        if ( hole.isEmpty() )
+        {
+            // Solid circle, or a row above or below the hole.
+            drawSpan( outer.clamped( clipX ), y );
+        }
+        else
+        {
+            // The hole splits the row into two runs. Since both spans are
+            // sets of COVERED pixels, the pixels either side of the hole are
+            // the nearest ones it doesn't cover: no gap, no double-write.
+            drawSpan( Span { outer.x0, hole.x0 - 1 }.clamped( clipX ), y );
+            drawSpan( Span { hole.x1 + 1, outer.x1 }.clamped( clipX ), y );
+        }
+    }
+}
+
+#else
+
 // Source: Grok (Aug 27, 2025): What is the most efficient way to draw a circle in a 2D software rasterizer?
 void Rasterizer::drawCircle( int cx, int cy, int r ) const
 {
@@ -288,25 +378,25 @@ void Rasterizer::drawCircle( int cx, int cy, int r ) const
         int y = r;
         int d = 3 - 2 * r;
 
-        while ( x <= y )
+        while ( y > x )
         {
             // Plot the 8 octants of the circle.
-            for ( auto offset: { glm::ivec2 { x, y }, glm::ivec2 { -x, y }, glm::ivec2 { x, -y }, glm::ivec2 { -x, -y }, glm::ivec2 { y, x }, glm::ivec2 { -y, x }, glm::ivec2 { y, -x }, glm::ivec2 { -y, x }, glm::ivec2 { -y, -x } } )
+            for ( auto offset: { glm::ivec2 { x, y }, glm::ivec2 { -x, y }, glm::ivec2 { x, -y }, glm::ivec2 { -x, -y }, glm::ivec2 { y, x }, glm::ivec2 { -y, x }, glm::ivec2 { y, -x }, glm::ivec2 { -y, -x } } )
             {
                 glm::ivec2 p { cx + offset.x, cy + offset.y };
                 image->plot<true>( p.x, p.y, state.color, state.blendMode );
             }
 
-            ++x;
             if ( d < 0 )
             {
                 d += 4 * x + 6;
             }
             else
             {
-                --y;
                 d += 4 * ( x - y ) + 10;
+                --y;
             }
+            ++x;
         }
     }
     break;
@@ -322,6 +412,8 @@ void Rasterizer::drawCircle( int cx, int cy, int r ) const
     break;
     }
 }
+
+#endif
 
 void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 ) const
 {

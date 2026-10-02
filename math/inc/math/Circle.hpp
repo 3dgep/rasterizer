@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Span.hpp"
+
 #include <glm/vec2.hpp>
 
 namespace sr
@@ -138,6 +140,30 @@ struct Circle
         float dy = center.y - p.y;
         float d  = dx * dx + dy * dy;
         return d < radius * radius;
+    }
+
+    /// <summary>
+    /// Get the horizontal span covered by the circle on the scanline at the given y-coordinate.
+    /// </summary>
+    /// <param name="y">The y-coordinate of the scanline to slice the circle at.</param>
+    /// <returns>
+    /// The span between the left and right edges of the circle at <paramref name="y"/>,
+    /// or an empty span if the scanline does not intersect the circle or the radius is not positive.
+    /// </returns>
+    Span slice( int y ) const noexcept
+    {
+        if ( radius <= 0.0f )
+            return {};
+
+        const float dy = y + 0.5f - center.y;
+        const float d2 = radius * radius - dy * dy;
+
+        if ( d2 < 0.0f )
+            return {};
+
+        const float dx = std::sqrt( d2 );
+
+        return { static_cast<int>( std::ceil( center.x - dx - 0.5f ) ), static_cast<int>( std::floor( center.x + dx - 0.5f ) ) };
     }
 
     /// <summary>

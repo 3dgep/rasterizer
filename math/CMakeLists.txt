@@ -16,6 +16,7 @@ set( INC_FILES
     inc/math/Plane.hpp
     inc/math/Rect.hpp
     inc/math/Space.hpp
+    inc/math/Span.hpp
     inc/math/Sphere.hpp
     inc/math/Transform2D.hpp
     inc/math/Viewport.hpp

@@ -13,6 +13,7 @@
 #include <math/AABB.hpp>
 #include <math/Transform2D.hpp>
 #include <math/Viewport.hpp>
+#include <math/Span.hpp>
 
 struct TTF_TextEngine;
 
@@ -118,6 +119,13 @@ public:
     void drawLine( const math::Line& line ) const
     {
         drawLine( line.p0.x, line.p0.y, line.p1.x, line.p1.y );
+    }
+
+    void drawSpan( int x0, int x1, int y ) const;
+
+    void drawSpan(const Span& span, int y) const
+    {
+        drawSpan( span.x0, span.x1, y );
     }
 
     void drawCircle( int x, int y, int r ) const;

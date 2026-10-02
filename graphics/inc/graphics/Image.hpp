@@ -67,9 +67,9 @@ struct Image final
     /// </summary>
     /// <param name="i">The linear index of the pixel.</param>
     /// <returns>A constant reference to the color of the pixel at the given index.</returns>
-    const Color& operator[]( size_t i ) const
+    const Color& operator[]( size_t i ) const noexcept
     {
-        assert( std::cmp_less(i ,m_Width * m_Height) );
+        assert( std::cmp_less( i, m_Width * m_Height ) );
         return m_Pixels[i];
     }
 
@@ -78,24 +78,24 @@ struct Image final
     /// </summary>
     /// <param name="i">The linear index of the pixel.</param>
     /// <returns>A reference to the color of the pixel at the given index.</returns>
-    Color& operator[]( size_t i )
+    Color& operator[]( size_t i ) noexcept
     {
-        assert( std::cmp_less( i , m_Width * m_Height ) );
+        assert( std::cmp_less( i, m_Width * m_Height ) );
         return m_Pixels[i];
     }
 
-    const Color& operator[]( size_t x, size_t y ) const
+    const Color& operator[]( size_t x, size_t y ) const noexcept
     {
-        assert( std::cmp_less( x , m_Width ) );
-        assert( std::cmp_less( y , m_Height ) );
+        assert( std::cmp_less( x, m_Width ) );
+        assert( std::cmp_less( y, m_Height ) );
 
         return m_Pixels[y * m_Width + x];
     }
 
-    Color& operator[]( size_t x, size_t y )
+    Color& operator[]( size_t x, size_t y ) noexcept
     {
-        assert( std::cmp_less( x , m_Width ) );
-        assert( std::cmp_less( y , m_Height ) );
+        assert( std::cmp_less( x, m_Width ) );
+        assert( std::cmp_less( y, m_Height ) );
 
         return m_Pixels[y * m_Width + x];
     }
@@ -106,10 +106,10 @@ struct Image final
     /// <param name="x">The x-coordinate of the pixel.</param>
     /// <param name="y">The y-coordinate of the pixel.</param>
     /// <returns>A constant reference to the color of the pixel at the given coordinates.</returns>
-    const Color& operator()( size_t x, size_t y ) const
+    const Color& operator()( size_t x, size_t y ) const noexcept
     {
-        assert( std::cmp_less( x , m_Width ) );
-        assert( std::cmp_less( y , m_Height ) );
+        assert( std::cmp_less( x, m_Width ) );
+        assert( std::cmp_less( y, m_Height ) );
 
         return m_Pixels[y * m_Width + x];
     }
@@ -120,10 +120,10 @@ struct Image final
     /// <param name="x">The x-coordinate of the pixel.</param>
     /// <param name="y">The y-coordinate of the pixel.</param>
     /// <returns>A reference to the color of the pixel at the given coordinates.</returns>
-    Color& operator()( size_t x, size_t y )
+    Color& operator()( size_t x, size_t y ) noexcept
     {
-        assert( std::cmp_less( x , m_Width ) );
-        assert( std::cmp_less( y , m_Height ) );
+        assert( std::cmp_less( x, m_Width ) );
+        assert( std::cmp_less( y, m_Height ) );
 
         return m_Pixels[y * m_Width + x];
     }
@@ -143,7 +143,7 @@ struct Image final
     /// <param name="v">The V texture coordinate.</param>
     /// <param name="samplerState">(Optional) Determines how to sample a pixel from the image.</param>
     /// <returns>The color of the texel at the given UV coordinates.</returns>
-    const Color& sample( int u, int v, const SamplerState& samplerState = SamplerState{}) const noexcept;
+    const Color& sample( int u, int v, const SamplerState& samplerState = SamplerState {} ) const noexcept;
 
     /// <summary>
     /// Sample the image at integer coordinates.
@@ -151,7 +151,7 @@ struct Image final
     /// <param name="uv">The texture coordinates.</param>
     /// <param name="samplerState">(Optional) Determines how to sample a pixel from the image.</param>
     /// <returns>The color of the texel at the given UV coordinates.</returns>
-    const Color& sample( const glm::ivec2& uv, const SamplerState& samplerState = SamplerState{} ) const noexcept
+    const Color& sample( const glm::ivec2& uv, const SamplerState& samplerState = SamplerState {} ) const noexcept
     {
         return sample( uv.x, uv.y, samplerState );
     }
@@ -163,11 +163,11 @@ struct Image final
     /// <param name="v">The V texture coordinate.</param>
     /// <param name="samplerState">(Optional) Determines how to sample a pixel from the image.</param>
     /// <returns>The color of the texel at the given UV texture coordinates.</returns>
-    const Color& sample( float u, float v, const SamplerState& samplerState = SamplerState{} ) const noexcept
+    const Color& sample( float u, float v, const SamplerState& samplerState = SamplerState {} ) const noexcept
     {
-        if (samplerState.normalizedCoordinates)
+        if ( samplerState.normalizedCoordinates )
         {
-            u = u * static_cast<float>( m_Width - 1 ) + 0.5f;  // NOLINT(bugprone-incorrect-roundings)
+            u = u * static_cast<float>( m_Width - 1 ) + 0.5f;   // NOLINT(bugprone-incorrect-roundings)
             v = v * static_cast<float>( m_Height - 1 ) + 0.5f;  // NOLINT(bugprone-incorrect-roundings)
         }
 
@@ -180,7 +180,7 @@ struct Image final
     /// <param name="uv">The normalized texture coordinates.</param>
     /// <param name="samplerState">(Optional) Determines how to sample a pixel from the image.</param>
     /// <returns>The color of the texel at the given UV texture coordinates.</returns>
-    const Color& sample( const glm::vec2& uv, const SamplerState& samplerState = SamplerState{} ) const noexcept
+    const Color& sample( const glm::vec2& uv, const SamplerState& samplerState = SamplerState {} ) const noexcept
     {
         return sample( uv.x, uv.y, samplerState );
     }
@@ -294,6 +294,23 @@ struct Image final
     const Color* data() const noexcept
     {
         return m_Pixels.get();
+    }
+
+    /// <summary>
+    /// Get a pointer to the first pixel of a row in the image.
+    /// </summary>
+    /// <param name="y">The row index (in pixels), starting at the top of the image.</param>
+    /// <returns>
+    /// A pointer to the first pixel in row <paramref name="y"/>, or <c>nullptr</c> if
+    /// <paramref name="y"/> is out of range or the image has no pixel buffer.
+    /// </returns>
+    template<typename Self>
+    auto getRow( this Self& self, int y ) noexcept -> decltype( self.data() )
+    {
+        if ( y < 0 || y >= self.m_Height || !self.m_Pixels )
+            return nullptr;
+
+        return self.data() + y * self.m_Width;
     }
 
 private:

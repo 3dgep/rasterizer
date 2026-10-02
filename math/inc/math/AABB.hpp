@@ -358,7 +358,7 @@ struct AABB
     /// <returns>true if the min point is less than the max point.</returns>
     bool isValid() const noexcept
     {
-        return all( lessThan( min, max ) );
+        return all( lessThanEqual( min, max ) );
     }
 
     /// <summary>
@@ -448,22 +448,22 @@ struct AABB
     /// <param name="x">The x-component to test.</param>
     /// <param name="y">The y-component to test.</param>
     /// <returns>The OutCode of the point relative to this AABB.</returns>
-    OutCode computeOutCode( float x, float y ) const noexcept
-    {
-        OutCode code = OutCode::Inside;
+OutCode computeOutCode( float x, float y ) const noexcept
+{
+    OutCode code = OutCode::Inside;
 
-        if ( x < min.x )
-            code |= OutCode::Left;
-        else if ( x > max.x )
-            code |= OutCode::Right;
+    if ( x < min.x )
+        code |= OutCode::Left; // -x
+    else if ( x > max.x )
+        code |= OutCode::Right; // +x
 
-        if ( y < min.y )
-            code |= OutCode::Bottom;
-        else if ( y > max.y )
-            code |= OutCode::Top;
+    if ( y < min.y )
+        code |= OutCode::Bottom; // -y
+    else if ( y > max.y )
+        code |= OutCode::Top; // +y
 
-        return code;
-    }
+    return code;
+}
 
     /// <summary>
     /// Compute the outcode of a point.
@@ -551,6 +551,29 @@ struct AABB
 
         return accept;
     }
+
+bool liangBarsky( float& x0, float& y0, float& x1, float& y1 ) const
+{
+    float dx     = x1 - x0, dy     = y1 - y0;
+    float tEnter = 0.0f, tLeave  = 1.0f;
+
+    float p[4] = { -dx, dx, -dy, dy };
+    float q[4] = { x0 - min.x, max.x - x0, y0 - min.y, max.y - y0 };
+
+    for ( int i = 0; i < 4; ++i )
+    {
+        if ( p[i] == 0.0f ) { if ( q[i] < 0.0f ) return false; }                // Parallel and outside the boundary
+        else if ( p[i] < 0.0f ) {  tEnter = std::max( tEnter, q[i] / p[i] );  } // Entering clipping region
+        else { tLeave = std::min( tLeave, q[i] / p[i] ); }                      // Leaving clipping region
+    }
+
+    if ( tEnter > tLeave ) return false; // Interval is empty: reject.
+
+    x1 = x0 + tLeave * dx;  y1 = y0 + tLeave * dy; // Trim far end first
+    x0 = x0 + tEnter * dx;  y0 = y0 + tEnter * dy; // Then near end
+
+    return true;
+}
 
     /// <summary>
     /// Clip a 2D line to this AABB.
