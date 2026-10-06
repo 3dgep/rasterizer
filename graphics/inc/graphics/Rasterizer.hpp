@@ -11,9 +11,12 @@
 #include "Vertex.hpp"
 
 #include <math/AABB.hpp>
-#include <math/Transform2D.hpp>
-#include <math/Viewport.hpp>
+#include <math/Rect.hpp>
 #include <math/Span.hpp>
+#include <math/Transform2D.hpp>
+
+#include <limits>
+#include <optional>
 
 struct TTF_TextEngine;
 
@@ -30,14 +33,14 @@ public:
     /// </summary>
     struct State
     {
-        Color     color                 = Color::White;     ///< Blend color.
-        Color     outlineColor          = Color::Black;     ///< Outline color used for drawing text.
-        FillMode  fillMode              = FillMode::Solid;  ///< Primitive filling mode (solid or wireframe).
-        CullMode  cullMode              = CullMode::Back;   ///< Determines which triangles are not drawn.
-        bool      frontCounterClockwise = true;             ///< If true, triangles are considered front-facing if their winding order is counter-clockwise.
-        BlendMode blendMode;                                ///< Determines how pixels are blended together on the render target.
-        Image*    colorTarget = nullptr;                    ///< The image to draw to.
-        Viewport  viewport;                                 ///< Viewport can be used for split-screen drawing.
+        Color       color                 = Color::White;                                                         ///< Blend color.
+        Color       outlineColor          = Color::Black;                                                         ///< Outline color used for drawing text.
+        FillMode    fillMode              = FillMode::Solid;                                                      ///< Primitive filling mode (solid or wireframe).
+        CullMode    cullMode              = CullMode::Back;                                                       ///< Determines which triangles are not drawn.
+        bool        frontCounterClockwise = true;                                                                 ///< If true, triangles are considered front-facing if their winding order is counter-clockwise.
+        BlendMode   blendMode;                                                                                    ///< Determines how pixels are blended together on the render target.
+        Image*      colorTarget = nullptr;                                                                        ///< The image to draw to.
+        math::RectI clipRect { 0, 0, std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max() };  ///< Pixels outside the clip rectangle are not drawn. By default, no clipping is performed (other than the color target bounds).
     } state;
 
     /// <summary>
@@ -52,7 +55,7 @@ public:
     /// - color
     /// - blendMode
     /// - colorTarget
-    /// - viewport
+    /// - clipRect
     /// </summary>
     /// <param name="x0">The x-coordinate of the starting point.</param>
     /// <param name="y0">The y-coordinate of the starting point.</param>
@@ -66,7 +69,7 @@ public:
     /// - color
     /// - blendMode
     /// - colorTarget
-    /// - viewport
+    /// - clipRect
     /// </summary>
     /// <param name="x0">The x-coordinate of the starting point.</param>
     /// <param name="y0">The y-coordinate of the starting point.</param>
@@ -83,7 +86,7 @@ public:
     /// - color
     /// - blendMode
     /// - colorTarget
-    /// - viewport
+    /// - clipRect
     /// </summary>
     /// <param name="p0">The starting point of the line.</param>
     /// <param name="p1">The endpoint of the line.</param>
@@ -98,7 +101,7 @@ public:
     /// - color
     /// - blendMode
     /// - colorTarget
-    /// - viewport
+    /// - clipRect
     /// </summary>
     /// <param name="p0">The starting point of the line.</param>
     /// <param name="p1">The endpoint of the line.</param>
@@ -113,7 +116,7 @@ public:
     /// - color
     /// - blendMode
     /// - colorTarget
-    /// - viewport
+    /// - clipRect
     /// </summary>
     /// <param name="line">The line to draw.</param>
     void drawLine( const math::Line& line ) const
@@ -123,7 +126,7 @@ public:
 
     void drawSpan( int x0, int x1, int y ) const;
 
-    void drawSpan(const Span& span, int y) const
+    void drawSpan( const Span& span, int y ) const
     {
         drawSpan( span.x0, span.x1, y );
     }
@@ -157,7 +160,7 @@ public:
     /// - fillMode
     /// - blendMode (solid fill mode)
     /// - colorTarget
-    /// - viewport
+    /// - clipRect
     /// </summary>
     /// <param name="p0">The first triangle coordinate (in screen coordinates).</param>
     /// <param name="p1">The second triangle coordinate (in screen coordinates).</param>
@@ -176,7 +179,7 @@ public:
     /// - color
     /// - fillMode
     /// - blendMode (solid fill mode)
-    /// - viewport
+    /// - clipRect
     /// </summary>
     /// <param name="aabb">The axis-aligned bounding box to draw.</param>
     void drawAABB( math::AABB aabb ) const;
@@ -247,6 +250,14 @@ public:
     void drawText( std::shared_ptr<const Font> font, std::string_view text, int x, int y ) const;
 
 private:
+    /// <summary>
+    /// Computes the (inclusive) pixel bounds that can be drawn to: the color target bounds clamped to the clip rectangle.
+    /// The color target must not be null.
+    /// Note: The resulting AABB may be invalid if the clip rectangle does not overlap the color target.
+    /// </summary>
+    /// <returns>The AABB to clip all drawing operations to.</returns>
+    math::AABB getClipAABB() const;
+
     /// <summary>
     /// Draws a line between two points using an algorithm optimized for lines with a shallow slope (|dy| < |dx|).
     /// </summary>

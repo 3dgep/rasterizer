@@ -24,7 +24,9 @@ int main()
     Rasterizer   rasterizer;
     Timer        timer;
     SamplerState samplerState { AddressMode::Wrap, Color::Black, true };
-    Text         fpsText { "FPS: 0" };
+    std::shared_ptr<Font> fpsFont = std::make_shared<Font>();
+    fpsFont->setOutline( 1 );
+    Text         fpsText { fpsFont, "FPS: 0" };
 
     window.setVSync( false );
 
@@ -119,27 +121,19 @@ int main()
             const int y = i / tilesX;
             auto      r = rasterizer;
 
-            r.state.viewport = Viewport {
-                static_cast<float>( x * tileSize ),
-                static_cast<float>( y * tileSize ),
-                tileSize, tileSize
-            };
+            r.state.clipRect = RectI { x * tileSize, y * tileSize, tileSize, tileSize };
             r.drawQuad( verts[0], verts[1], verts[2], verts[3], texture, samplerState );
         } );
 
-        //for ( int y = 0; y < tilesY; ++y )
+        // for ( int y = 0; y < tilesY; ++y )
         //{
-        //    for ( int x = 0; x < tilesX; ++x )
-        //    {
-        //        auto r           = rasterizer;
-        //        r.state.viewport = Viewport {
-        //            static_cast<float>( x * tileSize ),
-        //            static_cast<float>( y * tileSize ),
-        //            tileSize, tileSize
-        //        };
-        //        r.drawQuad( verts[0], verts[1], verts[2], verts[3], texture, samplerState );
-        //    }
-        //}
+        //     for ( int x = 0; x < tilesX; ++x )
+        //     {
+        //         auto r           = rasterizer;
+        //         r.state.clipRect = RectI { x * tileSize, y * tileSize, tileSize, tileSize };
+        //         r.drawQuad( verts[0], verts[1], verts[2], verts[3], texture, samplerState );
+        //     }
+        // }
 
 #endif
 
@@ -149,9 +143,6 @@ int main()
             timer.reset();
         }
 
-        fpsText.setFillColor( Color::Black );
-        rasterizer.drawText( fpsText, 12, 12 );
-        fpsText.setFillColor( Color::White );
         rasterizer.drawText( fpsText, 10, 10 );
 
         window.clear( Color::Black );

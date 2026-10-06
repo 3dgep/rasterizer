@@ -223,6 +223,24 @@ void Rasterizer::drawLineHigh( int x0, int y0, int x1, int y1 ) const
     }
 }
 
+AABB Rasterizer::getClipAABB() const
+{
+    AABB         aabb = state.colorTarget->getAABB();
+    const RectI& rect = state.clipRect;
+
+    // Rect is exclusive on the right/bottom edge, the AABB is inclusive.
+    // Computed in 64-bit to avoid overflow with the default (0, 0, INT_MAX, INT_MAX) clip rect.
+    const int64_t right  = static_cast<int64_t>( rect.left ) + rect.width - 1;
+    const int64_t bottom = static_cast<int64_t>( rect.top ) + rect.height - 1;
+
+    aabb.min.x = std::max( aabb.min.x, static_cast<float>( rect.left ) );
+    aabb.min.y = std::max( aabb.min.y, static_cast<float>( rect.top ) );
+    aabb.max.x = std::min( aabb.max.x, static_cast<float>( right ) );
+    aabb.max.y = std::min( aabb.max.y, static_cast<float>( bottom ) );
+
+    return aabb;
+}
+
 void Rasterizer::clear( std::optional<Color> color ) const
 {
     if ( Image* image = state.colorTarget )
@@ -236,8 +254,7 @@ void Rasterizer::drawLine( int x0, int y0, int x1, int y1 ) const
     if ( !image )
         return;
 
-    auto aabb = image->getAABB();
-    aabb.clamp( AABB::fromViewport( state.viewport ) );
+    auto aabb = getClipAABB();
 
     if ( !aabb.clip( x0, y0, x1, y1 ) )
         return;
@@ -315,7 +332,7 @@ void Rasterizer::drawCircle(int cx, int cy, int r) const
     // rectangle, and the circle's bounding box, all intersected. If the
     // result is empty there is nothing on screen, which is also how a tile
     // that the circle misses rejects the whole draw.
-    const AABB clip   = image->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+    const AABB clip   = getClipAABB();
     const AABB bounds = clip.clamped( AABB::fromCircle( outerCircle ) );
 
     if ( !bounds.isValid() )
@@ -364,7 +381,7 @@ void Rasterizer::drawCircle( int cx, int cy, int r ) const
     if ( !image )
         return;
 
-    AABB aabb       = image->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+    AABB aabb       = getClipAABB();
     AABB circleAABB = AABB::fromCircle( Circle { { cx, cy }, static_cast<float>( r ) } );
 
     if ( !circleAABB.intersect( aabb ) )
@@ -454,7 +471,7 @@ void Rasterizer::drawTriangle( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2 ) con
             break;
         }
 
-        auto aabb         = image->getAABB().clamped( AABB { state.viewport } );
+        auto aabb         = getClipAABB();
         auto triangleAABB = AABB::fromTriangle( p0, p1, p2 );
 
         if ( !triangleAABB.intersect( aabb ) )
@@ -519,7 +536,7 @@ void Rasterizer::drawTriangle( Vertex2D v0, Vertex2D v1, Vertex2D v2, const Imag
     }
 
     const BlendMode blendMode    = _blendMode.value_or( state.blendMode );
-    auto            aabb         = image->getAABB().clamped( AABB { state.viewport } );
+    auto            aabb         = getClipAABB();
     auto            triangleAABB = AABB::fromTriangle( v0.position, v1.position, v2.position );
 
     if ( !triangleAABB.intersect( aabb ) )
@@ -568,7 +585,7 @@ void Rasterizer::drawQuad( glm::ivec2 p0, glm::ivec2 p1, glm::ivec2 p2, glm::ive
     if ( !image )
         return;
 
-    AABB dstAABB = image->getAABB().clamped( AABB { state.viewport } );
+    AABB dstAABB = getClipAABB();
     AABB srcAABB = AABB { p0, p1, p2, p3 };
 
     if ( !srcAABB.intersect( dstAABB ) )
@@ -686,7 +703,7 @@ void Rasterizer::drawQuad( Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3, c
     }
 
     BlendMode blendMode = _blendMode.value_or( state.blendMode );
-    AABB      dstAABB   = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+    AABB      dstAABB   = getClipAABB();
 
     // Compute the AABB over the quad vertices.
     AABB srcAABB = AABB {
@@ -762,14 +779,12 @@ void Rasterizer::drawQuad( Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3, c
 
 void Rasterizer::drawAABB( math::AABB aabb ) const
 {
-    Image*   image    = state.colorTarget;
-    Viewport viewport = state.viewport;
+    Image* image = state.colorTarget;
 
     if ( !image )
         return;
 
-    AABB imageAABB = image->getAABB();
-    imageAABB.clamp( AABB::fromViewport( viewport ) );
+    const AABB imageAABB = getClipAABB();
 
     if ( !aabb.intersect( imageAABB ) )
         return;
@@ -805,8 +820,8 @@ void Rasterizer::drawImage( const Image& srcImage, int x, int y ) const
     int srcH = srcImage.getHeight();
     int dstW = dstImage->getWidth();
 
-    // Clamp destination rectangle to viewport and image bounds
-    AABB dstAABB    = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+    // Clamp destination rectangle to clip rectangle and image bounds
+    AABB dstAABB    = getClipAABB();
     int  clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), x );
     int  clipTop    = std::max( static_cast<int>( dstAABB.min.y ), y );
     int  clipRight  = std::min( static_cast<int>( dstAABB.max.x ), x + srcW - 1 );
@@ -861,8 +876,8 @@ void Rasterizer::drawImage( const Image& srcImage, std::optional<sr::math::RectI
         dstH = dstRect->height;
     }
 
-    // Clamp destination rectangle to viewport and image bounds
-    AABB dstAABB    = dstImage->getAABB().clamped( AABB::fromViewport( state.viewport ) );
+    // Clamp destination rectangle to clip rectangle and image bounds
+    AABB dstAABB    = getClipAABB();
     int  clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), dstX );
     int  clipTop    = std::max( static_cast<int>( dstAABB.min.y ), dstY );
     int  clipRight  = std::min( static_cast<int>( dstAABB.max.x ), dstX + dstW - 1 );
@@ -911,14 +926,13 @@ void Rasterizer::drawSprite( const Sprite& sprite, int _x, int _y ) const
     if ( !srcImage || !dstImage )
         return;
 
-    const Color      color        = sprite.getColor() * state.color;
-    const BlendMode  blendMode    = sprite.getBlendMode();
-    const AABB       viewportAABB = AABB::fromViewport( state.viewport );
-    const AABB       dstAABB      = dstImage->getAABB().clamped( viewportAABB );
-    const glm::ivec2 size         = sprite.getSize();
-    glm::ivec2       uv           = sprite.getUV();
+    const Color      color     = sprite.getColor() * state.color;
+    const BlendMode  blendMode = sprite.getBlendMode();
+    const AABB       dstAABB   = getClipAABB();
+    const glm::ivec2 size      = sprite.getSize();
+    glm::ivec2       uv        = sprite.getUV();
 
-    // Compute viewport clipping bounds.
+    // Compute clipping bounds.
     const int clipLeft   = std::max( static_cast<int>( dstAABB.min.x ), _x );
     const int clipTop    = std::max( static_cast<int>( dstAABB.min.y ), _y );
     const int clipRight  = std::min( static_cast<int>( dstAABB.max.x ), _x + size.x - 1 );
