@@ -15,6 +15,7 @@ set( INC_FILES
     inc/graphics/Sprite.hpp
     inc/graphics/SpriteSheet.hpp
     inc/graphics/Text.hpp
+    inc/graphics/TiledRasterizer.hpp
     inc/graphics/TileMap.hpp
     inc/graphics/Vertex.hpp
 	inc/graphics/Window.hpp
@@ -39,6 +40,7 @@ set( SRC_FILES
     src/SpriteAnimation.cpp
     src/SpriteSheet.cpp
     src/Text.cpp
+    src/TiledRasterizer.cpp
     src/TileMap.cpp
 	src/Window.cpp
     src/SDL_ttf_context.cpp

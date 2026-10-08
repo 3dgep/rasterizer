@@ -4,14 +4,29 @@
 #include <new>  // For std::bad_alloc
 #include <type_traits>
 
-#ifdef _MSC_VER
-    #define aligned_malloc( size, alignment ) _aligned_malloc( ( size ), ( alignment ) )
-    #define aligned_free                      _aligned_free
+inline void* aligned_malloc( std::size_t size, std::size_t alignment ) noexcept
+{
+    if ( size == 0 )
+        size = alignment;
+
+#if defined( _WIN32 )
+    return _aligned_malloc( size, alignment );
 #else
-    #include <cstdlib>
-    #define aligned_malloc( size, alignment ) std::aligned_alloc( ( alignment ), ( size ) )
-    #define aligned_free                      std::free
+    if ( size > SIZE_MAX - ( alignment - 1 ) )
+        return nullptr;  // Rounding up would overflow.
+
+    return std::aligned_alloc( alignment, ( size + alignment - 1 ) / alignment * alignment );
 #endif
+}
+
+inline void aligned_free( void* p ) noexcept
+{
+#if defined( _WIN32 )
+    _aligned_free( p );
+#else
+    std::free( p );
+#endif
+}
 
 template<typename T>
 struct aligned_deleter

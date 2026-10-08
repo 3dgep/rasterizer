@@ -29,10 +29,7 @@ struct AABB
     , max { std::numeric_limits<float>::lowest() }
     {}
 
-    AABB( const AABB& copy )
-    : min { glm::min( copy.min, copy.max ) }
-    , max { glm::max( copy.min, copy.max ) }
-    {}
+    AABB( const AABB& copy ) = default;
 
     /// <summary>
     /// Construct an axis-aligned bounding box from 2 points.
@@ -115,16 +112,7 @@ struct AABB
         max = glm::vec3 { viewport.x + viewport.width - 1, viewport.y + viewport.height - 1, viewport.maxDepth };
     }
 
-    AABB operator=( const AABB& rhs ) noexcept
-    {
-        if ( this == &rhs )
-            return *this;
-
-        min = rhs.min;
-        max = rhs.max;
-
-        return *this;
-    }
+    AABB operator=( const AABB& rhs ) noexcept = default;
 
     /// <summary>
     /// Translate this AABB.

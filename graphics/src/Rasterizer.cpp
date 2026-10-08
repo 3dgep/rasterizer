@@ -939,7 +939,7 @@ void Rasterizer::drawSprite( const Sprite& sprite, int _x, int _y ) const
     const int clipBottom = std::min( static_cast<int>( dstAABB.max.y ), _y + size.y - 1 );
 
     // Check if the sprite is completely off-screen.
-    if ( clipLeft >= clipRight || clipTop >= clipBottom )
+    if ( clipLeft > clipRight || clipTop > clipBottom )
         return;
 
     // Adjust sprite UV based on clipping.
